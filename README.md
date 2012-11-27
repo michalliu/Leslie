@@ -1,7 +1,7 @@
-zhubuntu
+Leslie
 ========
 
-My GitHub Blog
+Welcome To My GitHub Blog
 
 Career:
 =======
@@ -11,7 +11,7 @@ Career:
 * Opzoon (2011.08-2012.06)
 * KDS (2012.06-)
 
-SKills:
+Skills:
 =======
 
 * Linux Adminstration
@@ -31,7 +31,7 @@ Contact
 
 Leslie Zhu
 
-Tue Nov 27,02:02
+Tue Nov 27 2012,02:02
 
 
 
