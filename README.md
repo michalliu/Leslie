@@ -8,7 +8,7 @@ Career:
 
 
 * [KDS](http://www.knowledgedecisionservices.com/kds/home/home.jsp "KDS") (2012.06-)
-* [Opzoon](http://www.opzoon.com/ "Opzoon") 2011.08-2012.06)  
+* [Opzoon](http://www.opzoon.com/ "Opzoon") (2011.08-2012.06)  
 * [XiDian University](http://www.xidian.edu.cn/ "XiDian") (2007.09~2011.07)
 
 
