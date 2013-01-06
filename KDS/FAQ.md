@@ -6,15 +6,15 @@ MOA团队常见问题集锦。
 POD1
 ------
 
-* obi22是POD的SysG，包括node：obi23 ~  obi40
-* x22  是POX的SysG，包括node：  x23 ~  x40
+* obi22是POD的SysG，包括node：``obi23 ~  obi40``
+* x22  是POX的SysG，包括node：``x23 ~  x40``
 * obi22和x22互为主、备关系
 
 POD2
 ------
 
-* w109是DOD的SysG，  包括node：w1 ～ w108
-* y71 是Y-Node的SysG，包括node：y72 ~ y107
+* w109是DOD的SysG，  包括node：``w1 ～ w108``
+* y71 是Y-Node的SysG，包括node:``y72 ~ y107``
 * w109和y71互为主、备关系
 
 
@@ -75,19 +75,19 @@ Makefile
 * 相对前台的cohort，正常cohort，前面要加上“trimed_memo,15,1,timeSeries,”字符
 * 运行cohort获取request-id:
 
-``RunUBT -nb XXX.ubt``
+* ``RunUBT -nb XXX.ubt``
 
-``scripts/TST.sh XXX.ubt``
+* ``scripts/TST.sh XXX.ubt``
 
-``./UBClient -u username -p password -t 'cohort'``
+* ``./UBClient -u username -p password -t 'cohort'``
 
 * 获取结果，结果以xml格式保存在~/bin/Requests/all/requst-id.ub7：
 
-``rsp -S request-id``
+* ``rsp -S request-id``
 
-``rsp request-id 0，获取cohort具体在系统中信息``
+* ``rsp request-id 0，获取cohort具体在系统中信息``
 
-``rsp request-id 1，获取输出page num 1结果``
+* ``rsp request-id 1，获取输出page num 1结果``
 
 
 ubc
@@ -122,11 +122,11 @@ DOD备份
 
 * 更新表后，运行命令:
 
-``cd bin;make sync-failover year=2012``
+* ``cd bin;make sync-failover year=2012``
 
 * 查看日志:
 
-``ssh kdsd03@y71;cd DOD;tail -f ND/1/kdsd03/UBBackup2.log``
+* ``ssh kdsd03@y71;cd DOD;tail -f ND/1/kdsd03/UBBackup2.log``
 
 con和pdb表关系
 ==============
@@ -182,4 +182,5 @@ ub0和ub1
 FNMA Remic
 ===========
 
-* 经常出mega文件小的问题，重``run scripts/GenObalATI fn``
+* 经常出mega文件小的问题:
+* ``scripts/GenObalATI fn``
