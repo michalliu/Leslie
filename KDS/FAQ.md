@@ -120,5 +120,10 @@ ubc
 DOD备份
 =======
 
-* 更新表后，运行命令``cd bin;make sync-failover year=2012``
-* 查看日志``ssh kdsd03@y71;cd DOD;tail -f ND/1/kdsd03/UBBackup2.log``
+* 更新表后，运行命令:
+
+``cd bin;make sync-failover year=2012``
+
+* 查看日志:
+
+``ssh kdsd03@y71;cd DOD;tail -f ND/1/kdsd03/UBBackup2.log``
