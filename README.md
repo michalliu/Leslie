@@ -6,7 +6,7 @@ Leslie
 
 * [博客](https://github.com/LeslieZhu/Leslie/tree/master/Blog)
 * [阅读记录](https://github.com/LeslieZhu/Leslie/tree/master/Reading)
-* [留言、评论](https://github.com/LeslieZhu/Leslie/tree/master/Comment)
+
 
 
 Career:
@@ -46,6 +46,9 @@ Contact
 * Skype: lesliechu2
 * QQ   : 1463090172
 * Weibo: http://weibo.com/zhubuntu
+
+[留言、评论](https://github.com/LeslieZhu/Leslie/tree/master/Comment)
+============
 
 
 Copyright © 2012-2013 by [Leslie Zhu](http://lesliezhu.github.com/Leslie/)
