@@ -1,7 +1,7 @@
 Leslie
 ========
 
-Welcome To My GitHub Blog
+简单生活，追求卓越！
 
 Career:
 =======
@@ -18,9 +18,9 @@ Skills:
 =======
 
 * Linux Adminstration
-* C programmer
+* C Programmer
 * Python Programmer
-* Financial engineer
+* Financial Engineer
 
 
 Contact
