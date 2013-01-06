@@ -6,6 +6,7 @@ Leslie
 
 * [博客](https://github.com/LeslieZhu/Leslie/tree/master/Blog)
 * [阅读记录](https://github.com/LeslieZhu/Leslie/tree/master/Reading)
+* [摄影小屋](http://lesliechu.pp.163.com/)
 
 
 
