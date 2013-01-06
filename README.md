@@ -8,6 +8,7 @@ Leslie
 * [阅读记录](https://github.com/LeslieZhu/Leslie/tree/master/Reading)
 * [GNU/Linux资料](https://github.com/LeslieZhu/Leslie/tree/master/GNU-Linux)
 * [酷屌丝FAQ](https://github.com/LeslieZhu/Leslie/tree/master/KDS)
+* [留言、评论](https://github.com/LeslieZhu/Leslie/tree/master/Comment)
 
 
 Career:
