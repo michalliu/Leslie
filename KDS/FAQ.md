@@ -127,3 +127,59 @@ DOD备份
 * 查看日志:
 
 ``ssh kdsd03@y71;cd DOD;tail -f ND/1/kdsd03/UBBackup2.log``
+
+con和pdb表关系
+==============
+
+* 201202年后，pdb表和con表的时间在表名字上是一致的；之前是pdb使用下一个月的con表
+* dtl从2004年左右开始的
+
+调试kscripts
+=============
+
+* 保存为临时文件版本
+* 把～1替换为需要的年份时间
+* 注释output
+* 注释put
+* 注释index
+* 一旦没有注释掉这些代码，就会破坏数据，必须用现有脚本重新生成表
+
+gen和geo的关系
+==============
+
+* run完gen_pdb后，一定要run geo_pdb
+* 如果没有run geo_pdb，则loansz为空
+* 看到loansz为空，则应该是geo_pdb是否为空
+
+
+
+ub0和ub1
+==========
+
+* ub0是一条记录（一个pool）的源数据，报告各个字段的值
+* ub1是将ub0按各个字段存储的数据，layout有几个字段，就应该有几个ub1文件
+* 如果出现寻找ub0文件错误，一般是layout定义超出了ub1个数，所以去ub0里面找字段
+* 出现此问题，一般是layout错误
+
+网络环境
+===========
+
+* MOA网络和Product网络有区别，比如备份数据走MOA网络，不可占用Product网络
+
+
+创建虚表
+==========
+
+* 参考/home/kdsdevl/bin/scripts/gn_vtbl.sh
+
+重启z19
+========
+
+* ``cd ~kdsd03/GridServer``
+
+* ``make start``
+
+FNMA Remic
+===========
+
+* 经常出mega文件小的问题，重``run scripts/GenObalATI fn``
