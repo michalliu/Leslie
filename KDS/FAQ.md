@@ -76,12 +76,17 @@ Makefile
 * 运行cohort获取request-id:
 
 ``RunUBT -nb XXX.ubt``
+
 ``scripts/TST.sh XXX.ubt``
-``./UBClient -u username -p password -t 'cohort'
+
+``./UBClient -u username -p password -t 'cohort'``
 
 * 获取结果，结果以xml格式保存在~/bin/Requests/all/requst-id.ub7：
+
 ``rsp -S request-id``
+
 ``rsp request-id 0，获取cohort具体在系统中信息``
+
 ``rsp request-id 1，获取输出page num 1结果``
 
 
