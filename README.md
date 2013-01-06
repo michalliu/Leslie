@@ -6,8 +6,6 @@ Leslie
 
 * [博客](https://github.com/LeslieZhu/Leslie/tree/master/Blog)
 * [阅读记录](https://github.com/LeslieZhu/Leslie/tree/master/Reading)
-* [GNU/Linux资料](https://github.com/LeslieZhu/Leslie/tree/master/GNU-Linux)
-* [酷屌丝FAQ](https://github.com/LeslieZhu/Leslie/tree/master/KDS)
 * [留言、评论](https://github.com/LeslieZhu/Leslie/tree/master/Comment)
 
 
@@ -33,6 +31,8 @@ Skills:
 Projects
 =========
 
+* [GNU/Linux资料](https://github.com/LeslieZhu/Leslie/tree/master/GNU-Linux)
+* [酷屌丝FAQ](https://github.com/LeslieZhu/Leslie/tree/master/KDS)
 * [Python实现Join](https://github.com/LeslieZhu/Leslie/tree/master/PyJoin)
 * [PyGame学习](https://github.com/LeslieZhu/Leslie/tree/master/PyGameNote)
 * [MPlayer-GUI毕业设计完善](https://github.com/LeslieZhu/Leslie/tree/master/MPlayer-GUI)
