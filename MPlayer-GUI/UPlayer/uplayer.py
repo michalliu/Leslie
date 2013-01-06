@@ -418,9 +418,9 @@ class SettingMovieScreen(object):
     def update_movie(self):
         u"改变视频文件进行播放"
        
-        if os.path.exist("/usr/local/bin/mplayer"):
+        if os.path.exists("/usr/local/bin/mplayer"):
 	    self.program="/usr/local/bin/mplayer"
-	elif os.path.exist("/usr/bin/mplayer"):
+	elif os.path.exists("/usr/bin/mplayer"):
 	    self.program = "/usr/bin/mplayer"
 	else:
 	    print "can not find mplayer"
