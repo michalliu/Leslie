@@ -417,8 +417,14 @@ class SettingIcons(object):
 class SettingMovieScreen(object):
     def update_movie(self):
         u"改变视频文件进行播放"
-        
-        self.program = "/usr/bin/mplayer"
+       
+        if os.path.exist("/usr/local/bin/mplayer"):
+	    self.program="/usr/local/bin/mplayer"
+	elif os.path.exist("/usr/bin/mplayer"):
+	    self.program = "/usr/bin/mplayer"
+	else:
+	    print "can not find mplayer"
+	    sys.exit()
 
         self.text = " -slave -quiet –ac –mad -input file=/tmp/cmd "+self.movieFile+" -wid "+str(self.frame_center.winId())+" &"
         
