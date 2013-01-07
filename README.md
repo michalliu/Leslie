@@ -7,6 +7,7 @@ Leslie
 * [博客](https://github.com/LeslieZhu/Leslie/tree/master/Blog)
 * [阅读记录](https://github.com/LeslieZhu/Leslie/tree/master/Reading)
 * [摄影小屋](http://lesliechu.pp.163.com/)
+* [新浪微博](http://weibo.com/zhubuntu)
 * [求职简历](https://github.com/LeslieZhu/Leslie/tree/master/Resume)
 
 
@@ -47,7 +48,7 @@ Contact
 * GMail: pythonisland@gmail.com
 * Skype: lesliechu2
 * QQ   : 1463090172
-* Weibo: http://weibo.com/zhubuntu
+
 
 [留言、评论](https://github.com/LeslieZhu/Leslie/tree/master/Comment)
 ============
