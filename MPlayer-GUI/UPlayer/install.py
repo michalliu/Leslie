@@ -5,6 +5,8 @@ import os
 
 print "=" * 10,"Welcome To UPlayer","=" * 10
 
+os.system("cp uplayer.desktop ~/Desktop/")
+
 print "=" * 5, "mkdir /usr/share/uplayer..."
 if not os.path.exists("/usr/share/uplayer"):
     os.system("mkdir /usr/share/uplayer")

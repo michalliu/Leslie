@@ -14,12 +14,12 @@ class SettingMenuBar(object):
       u"设置菜单栏"
       self.menubar=self.menuBar()      #菜单栏
       #增加菜单
-      self.file=self.menubar.addMenu(u"文件(&F)")
-      self.edit=self.menubar.addMenu(u"编辑(&E)")
-      self.view=self.menubar.addMenu(u"查看(&V)")
-      self.goto=self.menubar.addMenu(u"转到(&G)")
+      self.file =self.menubar.addMenu(u"文件(&F)")
+      self.edit =self.menubar.addMenu(u"编辑(&E)")
+      self.view =self.menubar.addMenu(u"查看(&V)")
+      self.goto =self.menubar.addMenu(u"转到(&G)")
       self.sound=self.menubar.addMenu(u"声音(&S)")
-      self.help=self.menubar.addMenu(u"帮助(&H)")
+      self.help =self.menubar.addMenu(u"帮助(&H)")
 
       #工具栏
       self.toolbar=self.addToolBar(u"工具栏(&T)")
