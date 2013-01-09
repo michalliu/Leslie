@@ -35,11 +35,9 @@ Projects
 =========
 
 * [GNU/Linux资料](https://github.com/LeslieZhu/Leslie/tree/master/GNU-Linux)
-* [酷屌丝FAQ](https://github.com/LeslieZhu/Leslie/tree/master/KDS)
 * [Python实现Join](https://github.com/LeslieZhu/Leslie/tree/master/PyJoin)
 * [PyGame学习](https://github.com/LeslieZhu/Leslie/tree/master/PyGameNote)
 * [MPlayer-GUI毕业设计完善](https://github.com/LeslieZhu/Leslie/tree/master/MPlayer-GUI)
-* [UB系统压缩程序](https://github.com/LeslieZhu/Leslie/tree/master/UBCompress)
 
 
 Contact
