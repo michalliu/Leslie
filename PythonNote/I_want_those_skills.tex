@@ -1,0 +1,140 @@
+%!TEX encoding = UTF-8 Unicode
+% $Id$
+%I_want_those_skills.tex
+%
+
+\documentclass[11pt,a4paper]{book}
+\usepackage{CJK}
+%\usepackage[unicode=true,
+%pdfusetitle=false,
+%pdftitle={我想做极客},
+%hyperindex,                     
+%bookmarksnumbered=true,
+%bookmarksopen=true,
+%breaklinks=true,
+%colorlinks=true]{hyperref}
+
+\usepackage{CJKnumb}
+
+
+\begin{document}
+
+\begin{CJK*}{UTF8}{nsung}
+%\tableofcontents
+\newcommand\prechaptername{第}
+\newcommand\postchaptername{章~}
+\renewcommand\chapterformat{\prechaptername\CJKnumber{\value{chapter}}\postchaptername\enskip}
+%\renewcommand{\chatermark}[1]{\markboth{\CJKprechaptername~\thechapter~\CJKchaptername\quad#1}{}}
+%\renewcommand{\sectionmark}[1]{\markright{#1}}
+
+% include{./title.tex}
+\begin{titlepage}
+\pagestyle{empty}
+\begin{center}
+\title{我想成为极客}
+%\subtitle{拥有这些技能}
+\date{December 20, 2012}
+\author{author \\ Leslie Zhu}
+\maketitle
+\vfill
+Copyright \copyright\ 2012 Leslie Zhu
+\end{center}
+
+\newpage
+~
+\vfill
+\begin{center}
+  谨以此书献给郡主。
+\end{center}
+\vfill
+
+\newpage
+~
+\vfill
+\begin{center}
+ $\lambda$
+\end{center}
+\vfill
+\end{titlepage}
+
+
+\pagenumbering{roman}
+
+\begin{figure}
+\begin{verbatim}
+>>>def cmp(x,y):
+...    return x > y ? True : False
+...
+>>> cmp(6,7)
+False
+>>> 
+\end{verbatim}
+\end{figure}
+hello\newline
+world\newline
+\begin{verbatim}
+(defnode 'perple "Is the person a man?"
+         'male 'female)
+\end{verbatim}
+\chapter{1}
+
+ \subsubsection{在我心目中，极客是这样的}
+
+    1. 爱编程，弹吉他，好专研，乐分享；
+
+
+\section{初级程序员}
+
+    1. 了解计算机原理；\\
+    2. 熟悉Linux编程环境；\\
+    3. 养成写文档习惯；\\
+
+\section{涉及技能}
+
+    1、基本掌握python语言的使用\\
+    2、熟悉C语言编程；\\
+    3、熟悉GCC编译器的使用；\\
+    4、熟悉GDB调试程序；\\
+    5、熟悉Emacs、VIM文本编辑器的简单使用\\
+    6、熟悉Makefile进行工程管理\\
+    7、熟悉Linux系统的基本操作及Shell编程\\
+
+\section{附加技能}
+    1、熟悉Git进行项目管理\\
+    2、熟悉LaTeX写文档\\
+    3、熟读《深入理解操作系统》一书\\
+    4、熟读《UNIX环境高级编程》一书\\
+
+    
+\section{中级程序员}
+    1. 精通一门语言，至少对其它一门语言有所了解；\\
+    2. 精通一个操作系统；\\
+    3. 做过中型项目；\\
+
+\section{涉及技能}
+    1、精通python语言的方方面面，并用其做过项目；\\
+    2、阅读Linux内核源码，理解基本工作原理；\\
+    3、精通Emacs编辑器的定制及插件开发；\\
+    4、了解Perl语言；\\
+    5、创建Github项目；\\
+
+
+\section{附加技能}
+    1、熟悉metapost绘制图形；\\
+    2、熟读《算法导论》\\
+    3、熟读《计算机程序的构造和解释》\\
+
+\section{高级程序员}
+    1. 写文档；\\
+    2. 参与开源项目；\\
+    3. 乐于编程，喜欢专研，创造而非模仿；\\
+
+\section{涉及技能}
+    1. 熟读《编译原理》，能实现编译器；\\
+    2. 熟悉LISP语言；\\
+    3. 翻译或写过技术书籍；\\
+   
+    
+
+\end{CJK*}
+\end{document}
