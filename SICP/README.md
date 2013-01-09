@@ -20,3 +20,9 @@ Guile 不仅仅是一种扩展语言：它是 GNU 项目的官方扩展语言。
 Guile 在通过编写脚本来扩展应用程序方面有过成功的历史，包括在 GNU Emacs、GIMP 和 Apache Web Server 中。
 
 Guile 的特长是可扩展性；通过使用 Guile，可以解释 Scheme 脚本，将 Scheme 脚本动态地绑定到编译过的 C 程序，甚至可以将编译过的 C 函数集成到 Scheme 脚本中。这个非常有用的特性使用户可以调整或定制应用程序，增加它们的价值。
+
+
+Run
+========
+
+``guile HelloWorld.scm``
