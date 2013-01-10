@@ -50,3 +50,6 @@
 ;; ABORT: (stack-overflow)
 ;; guile> 
 ;; 
+
+(display (sqrt 9))
+(display "\n")
