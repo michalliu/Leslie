@@ -27,7 +27,8 @@
   (sqrt-iter 1.0 x))
 
 ;; #1.6
-;; 据说，new-if是自己定义的过程，过程调用前对参数进行求值，从而和预想不一致
+;; new-if是自己定义的过程，过程调用前对参数进行求值，从而和预想不一致
+;; 应用序，而非正则序
 (define (new-if predicate then-clause else-clause)
   (cond (predicate then-clause)
 	(else else-clause)))
