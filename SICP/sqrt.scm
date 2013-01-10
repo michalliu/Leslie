@@ -25,3 +25,31 @@
 
 (define (sqrt x)
   (sqrt-iter 1.0 x))
+
+;; #1.6
+(define (new-if predicate then-clause else-clause)
+  (cond (predicate then-clause)
+	(else else-clause)))
+
+;; fix 1.1
+(define (new-if-1.1 predicate then-clause else-clause)
+  (cond (predicate)
+	then-clause
+	(else else-clause)))
+
+(define (new-sqrt-iter guess x)
+  (new-if-1.1 (good-enough? guess x)
+	      guess
+	      (else (new-sqrt-iter (improve guess x)
+				   x))))
+;; Stack overflow
+(define (new-sqrt x)
+  (new-sqrt-iter 1.0 x))
+
+;; guile> (load "sqrt.scm")
+;; guile> (sqrt 9)
+;; 3.00009155413138
+;; guile> (new-sqrt 9)
+;; ERROR: Stack overflow
+;; ABORT: (stack-overflow)
+;; guile> 
