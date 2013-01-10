@@ -27,21 +27,17 @@
   (sqrt-iter 1.0 x))
 
 ;; #1.6
+;; 据说，new-if是自己定义的过程，过程调用前对参数进行求值，从而和预想不一致
 (define (new-if predicate then-clause else-clause)
   (cond (predicate then-clause)
 	(else else-clause)))
 
-;; fix 1.1
-(define (new-if-1.1 predicate then-clause else-clause)
-  (cond (predicate)
-	then-clause
-	(else else-clause)))
 
 (define (new-sqrt-iter guess x)
-  (new-if-1.1 (good-enough? guess x)
-	      guess
-	      (else (new-sqrt-iter (improve guess x)
-				   x))))
+  (new-if (good-enough? guess x)
+		guess
+		(new-sqrt-iter (improve guess x)
+			       x)))
 ;; Stack overflow
 (define (new-sqrt x)
   (new-sqrt-iter 1.0 x))
@@ -53,3 +49,4 @@
 ;; ERROR: Stack overflow
 ;; ABORT: (stack-overflow)
 ;; guile> 
+;; 
