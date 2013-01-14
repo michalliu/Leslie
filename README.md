@@ -52,7 +52,7 @@ Contact
 ============
 
 
-Copyright © 2012-2013 by [Leslie Zhu](http://lesliezhu.github.com/Leslie/)
+Copyright © 2012-2013 By [Leslie Zhu](http://lesliezhu.github.com/Leslie/)
 
 Tue Nov 27 2012,02:02
 
