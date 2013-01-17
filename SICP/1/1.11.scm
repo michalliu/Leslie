@@ -35,9 +35,7 @@
   (cc 2 1 0  n))
 
 (define (cc prev1 prev2 prev3 n)
-  (cond ((= n 0) 0)
-	((= n 1) 1)
-	((= n 2) 2)
+  (cond ((< n 3) n)
 	((= n 3) (+ prev1 (* 2 prev2) (* 3 prev3)))
 	(else (cc (+ prev1 (* 2 prev2) (* 3 prev3))   prev1 prev2 (- n 1)))))
 
@@ -74,7 +72,11 @@
 (display "\n")
 
 
-
+(display "\nf(28):")
+(display (call-self 28))
+(display "\nff(28):")
+(display (call-self-again 28))
+(display "\n")
 
 
 
