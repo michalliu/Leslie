@@ -1,3 +1,7 @@
 *~
 *.pyc
 *.o
+.Rproj.user
+*.pyo
+*.swp
+*#
