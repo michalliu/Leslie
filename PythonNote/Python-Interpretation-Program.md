@@ -56,7 +56,8 @@ PYTHONCASEOK : import导入模块时不区分大小写（Linux上无效）
 
 PYTHONIOENCODING:
 
-stdin/stdout/stderr信息编码，可设置utf_8，gbk，从python3开始缺省是utf-8，python2缺省是ascii。sys.getdefaultencoding()和sys.setdefaultcoding('xxxx')。
+stdin/stdout/stderr信息编码，可设置utf_8，gbk，从python3开始缺省是utf-8，python2缺省是ascii。
+sys.getdefaultencoding()和sys.setdefaultcoding('xxxx')。
 ```
 
 ### -B 
