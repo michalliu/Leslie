@@ -1,32 +1,20 @@
-<<<<<<< HEAD
-# CPython
-=======
 # CPython解释器简介
 
 python - an interpreted, interactive, object-oriented programming language
 
 ## CPython
->>>>>>> b9b2162cc0bb429f9d9b04afc7c255e6aac9493d
 
 CPython是用C语言实现的Python解释器，也是官方的并且是最广泛使用的Python解释器。除了CPython以外，还有用JAVA实现的Jython和用.NET实现的IronPython，使Python方便地和JAVA程序、.NET程序集成。另外还有一些实验性的Python解释器比如PyPy。
 
 CPython是使用字节码的解释器，任何程序源代码在执行之前先要编译成字节码。它还有和几种其它语言（包括C语言）交互的外部函数接口。
 
-<<<<<<< HEAD
-# PyPy
-=======
 ## PyPy
->>>>>>> b9b2162cc0bb429f9d9b04afc7c255e6aac9493d
 
 这个只知道是用Python实现Python语言解释器，属于元编程吧，再说。
 
 
 
-<<<<<<< HEAD
-# CPython参数
-=======
 ## CPython参数
->>>>>>> b9b2162cc0bb429f9d9b04afc7c255e6aac9493d
 
 使用很久，却没有认真看过这些文档，也许正是忽略了这些，才会觉得用的不得劲吧。
 
@@ -114,12 +102,8 @@ HI
 
 ### -E 
 
-<<<<<<< HEAD
 
--c cmd : program passed in as string (terminates option list)
-=======
 忽略系统中PYTHON*相关变量。
->>>>>>> b9b2162cc0bb429f9d9b04afc7c255e6aac9493d
 
 ### -i 
 
@@ -215,7 +199,6 @@ $ python -Qnew test.py
 /usr/lib/python2.7/site-packages/setuptools-0.6c11-py2.7.egg-info
 ```
 
-<<<<<<< HEAD
 ## -B : don't write .py[co] files on import; also PYTHONDONTWRITEBYTECODE=x
 
 加载模块会编译字节码，``-B``选项禁止产生字节码文件``*.pyc``,``*.pyo``;
