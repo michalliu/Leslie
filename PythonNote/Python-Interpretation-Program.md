@@ -204,7 +204,7 @@ $ python -Qnew test.py
 '/home/user/.local/lib/python2.7/site-packages'
 ```
 
-那么如果没有-S，文件/home/user/.local/lib/python2.7/site-packages/usercustomize.py会影响Python的每一次调用。
+那么如果没有-s，文件/home/user/.local/lib/python2.7/site-packages/usercustomize.py会影响Python的每一次调用。
 
 
 ### -S   
