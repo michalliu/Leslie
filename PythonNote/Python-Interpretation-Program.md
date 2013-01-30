@@ -102,7 +102,6 @@ HI
 
 ### -E 
 
-
 忽略系统中PYTHON*相关变量。
 
 ### -i 
@@ -199,12 +198,6 @@ $ python -Qnew test.py
 /usr/lib/python2.7/site-packages/setuptools-0.6c11-py2.7.egg-info
 ```
 
-## -B : don't write .py[co] files on import; also PYTHONDONTWRITEBYTECODE=x
-
-加载模块会编译字节码，``-B``选项禁止产生字节码文件``*.pyc``,``*.pyo``;
-也可以通过设置变量``export PYTHONDONTWRITEBYTECODE=x``来达到同样效果.
-
-=======
 ```python
 >>> import site
 >>> site.getusersitepackages()
@@ -323,4 +316,3 @@ Python的系统管理应用，就是拿Python当shell用，功能会更强大些
 ### 游戏开发
 
 * pygame
->>>>>>> b9b2162cc0bb429f9d9b04afc7c255e6aac9493d
