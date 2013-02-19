@@ -14,6 +14,7 @@
 * 《Perl语言入门》
 * 《makinggames》
 * 《SICP》
+* 《Being Geek》
 
 ## 阅读记录
 
