@@ -1,0 +1,9 @@
+[user]
+	name = Leslie Zhu
+	email = pythonisland@gmail.com
+[alias]
+	co = checkout
+[color]
+	ui = true
+[merge]
+	tool = vimdiff

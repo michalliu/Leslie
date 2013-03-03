@@ -1,0 +1,137 @@
+;; 这是王垠的模板
+(bind-keys window-keymap "W-F9" 'run-shell-command)
+
+;; 自己定义的宏
+(defmacro my-setq (name value)
+  "Declare the NAME as a variable and set its value to VALUE."
+  `(progn (defvar ,name)
+      (setq ,name ,value)))
+
+
+;; 自己定义的函数
+(defun backgroundize (string)
+  "Append a character `&' to STRING if it is not end with a `&'."
+  (let ((len (length string)))
+    (if (string= "&" (substring string (- len 1)))
+    string
+      (concat string " &")))) ;; concat函数用于连接两个字符串
+
+
+(defun make-entry (name-command)
+  "Return a list represents a entry could be contained in a list represents a application menu."
+  (list (car name-command)
+    (list 'system (backgroundize (cadr name-command)))))
+
+
+(defun make-user-apps-menu (entry-list)
+  "Create a list to be stored in variable user-apps-menu."
+  (mapcar #'make-entry entry-list))
+
+
+(defun call-startup-programs (command-list)
+  "Run the programs specified in COMMAND-LIST when Sawfish start."
+  (mapcar #'(lambda (command)
+          (system (backgroundize command)))
+      command-list))
+
+
+(defun bind-global-key (bindings-list)
+  "Bind a list of keystroke to the GLOBAL-KEYMAP."
+  (mapcar #'(lambda (bindings)
+          (bind-keys global-keymap (nth 0 bindings) (nth 1  bindings)))
+      bindings-list))
+
+(defun show-desktop-toggle ()
+  "Show or hide the desktop."
+  (if (showing-desktop-p)
+      (hide-desktop)
+    (show-desktop)))
+
+;; * 自己定义的变量
+;; ** 我的应用程序菜单
+(defvar my-user-apps-menu '(("Emacs" "emacs")
+                ("Terminator" "terminator")
+                ("GNOME terminal" "gnome-terminal")
+                ("SMPlayer" "smplayer")
+                ("Firefox" "firefox")
+                ("Comix" "comix")
+                ("Evince" "evince")
+                ("File roller" "file-roller")
+                ("Eog" "eog")
+                ("StarDict" "stardict")
+                ("Nautilus" "nautilus")
+                ("GNOME system monitor" "gnome-system-monitor")
+                ("GVim" "gvim")))
+
+;; ** 我的开机自动运行的程序
+(defvar my-startup-programs '("tint2"
+                  "nm-applet"
+                  "gnome-volume-control-applet"
+                  "habak -ms ~/picture/Aurora.jpg"))
+
+;; ** 我的应用程序快捷键设置
+(defvar my-apps-shortcut '(("Super-a"
+                (jump-or-exec "ALSA Mixer" "alsamixergui"))
+               ("Super-c"
+                (jump-or-exec "Comix" "comix"))
+               ("Super-d"
+                (jump-or-exec "星际译王" "stardict"))
+               ("Super-e"
+                (jump-or-exec "emacs@liutos-laptop" "emacs"))
+               ("Super-f"
+                (jump-or-exec "Firefox" "firefox"))
+               ("Super-m"
+                (jump-or-exec "系统监视器" "gnome-system-monitor"))
+               ("Super-n"
+                (jump-or-exec "sancho" "~/installer/sancho-0.9.4-59-linux-gtk-java/sancho"))
+               ("Super-p"
+                (jump-or-exec "\.pdf$" "evince"))
+               ("Super-r"
+                (popup-root-menu))
+               ("Super-s"
+                (jump-or-exec "SMPlayer" "smplayer"))
+               ("Super-t"
+                (jump-or-exec "liutos@liutos-laptop"
+                      (lambda ()
+                        (system (backgroundize
+                             (nth (random 2)
+                              '("terminator"
+                                "gnome-terminal")))))))
+               ("Super-x"
+                (jump-or-exec "Foxit Reader" "FoxitReader"))))
+
+
+;; * 配置Sawfish，注释风格与我的.emacs文件一致
+;; ** 设定变量
+;; *** 不由Sawfish自动根据*.desktop文件生成应用程序菜单
+(my-setq apps-menu-autogen nil)
+
+;; *** 让临时弹出的窗口也有和常驻窗口一样的标题栏
+(my-setq decorate-transients t)
+
+;; *** 取消Sawfish对新建窗口位置的控制
+(my-setq place-window-mode 'first-fit)
+
+;; *** 设定自己的应用程序菜单
+(my-setq user-apps-menu (make-user-apps-menu my-user-apps-menu))
+
+;; ** 运行程序
+;; *** 在Sawfish启动时运行的程序
+(call-startup-programs my-startup-programs)
+
+;; ** 设定键绑定
+;; *** 为经常使用的应用程序设定快捷键
+(require 'sawfish.wm.commands.jump-or-exec)
+(bind-global-key my-apps-shortcut)
+
+;; *** 绑定Super-k组合键为显示或隐藏桌面
+(bind-keys global-keymap "Super-k"
+       '(show-desktop-toggle))
+
+;; *** 将鼠标右键在桌面单击绑定为调出Sawfish的根菜单
+(bind-keys root-window-keymap "button3-click1"
+       '(popup-root-menu))
+
+;; *** 绑定M-F10为将当前窗口全屏化
+(bind-keys window-keymap "Meta-F10"
+       'maximize-window-fullscreen-toggle)
