@@ -15,6 +15,7 @@
 * 《makinggames》
 * 《SICP》
 * 《Being Geek》
+* 《Fractals Everywhere》
 
 ## 阅读记录
 
