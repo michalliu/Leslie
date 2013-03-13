@@ -4,18 +4,33 @@
 # Bingo
 
 
-* 今天下午对g2给出一个结果，晚上和amanda把问题搞清楚。------02/27/2013 ----Bingo!
-* 今天晚上之前要写出float report的QA check list，让QA人员写QA程序. ----02/27/2013  ----- Bingo!
-* 周末压缩2006年数据 ----02/27/2013 ----Bingo!
-* 去除alex的邮件通知，离职矣。 ------02/28/2013 ------Bingo!
-* update Wells Fargo Report cprlife update. ----02/29/2013 ----Bingo!
+* 今天下午对g2给出一个结果，晚上和amanda把问题搞清楚。                             ------02/27/2013  ------Bingo!
+* 今天晚上之前要写出float report的QA check list，让QA人员写QA程序.                 ------02/27/2013  ------Bingo!
+* 周末压缩2006年数据                                                               ------02/27/2013  ------Bingo!
+* 去除alex的邮件通知，离职矣。                                                     ------02/28/2013  ------Bingo!
+* update Wells Fargo Report cprlife update.                                        ------02/29/2013  ------Bingo!
+* 每个报告要在PDF下添加servicer name list.                                         ------02/28/2013  ------Bingo!  
+* rollout Float report update.                                                     ------02/29/2013  ------Bingo!
+* 另外，明天周四要更新HPI2012Q4（网站上已经更新).                                  ------02/27/2013  ------Bingo!
+* g2 transfer xfer                                                                 ------02/28/2013  ------Bingo!
+* 给leo发trueltv的信息                                                             ------03/13/2013  ------Bingo!
 
 # ING
 
 * 03/2013，要看完perl基础部分，另外，处理完订婚事宜。---- 02/27/2013
-* 每个报告要在PDF下添加servicer name list. -----02/28/2013  
-* rollout Float report update. ----02/29/2013
 * rollout deliquency by issuer. ----02/28/2013
-* 另外，明天周四要更新HPI2012Q4（网站上已经更新).---02/27/2013
 * 尽快更新每天测试网站的文档，半个小时一次，补上对邮件的处理 ---02/27/2013
-* g2 transfer xfer ----02/28/2013
+* Float Report都fh/g1/g2添加Delq30+D: Delq60+D: Delq90+D  ----03/13/2013
+* 添加新report New Issuer Report   -----03/13/2013
+* CMO Re-Remic计算 -----03/13/2013
+* CMO Report       -----03/13/2013
+* Git培训文档      -----03/13/2013
+* ts.ini培训文档   -----03/13/2013
+* 检查网站需要检查scheule、report list等 -----03/13/2013
+* 要整理客户的所有信息   -----03/13/2013
+* 要整理出详细每此QA列表及解决方案 ----03/13/2013
+* jim和richard要完成prepaymentarm报告  ---03/13/2013
+* jim和richard要参加new issuer报告实现 ---03/13/2013
+* 写出自己负责事情的详细清单   ---03/13/2013
+* 每月20日更新报告到网站，让所有客户都可以使用 ----03/13/2013
+
