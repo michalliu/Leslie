@@ -3,7 +3,7 @@
 
 # Bingo
 
-```text
+
 * 今天下午对g2给出一个结果，晚上和amanda把问题搞清楚.                              ------02/27/2013  ------Bingo!
 * 今天晚上之前要写出float report的QA check list，让QA人员写QA程序.                 ------02/27/2013  ------Bingo!
 * 周末压缩2006年数据                                                               ------02/27/2013  ------Bingo!
@@ -23,7 +23,7 @@
 * jim和richard要完成prepaymentarm报告                                              ------03/13/2013  ------Bingo!
 * jim和richard要参加new issuer报告实现                                             ------03/13/2013  ------Bingo!
 * 写出自己负责事情的详细清单                                                       ------03/13/2013  ------Bingo!
-```
+
 
 # ING
 
