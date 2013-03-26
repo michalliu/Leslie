@@ -17,13 +17,15 @@ round(float(1137)/2303,2)      #0.49
 # 自己定义：版本一
 
 ```python
-round = lambda f,i=0: float(int(f*(10**i) + 0.5))/(10**i) if f > 0 else float(int(f*(10**i) - 0.5))/(10**i)
+round = lambda f,i=0: float(int(f*(10**i) + 0.5))/(10**i) if f > 0 else\
+                      float(int(f*(10**i) - 0.5))/(10**i)
 ```
 
 # 自己定义：版本二
 
 ```python
-newround = lambda f,i=0: float(int(f*(10**i) + 0.5))/float(10**i) if f > 0 else -1*float(int(-1*f*(10**i) + 0.5))/float(10**i)
+newround = lambda f,i=0: float(int(f*(10**i) + 0.5))/float(10**i) if f > 0 else\
+                         -1*float(int(-1*f*(10**i) + 0.5))/float(10**i)
 ```
 
 # 自己定义：版本三
@@ -31,7 +33,8 @@ newround = lambda f,i=0: float(int(f*(10**i) + 0.5))/float(10**i) if f > 0 else 
 四舍五入后以str形式保存，强制保留后面的零：
 ```python
 def round_to_str(f,i=0):
-	result=float(int(f*(10**i) + 0.5))/float(10**i) if f > 0 else -1*float(int(-1*f*(10**i) + 0.5))/float(10**i)
+	result=float(int(f*(10**i) + 0.5))/float(10**i) if f > 0 else\
+	       -1*float(int(-1*f*(10**i) + 0.5))/float(10**i)
     format="%0."+str(i)+"f"
     return format % result
 ```
