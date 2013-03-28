@@ -31,13 +31,14 @@
 <tr><td>01/10/2013</td><td>《国史大纲》</td><td>145p</td><td>儒兴，教幼，有其必然性</td></tr>
 <tr><td>01/11/2013</td><td>《国史大纲》</td><td>169p</td><td>汉，功臣、外戚、宦官</td></tr>
 <tr><td>01/20/2013</td><td>《国史大纲》</td><td>213p</td><td>魏晋南北朝之长期衰落</td></tr>
-<tr><td>01/20/2013</td><td>SICP</td><td>23p</td><td>树形递归</td></tr>
+<tr><td>01/20/2013</td><td>《SICP》</td><td>23p</td><td>树形递归</td></tr>
 <tr><td>02/18/2013</td><td>《国史大纲》</td><td>323p</td><td>变相的封建势力下的社会形态（上）</td></tr>
 <tr><td>02/20/2013</td><td>《国史大纲》</td><td>525p</td><td>上册通读一遍结束，开始下册。</td></tr>
 <tr><td>03/15/2013</td><td>《国史大纲》</td><td>811p</td><td>社会自由思想之再兴起</td></tr>
 <tr><td>03/26/2013</td><td>《国史大纲》</td><td>914p</td><td>除旧与开新(至此，通读一遍结束，进入细读一遍阶段，应结合其它史料)</td></tr>
 <tr><td>03/29/2013</td><td>《Perl语言入门》</td><td>52p</td><td>Perl中的标量和初体验</td></tr>
 <tr><td>03/29/2013</td><td>《SICP》</td><td>28p</td><td>增长的阶</td></tr>
-
+<tr><td>03/29/2013</td><td>《Being Geek》</td><td>7p</td><td>How To Win</td></tr> 
+<tr><td>03/29/2013</td><td>《C++》</td><td>27p</td><td>分别编译；掌握一门编译型、解释下语言</td></tr>
 <!-- <tr><td>时间</td><td>书籍名</td><td>页码</td><td>简记</td></tr> -->
 </table>		                                                     
