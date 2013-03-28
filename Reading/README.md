@@ -16,6 +16,7 @@
 * 《SICP》
 * 《Being Geek》
 * 《Fractals Everywhere》
+* 《The C++ Programming Language》
 
 ## 阅读记录
 
@@ -125,6 +126,20 @@
 <td>《国史大纲》</td>
 <td>914p</td>
 <td>除旧与开新(至此，通读一遍结束，进入细读一遍阶段，应结合其它史料)</td>
+</tr>
+
+<tr>
+<td>03/29/2013</td>
+<td>《Perl语言入门》</td>
+<td>52p</td>
+<td>Perl中的标量和初体验</td>
+</tr>
+
+<tr>
+<td>03/29/2013</td>
+<td>《SICP》</td>
+<td>28p</td>
+<td>增长的阶</td>
 </tr>
 
 </table>		                                                     
