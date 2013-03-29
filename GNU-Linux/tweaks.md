@@ -22,3 +22,11 @@ round(100  *float(1078)/3512,2) #30.69
 # 之前脚本中没有指定解压后的目录，导致发生解压失败的情况
 unzip -d dir -o file.zip
 ```
+
+# 4. sort -t'<tab>' ：先Ctrl+V，然后按TAB或者Ctrl+i
+
+# 5. 记录用户所有操作，包括SSH到其它服务器的操作，将下列加入/etc/profile,~/.bash_profile
+
+```bash
+exec /usr/bin/script -a -f -q /var/log/ops/`whoami`-`date +%Y%m%d%H%M`.log
+```

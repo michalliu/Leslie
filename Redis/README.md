@@ -23,3 +23,14 @@ Redis支持将数据同步到多台从库上，这种特性对提高读取性能
 # 性能
 
 相比需要依赖磁盘记录每个更新的数据库，基于内存的特性无疑给Redis带来了非常优秀的性能。读写操作之间有显著的性能差异。
+
+# 资料
+
+* python-redis源码https://github.com/andymccurdy/redis-py
+* redisco纯python实现https://github.com/andymccurdy/redis-py
+* 文档http://redis-py.readthedocs.org/en/latest/
+* 一个说明http://redis-py.readthedocs.org/en/latest/
+* 中文文档http://redis.cn/
+* 一个博客http://www.litrin.net/tag/redis/
+* redis应用场景http://blog.csdn.net/xymyeah/article/details/6578422
+* 作者博客http://antirez.com/latest/0

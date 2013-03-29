@@ -23,13 +23,14 @@
 * jim和richard要完成prepaymentarm报告                                              ------03/13/2013  ------Bingo!
 * jim和richard要参加new issuer报告实现                                             ------03/13/2013  ------Bingo!
 * 写出自己负责事情的详细清单                                                       ------03/13/2013  ------Bingo!
+* 添加新report New Issuer Report   -----03/13/2013
 
 
 # ING
 
-* 03/2013，要看完perl基础部分，另外，处理完订婚事宜。---- 02/27/2013
+* 03/2013，要看完perl基础部分---- 02/27/2013
+* 处理完订婚事宜。---- 02/27/2013
 * 尽快更新每天测试网站的文档，半个小时一次，补上对邮件的处理 ---02/27/2013
-* 添加新report New Issuer Report   -----03/13/2013
 * CMO Re-Remic计算 -----03/13/2013
 * CMO Report       -----03/13/2013
 * 检查网站需要检查scheule、report list等 -----03/13/2013
@@ -48,3 +49,7 @@
 * 写jim和richard的任务总结和评点 ----03/23/2013
 * 准备flash报告 ----03/23/2013
 * 整理obi15到git----03/23/2013
+* python round -12/13 diff 12/13 ----03/23/2013
+* New Issuer report layout change  ---03/28/2013
+* Float Report add one item ----03/28/2013
+* CMO report check why missing cusip ---03/28/2013
