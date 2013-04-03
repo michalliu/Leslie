@@ -24,7 +24,12 @@
 * jim和richard要参加new issuer报告实现                                             ------03/13/2013  ------Bingo!
 * 写出自己负责事情的详细清单                                                       ------03/13/2013  ------Bingo!
 * 添加新report New Issuer Report   -----03/13/2013
-
+* Float Report add one item ----03/28/2013
+* python round -12/13 diff 12/13 ----03/23/2013
+* William需要完成dump fn30的kscript   ----03/13/2013
+* Jim的Float Report QA程序需要完善   ----03/13/2013
+* 整理obi15到git----03/23/2013
+* New Issuer report layout change  ---03/28/2013
 
 # ING
 
@@ -36,8 +41,6 @@
 * 检查网站需要检查scheule、report list等 -----03/13/2013
 * Richard要整理客户的所有信息   -----03/13/2013
 * 每月20日更新报告到网站，让所有客户都可以使用 ----03/13/2013
-* William需要完成dump fn30的kscript   ----03/13/2013
-* Jim的Float Report QA程序需要完善   ----03/13/2013
 * 每个agency的每个program都有一个map，而不是整个agency用一个map   -----03/13/2013
 * 所有报告都增加ubt目录，方便随时查阅cohort内容  ----03/13/2013
 * 修改所有cohort的名字，方便ubc查看   ----03/13/2013
@@ -48,8 +51,4 @@
 * 完成fn的mega数据不全的问题 -----03/23/2013
 * 写jim和richard的任务总结和评点 ----03/23/2013
 * 准备flash报告 ----03/23/2013
-* 整理obi15到git----03/23/2013
-* python round -12/13 diff 12/13 ----03/23/2013
-* New Issuer report layout change  ---03/28/2013
-* Float Report add one item ----03/28/2013
 * CMO report check why missing cusip ---03/28/2013
