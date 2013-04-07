@@ -41,5 +41,6 @@
 <tr><td>03/29/2013</td><td>《Being Geek》</td><td>7p</td><td>How To Win</td></tr> 
 <tr><td>03/29/2013</td><td>《C++》</td><td>27p</td><td>分别编译；掌握一门编译型、解释下语言</td></tr>
 <tr><td>04/04/2013</td><td>《C++》</td><td>63p</td><td>第一部分：基本功能</td></tr>
+<tr><td>04/08/2013</td><td>《C++》</td><td>126p</td><td>第六章，实现一个计算器</td></tr>
 <!-- <tr><td>时间</td><td>书籍名</td><td>页码</td><td>简记</td></tr> -->
 </table>		                                                     
