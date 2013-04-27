@@ -25,7 +25,7 @@ string string_value;
 double error(const string& s)
 {
   no_of_errors++;
-  cerr << 'error:' << s << '\n'; // std::cerr,std::cin,std::cout
+  cerr << 'error: '<< __LINE__ << " line, " << s << '\n'; // std::cerr,std::cin,std::cout
   return 1;
 }
 
