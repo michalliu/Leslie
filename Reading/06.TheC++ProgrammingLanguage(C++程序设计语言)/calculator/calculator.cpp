@@ -1,30 +1,26 @@
+// calculator.cpp : A Simple Calculator From Book
+
+// error(): print error messages
+// get_token(): get token from input
+// prim(): compire the input
+// term(): div and mul
+// expr(): expression  
+
+
 #include <iostream>
 #include <string>
 #include <map>
 #include <cctype>
+#include <sstream>
+#include "calculator.h"
 using namespace std;
-
-//double ture = 0;
-//double flase = 1;
-
-
-
-
-
-enum Token_value {
-  NAME,        NUMBER,      END,
-  PLUS='+',    MINUS='-',   MUL='*',    DIV='/',
-  PRINT=';',   ASSIGN='=',  LP='(',     RP=')'
-};
 
 Token_value curr_tok = PRINT;
 map<string,double> table;
-
-Token_value get_token();
-double prim(bool);
-double term(bool);
-
 int no_of_errors;
+double number_value;
+string string_value;
+
 
 double error(const string& s)
 {
@@ -71,9 +67,6 @@ double term(bool get)		// 乘和除
     }
 }
 
-double number_value;
-string string_value;
-
 double prim(bool get)		// 处理初等项
 {
   if(get) get_token();
@@ -107,7 +100,7 @@ double prim(bool get)		// 处理初等项
 
 
 // v1
-Token_value get_token()
+Token_value get_token_old()
 {
   char ch = 0;
   cin >> ch;
@@ -149,17 +142,50 @@ Token_value get_token()
   }
 }
 
-int  main()
+// use *input ,not cin
+Token_value get_token()
 {
-  table["pi"] = 3.1415926;
-  table["e"] = 2.71828;
+  char ch;
 
-  while(cin){
-    get_token();
-    if(curr_tok == END) break;
-    if(curr_tok == PRINT) continue;
-    cout << expr(false) << '\n';
+  do {				// 跳过空格，除了'\n'
+    if(!input->get(ch)) return curr_tok = END;
+  } while(ch != '\n' && isspace(ch));
+
+  switch(ch){
+  case ';':
+  case '\n':
+    return curr_tok = PRINT;
+  case '*':
+  case '/':
+  case '+':
+  case '-':
+  case '(':
+  case ')':
+  case '=':
+    return curr_tok = Token_value(ch);
+  case '0':
+  case '1':
+  case '2':
+  case '3':
+  case '4':
+  case '5':
+  case '6':
+  case '7':
+  case '8':
+  case '9':
+  case '.':
+    input->putback(ch);
+    *input >> number_value;
+    return curr_tok = NUMBER;
+  default:
+    if(isalpha(ch)){
+      string_value = ch;
+      while (input->get(ch) && isalnum(ch)) 
+	string_value.push_back(ch);
+      input->putback(ch);
+      return curr_tok=NAME;
+    }
+    error("bad token");
+    return curr_tok = PRINT;
   }
-
-  return no_of_errors;
 }
