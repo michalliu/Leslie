@@ -21,7 +21,7 @@
 ;;          (in-package musicdb)
 ;;          (help)
 ;;          (help "add-cds")
-;;
+
 ;; 自定义包
 (defpackage :musicdb
   (:use :common-lisp
@@ -34,29 +34,29 @@
            :delete-rows
            :help
            :add-record))
-;;           
+
 ;; 加载库common-lisp-user,这个包用到common-lisp
 ;; 查看包用*package*，或者common-lisp:*package*,或者cl:*package*
 ;;(in-package cl-user)
 (in-package musicdb)
-;;
+
 ;; 全局变量*db*存储数据库
 (defvar *db* nil)
-;;
+
 ;; 创建一条音乐记录
 (defun make-cd (title artist rating ripped)
   (list :title title :artist artist :rating rating :ripped ripped))
-;;  
+
 ;; 添加音乐记录到数据库
 (defun add-record (cd)
   (push cd *db*))
-;;  
+
 ;; 从标准输入添加音乐记录
 (defun prompt-read (prompt)
   (format *query-io* "~a: " prompt)    
   (force-output *query-io*)        ;*query-io*绑定到标准输入
   (read-line *query-io*))       ;从标准输入读取一行
-;;  
+
 ;; 连续添加多条音乐记录
 (defun prompt-for-cd ()
   (make-cd
@@ -64,13 +64,13 @@
    (prompt-read "Artist")
    (or (parse-integer (prompt-read "Rating") :junk-allowed t) 0)
    (y-or-n-p "Ripped [y/n]")))
-;;   
+
 ;;添加音乐记录
 (defun add-cds ()
   (loop (add-record (prompt-for-cd))
     (if (not (y-or-n-p "Another? [y/n]: "))
         (return))))
-;;        
+
 ;; 以易读形式打印数据库
 ;; t，绑定标准输出*standard-output*
 ;; ~a，以易读形式打印
@@ -84,7 +84,7 @@
       (setf database *db*))
   (dolist (cd database)
     (format t "~{~a: ~10t~a~%~}~%" cd))) 
-;;    
+
 ;; 保存数据库到文件
 ;; print保存为lisp可读懂格式
 ;; format打印为人类可读懂形式
@@ -94,13 +94,13 @@
                :if-exists :supersede)
           (with-standard-io-syntax
            (print *db* out))))  
-;;           
+
 ;; 加载数据库文件
 (defun load-db (filename)
   (with-open-file (in filename)
           (with-standard-io-syntax
            (setf *db* (read in)))))
-;;           
+
 ;; 查询
 (defun select (selector-fn)
   (remove-if-not selector-fn *db*))
@@ -108,19 +108,19 @@
 ;; 以artist关键字查询
 ;;(defun artist-selector (artist)
 ;;  #'(lambda (cd) (equal (getf cd :artist) artist)))
-;;
+
 ;; 以title关键字查询
 ;;(defun title-selector (title)
 ;;  #'(lambda (cd) (equal (getf cd :title) title)))
-;;
+
 ;; 以rating关键字查询
 ;;(defun rating-selector (rating)
 ;;  #'(lambda (cd) (equal (getf cd :rating) rating)))
-;;
+
 ;; 以ripped关键字查询
 ;;(defun ripped-selector (ripped)
 ;;   #'(lambda (cd) (equal (getf cd :ripped) ripped)))
-;;
+
 ;; 自动匹配关键字查询，替换4个selector函数
 ;;(defun where (&key title artist rating (ripped nil ripped-p))
 ;;  #'(lambda (cd)
@@ -129,7 +129,7 @@
 ;;       (if artist (equal (getf cd :artist) artist) t)
 ;;       (if rating (equal (getf cd :rating) rating) t)
 ;;       (if ripped (equal (getf cd :ripped) ripped) t))))
-;;
+
 ;; 更新数据库
 (defun update (selector-fn &key title artist rating (ripped nil ripped-p))
   (setf *db*
@@ -142,7 +142,7 @@
            (if ripped-p (setf (getf row :ripped) ripped)))
            row)
          *db*)))
-;;         
+
 ;; 删除数据库记录
 (defun delete-rows (selector-fn)
   (setf *db* (remove-if selector-fn *db*)))
@@ -179,7 +179,8 @@
   (if (equal cmd "add-record")
       (format t "~a:~%~10t~a~%" "example" "(add-record (make-cd \"Love Min\" \"zhubuntu\" 8 t)"))
   (if (not cmd)
-      (format t "~a:~%~10t~a~%" "Usage" "commands: add-record,update,delete-rows,select,add-cds,dump-db,save-db,load-db")))
+      (format t "~a:~%~10t~a~%" "Usage" "commands: add-record,update,delete-rows,select,add-cds,dump-db,
+      save-db,load-db")))
 ```
 
 这个脚本文件定义了包musicdb，使用方法是：
@@ -339,14 +340,16 @@ T
 ; compiling (DEFMACRO WHERE ...)
 ; compiling (DEFUN HELP ...)
 
-; /home/zhuchunlite/.cache/common-lisp/sbcl-1.0.43-1.fc15-linux-x86/home/zhuchunlite/Leslie-Chu/Lisp/projects-example/musicdb/ASDF-TMP-musicdb.fasl written
+; /home/zhuchunlite/.cache/common-lisp/sbcl-1.0.43-1.fc15-linux-x86/home/zhuchunlite/Leslie-Chu/Lisp/projects-example/musicdb/ASDF-T
+MP-musicdb.fasl written
 ; compilation finished in 0:00:00.077
 in file musicdb.lisp
 ; compiling file "/home/zhuchunlite/Leslie-Chu/Lisp/projects-example/musicdb/packages.lisp" (written 22 APR 2012 07:35:57 PM):
 ; compiling (FORMAT T ...)
 ; compiling (IN-PACKAGE MUSICDB)
 
-; /home/zhuchunlite/.cache/common-lisp/sbcl-1.0.43-1.fc15-linux-x86/home/zhuchunlite/Leslie-Chu/Lisp/projects-example/musicdb/ASDF-TMP-packages.fasl written
+; /home/zhuchunlite/.cache/common-lisp/sbcl-1.0.43-1.fc15-linux-x86/home/zhuchunlite/Leslie-Chu/Lisp/projects-example/musicdb/
+ASDF-TMP-packages.fasl written
 ; compilation finished in 0:00:00.002
 in file packages.lisp
 T
@@ -396,10 +399,9 @@ NIL
 
 我对asdf机制的学习笔记到这里就写这么多，更多的详细信息请看ASDF手册，我后续会选择性翻译部分内容，不求面面俱到，但求实用。
 
-
-1、建议用Quicklisp安装软件；
-2、下载quicklisp：wget http://beta.quicklisp.org/quicklisp.lisp ；
-3、sbcl加载：(load "quicklisp.lisp")；
-4、安装：(quicklisp-quickstart:install)；
-5、添加到启动脚本：(ql:add-to-init-file)；
-6、安装图形开发库ltk：(ql:quickload "ltk")
+* 建议用Quicklisp安装软件；
+* 下载quicklisp：wget http://beta.quicklisp.org/quicklisp.lisp ；
+* sbcl加载：(load "quicklisp.lisp")；
+* 安装：(quicklisp-quickstart:install)；
+* 添加到启动脚本：(ql:add-to-init-file)；
+* 安装图形开发库ltk：(ql:quickload "ltk")
