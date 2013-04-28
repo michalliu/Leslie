@@ -33,7 +33,7 @@ sbcl --load quicklisp.lisp
 
 * 安装quicklisp：
 
-```common lisp
+```lisp
 (quicklisp-quickstart:install)
 ```
 
@@ -41,7 +41,7 @@ sbcl --load quicklisp.lisp
 
 * 添加quicklisp到启动文件，以后启动sbcl会自动加载quicklisp
 
-```common lisp
+```lisp
 (ql:add-to-init-file)
 ```
 
@@ -57,11 +57,11 @@ sbcl --load quicklisp.lisp
 
 代码示例：
 
-```emacs lisp
+```lisp
 (load (expand-file-name "~/quicklisp/slime-helper.el"))
 ;; Replace "sbcl" with the path to your implementation
 (setq inferior-lisp-program "sbcl")
-改为==>
+;;改为==>
 (setq inferior-lisp-program "/usr/bin/sbcl --noinform")
 ("quicklisp-slime-helper")
 ```
