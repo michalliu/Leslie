@@ -46,7 +46,7 @@ sbcl --load quicklisp.lisp
 (ql:add-to-init-file)
 ```
 
-将添加下列代码到~/.sbclrc文件中:
+将会添加下列代码到~/.sbclrc文件中:
 
 ```lisp
 ;;I will append the following lines to #P"/home/zhuchunlite/.sbclrc":
