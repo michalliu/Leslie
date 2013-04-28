@@ -46,6 +46,18 @@ sbcl --load quicklisp.lisp
 (ql:add-to-init-file)
 ```
 
+将添加下列代码到~/.sbclrc文件中:
+
+```lisp
+;;I will append the following lines to #P"/home/zhuchunlite/.sbclrc":
+;;; The following lines added by ql:add-to-init-file:
+#-quicklisp
+(let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp"
+                      (user-homedir-pathname))))
+   (when (probe-file quicklisp-init)
+     (load quicklisp-init)))
+```
+
 
 
 ## 用quicklisp安装slime
@@ -64,7 +76,6 @@ sbcl --load quicklisp.lisp
 (setq inferior-lisp-program "sbcl")
 ;;改为==>
 (setq inferior-lisp-program "/usr/bin/sbcl --noinform")
-("quicklisp-slime-helper")
 ```
 
 
