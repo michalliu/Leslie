@@ -1,0 +1,891 @@
+<!DOCTYPE HTML>
+
+  <html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+<title>第十七章：示例：对象 &mdash; ANSI Common Lisp 中文版</title>
+    
+<!-- RTD <head> -->
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/underscore.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/doctools.js"></script>
+
+<script type="text/javascript">
+  // This is included here for Javascript that doesn't have access to the templates.
+  var doc_version = "latest";
+  var doc_slug = "ansi-common-lisp";
+</script>
+
+<script type="text/javascript" src="//media.readthedocs.org/javascript/rtd.js"></script>
+<!-- end RTD <head> -->
+
+    <link rel="stylesheet" href="../_static/han.min.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/rosefinch.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/main.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:       '../',
+        VERSION:        '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX:    '.html',
+        HAS_SOURCE:     true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/han.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  <script type="text/javascript" src=../_static/jquery.dimensions.js"></script>
+  <script type="text/javascript" src="../_static/main.js"></script><link rel="top" title="ANSI Common Lisp 中文版" href="../index.html" /></head>
+
+  <body><div class="navbar navbar-static-top navbar-inverse">
+        <div id="top-bar" class="navbar-inner">
+
+          <h1 id="logo">ANSI Common Lisp 中文版<a href="../index.html" class="brand">ANSI Common Lisp 中文版</a></h1>
+          <ul class="nav"></ul><a href="https://github.com/acl-translation/acl-chinese"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
+        </div>
+      </div><div class="content container-fluid">
+        <div class="row-fluid"><div class="document span9"><article >
+                <div class="documentwrapper"><div class="body"><div class="section" id="id1">
+<h1>第十七章：示例：对象<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h1>
+<p>在本章里，我们将使用 Lisp 来自己实现面向对象语言。这样子的程序称为嵌入式语言 (<em>embedded language</em>)。嵌入一个面向对象语言到 Lisp 里是一个绝佳的例子。同時作为一个 Lisp 的典型用途，並演示了面向对象的抽象是如何多自然地在 Lisp 基本的抽象上构建出来。</p>
+<div class="section" id="inheritance">
+<h2>17.1 继承 (Inheritance)<a class="headerlink" href="#inheritance" title="永久链接至标题">¶</a></h2>
+<p>11.10 小节解释过通用函数与消息传递的差别。</p>
+<p>在消息传递模型里，</p>
+<ol class="arabic simple">
+<li>对象有属性，</li>
+<li>并回应消息，</li>
+<li>并从其父类继承属性与方法。</li>
+</ol>
+<p>当然了，我们知道 CLOS 使用的是通用函数模型。但本章我们只对于写一个迷你的对象系统 (minimal object system)感兴趣，而不是一个可与 CLOS 匹敌的系统，所以我们将使用消息传递模型。</p>
+<p>我们已经在 Lisp 里看过许多保存属性集合的方法。一种方法可能是使用哈希表来代表对象，并将属性作为哈希表的条目保存。接著我们可以通过 <tt class="docutils literal"><span class="pre">gethash</span></tt> 来存取每一个属性：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">gethash</span> <span class="ss">&#39;color</span> <span class="nv">obj</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>由于函数是数据对象，我们也可以将函数作为属性保存起来。这表示我们也可以有方法；要调用一个对象特定的方法，可以通过 <tt class="docutils literal"><span class="pre">funcall</span></tt> 一下哈希表里的同名属性：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">funcall</span> <span class="p">(</span><span class="nb">gethash</span> <span class="ss">&#39;move</span> <span class="nv">obj</span><span class="p">)</span> <span class="nv">obj</span> <span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>我们可以在这个概念上，定义一个 Smalltalk 风格的消息传递语法，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">tell</span> <span class="p">(</span><span class="nv">obj</span> <span class="nv">message</span> <span class="k">&amp;rest</span> <span class="nv">args</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">apply</span> <span class="p">(</span><span class="nb">gethash</span> <span class="nv">message</span> <span class="nv">obj</span><span class="p">)</span> <span class="nv">obj</span> <span class="nv">args</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>所以想要一个对象 <tt class="docutils literal"><span class="pre">obj</span></tt> 移动 10 单位，我们可以说：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">tell</span> <span class="nv">obj</span> <span class="ss">&#39;move</span> <span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>事实上，纯 Lisp 唯一缺少的原料是继承。我们可以通过定义一个递归版本的 <tt class="docutils literal"><span class="pre">gethash</span></tt> 来实现一个简单版，如图 17.1 。现在仅用共 8 行代码，便实现了面向对象编程的 3 个基本元素。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">rget</span> <span class="p">(</span><span class="nv">prop</span> <span class="nv">obj</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">multiple-value-bind</span> <span class="p">(</span><span class="nv">val</span> <span class="nv">in</span><span class="p">)</span> <span class="p">(</span><span class="nb">gethash</span> <span class="nv">prop</span> <span class="nv">obj</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">if</span> <span class="nv">in</span>
+        <span class="p">(</span><span class="nb">values</span> <span class="nv">val</span> <span class="nv">in</span><span class="p">)</span>
+        <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">par</span> <span class="p">(</span><span class="nb">gethash</span> <span class="ss">:parent</span> <span class="nv">obj</span><span class="p">)))</span>
+          <span class="p">(</span><span class="nb">and</span> <span class="nv">par</span> <span class="p">(</span><span class="nv">rget</span> <span class="nv">prop</span> <span class="nv">par</span><span class="p">))))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">tell</span> <span class="p">(</span><span class="nv">obj</span> <span class="nv">message</span> <span class="k">&amp;rest</span> <span class="nv">args</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">apply</span> <span class="p">(</span><span class="nv">rget</span> <span class="nv">message</span> <span class="nv">obj</span><span class="p">)</span> <span class="nv">obj</span> <span class="nv">args</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 17.1：继承</strong></p>
+<p>让我们用这段代码，来试试本来的例子。我们创建两个对象，其中一个对象是另一个的子类：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">circle-class</span> <span class="p">(</span><span class="nb">make-hash-table</span><span class="p">)</span>
+        <span class="nv">our-circle</span>   <span class="p">(</span><span class="nb">make-hash-table</span><span class="p">)</span>
+        <span class="p">(</span><span class="nb">gethash</span> <span class="ss">:parent</span> <span class="nv">our-circle</span><span class="p">)</span> <span class="nv">circle-class</span>
+        <span class="p">(</span><span class="nb">gethash</span> <span class="ss">&#39;radius</span> <span class="nv">our-circle</span><span class="p">)</span> <span class="mi">2</span><span class="p">)</span>
+<span class="mi">2</span>
+</pre></div>
+</td></tr></table></div>
+<p><tt class="docutils literal"><span class="pre">circle-class</span></tt> 对象会持有给所有圆形使用的 <tt class="docutils literal"><span class="pre">area</span></tt> 方法。它是接受一个参数的函数，该参数为传来原始消息的对象：</p>
+<div class="highlight-cl"><pre>&gt; (setf (gethash 'area circle-class)
+        #'(lambda (x)
+            (* pi (expt (rget 'radius x) 2))))
+#&lt;Interpreted-Function BF1EF6&gt;</pre>
+</div>
+<p>现在当我们询问 <tt class="docutils literal"><span class="pre">our-circle</span></tt> 的面积时，会根据此类所定义的方法来计算。我们使用 <tt class="docutils literal"><span class="pre">rget</span></tt> 来读取一个属性，用 <tt class="docutils literal"><span class="pre">tell</span></tt> 来调用一个方法：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">rget</span> <span class="ss">&#39;radius</span> <span class="nv">our-circle</span><span class="p">)</span>
+<span class="mi">2</span>
+<span class="no">T</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nv">tell</span> <span class="nv">our-circle</span> <span class="ss">&#39;area</span><span class="p">)</span>
+<span class="mf">12.566370614359173</span>
+</pre></div>
+</td></tr></table></div>
+<p>在开始改善这个程序之前，值得停下来想想我们到底做了什么。仅使用 8 行代码，我们使纯的、旧的、无 CLOS 的 Lisp ，转变成一个面向对象语言。我们是怎么完成这项壮举的？应该用了某种秘诀，才会仅用了 8 行代码，就实现了面向对象编程。</p>
+<p>的确有一个秘诀存在，但不是编程的奇技淫巧。这个秘诀是，Lisp 本来就是一个面向对象的语言了，甚至说，是种更通用的语言。我们需要做的事情，不过就是把本来就存在的抽象，再重新包装一下。</p>
+</div>
+<div class="section" id="multiple-inheritance">
+<h2>17.2 多重继承 (Multiple Inheritance)<a class="headerlink" href="#multiple-inheritance" title="永久链接至标题">¶</a></h2>
+<p>到目前为止我们只有单继承 –– 一个对象只可以有一个父类。但可以通过使 <tt class="docutils literal"><span class="pre">parent</span></tt> 属性变成一个列表来获得多重继承，并重新定义 <tt class="docutils literal"><span class="pre">rget</span></tt> ，如图 17.2 所示。</p>
+<p>在只有单继承的情况下，当我们想要从对象取出某些属性，只需要递归地延著祖先的方向往上找。如果对象本身没有我们想要属性的有关信息，可以检视其父类，以此类推。有了多重继承后，我们仍想要执行同样的搜索，但这件简单的事，却被对象的祖先可形成一个图，而不再是简单的树给复杂化了。不能只使用深度优先来搜索这个图。有多个父类时，可以有如图 17.3 所示的层级存在： <tt class="docutils literal"><span class="pre">a</span></tt> 起源于 <tt class="docutils literal"><span class="pre">b</span></tt> 及 <tt class="docutils literal"><span class="pre">c</span></tt> ，而他们都是 <tt class="docutils literal"><span class="pre">d</span></tt> 的子孙。一个深度优先（或说高度优先）的遍历结果会是 <tt class="docutils literal"><span class="pre">a</span></tt> , <tt class="docutils literal"><span class="pre">b</span></tt> , <tt class="docutils literal"><span class="pre">d</span></tt>, <tt class="docutils literal"><span class="pre">c</span></tt> , <tt class="docutils literal"><span class="pre">d</span></tt> 。而如果我们想要的属性在 <tt class="docutils literal"><span class="pre">d</span></tt> 与 <tt class="docutils literal"><span class="pre">c</span></tt> 都有的话，我们会获得存在 <tt class="docutils literal"><span class="pre">d</span></tt> 的值，而不是存在 <tt class="docutils literal"><span class="pre">c</span></tt> 的值。这违反了子类可覆写父类提供缺省值的原则。</p>
+<p>如果我们想要实现普遍的继承概念，就不应该在检查其子孙前，先检查该对象。在这个情况下，适当的搜索顺序会是 <tt class="docutils literal"><span class="pre">a</span></tt> , <tt class="docutils literal"><span class="pre">b</span></tt> , <tt class="docutils literal"><span class="pre">c</span></tt> , <tt class="docutils literal"><span class="pre">d</span></tt> 。那如何保证搜索总是先搜子孙呢？最简单的方法是用一个对象，以及按正确优先顺序排序的，由祖先所构成的列表。通过调用 <tt class="docutils literal"><span class="pre">traverse</span></tt> 开始，建构一个列表，表示深度优先遍历所遇到的对象。如果任一个对象有共享的父类，则列表中会有重复元素。如果仅保存最后出现的复本，会获得一般由 CLOS 定义的优先级列表。（删除所有除了最后一个之外的复本，根据 183 页所描述的算法，规则三。）Common Lisp 函数 <tt class="docutils literal"><span class="pre">delete-duplicates</span></tt> 定义成如此作用的，所以我们只要在深度优先的基础上调用它，我们就会得到正确的优先级列表。一旦优先级列表创建完成， <tt class="docutils literal"><span class="pre">rget</span></tt> 根据需要的属性搜索第一个符合的对象。</p>
+<p>我们可以通过利用优先级列表的优点，举例来说，一个爱国的无赖先是一个无赖，然后才是爱国者：</p>
+<div class="highlight-cl"><pre>&gt; (setf scoundrel           (make-hash-table)
+        patriot             (make-hash-table)
+        patriotic-scoundrel (make-hash-table)
+        (gethash 'serves scoundrel) 'self
+        (gethash 'serves patriot) 'country
+        (gethash :parents patriotic-scoundrel)
+                 (list scoundrel patriot))
+(#&lt;Hash-Table C41C7E&gt; #&lt;Hash-Table C41F0E&gt;)
+&gt; (rget 'serves patriotic-scoundrel)
+SELF
+T</pre>
+</div>
+<p>到目前为止，我们有一个强大的程序，但极其丑陋且低效。在一个 Lisp 程序生命周期的第二阶段，我们将这个初步框架提炼成有用的东西。</p>
+</div>
+<div class="section" id="defining-objects">
+<h2>17.3 定义对象 (Defining Objects)<a class="headerlink" href="#defining-objects" title="永久链接至标题">¶</a></h2>
+<p>第一个我们需要改善的是，写一个用来创建对象的函数。我们程序表示对象以及其父类的方式，不需要给用户知道。如果我们定义一个函数来创建对象，用户将能够一个步骤就创建出一个对象，并指定其父类。我们可以在创建一个对象的同时，顺道构造优先级列表，而不是在每次当我们需要找一个属性或方法时，才花费庞大代价来重新构造。</p>
+<p>如果我们要维护优先级列表，而不是在要用的时候再构造它们，我们需要处理列表会过时的可能性。我们的策略会是用一个列表来保存所有存在的对象，而无论何时当某些父类被改动时，重新给所有受影响的对象生成优先级列表。这代价是相当昂贵的，但由于查询比重定义父类的可能性来得高许多，我们会省下许多时间。这个改变对我们的程序的灵活性没有任何影响；我们只是将花费从频繁的操作转到不频繁的操作。</p>
+<p>图 17.4 包含了新的代码。 <a class="reference external" href="http://ansi-common-lisp.readthedocs.org/en/latest/zhCN/notes-cn.html#notes-273">λ</a> 全局的 <tt class="docutils literal"><span class="pre">*objs*</span></tt> 会是一个包含所有当前对象的列表。函数 <tt class="docutils literal"><span class="pre">parents</span></tt> 取出一个对象的父类；相反的 <tt class="docutils literal"><span class="pre">(setf</span> <span class="pre">parents)</span></tt> 不仅配置一个对象的父类，也调用 <tt class="docutils literal"><span class="pre">make-precedence</span></tt> 来重新构造任何需要变动的优先级列表。这些列表与之前一样，由 <tt class="docutils literal"><span class="pre">precedence</span></tt> 来构造。</p>
+<p>用户现在不用调用 <tt class="docutils literal"><span class="pre">make-hash-table</span></tt> 来创建对象，调用 <tt class="docutils literal"><span class="pre">obj</span></tt> 来取代， <tt class="docutils literal"><span class="pre">obj</span></tt> 一步完成创建一个新对象及定义其父类。我们也重定义了 <tt class="docutils literal"><span class="pre">rget</span></tt> 来利用保存优先级列表的好处。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defvar</span> <span class="vg">*objs*</span> <span class="no">nil</span><span class="p">)</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">parents</span> <span class="p">(</span><span class="nv">obj</span><span class="p">)</span> <span class="p">(</span><span class="nb">gethash</span> <span class="ss">:parents</span> <span class="nv">obj</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">parents</span><span class="p">)</span> <span class="p">(</span><span class="nv">val</span> <span class="nv">obj</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">prog1</span> <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">gethash</span> <span class="ss">:parents</span> <span class="nv">obj</span><span class="p">)</span> <span class="nv">val</span><span class="p">)</span>
+         <span class="p">(</span><span class="nv">make-precedence</span> <span class="nv">obj</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">make-precedence</span> <span class="p">(</span><span class="nv">obj</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">gethash</span> <span class="ss">:preclist</span> <span class="nv">obj</span><span class="p">)</span> <span class="p">(</span><span class="nv">precedence</span> <span class="nv">obj</span><span class="p">))</span>
+  <span class="p">(</span><span class="nb">dolist</span> <span class="p">(</span><span class="nv">x</span> <span class="vg">*objs*</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">member</span> <span class="nv">obj</span> <span class="p">(</span><span class="nb">gethash</span> <span class="ss">:preclist</span> <span class="nv">x</span><span class="p">))</span>
+        <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">gethash</span> <span class="ss">:preclist</span> <span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nv">precedence</span> <span class="nv">x</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">obj</span> <span class="p">(</span><span class="k">&amp;rest</span> <span class="nv">parents</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">obj</span> <span class="p">(</span><span class="nb">make-hash-table</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nb">push</span> <span class="nv">obj</span> <span class="vg">*objs*</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nv">parents</span> <span class="nv">obj</span><span class="p">)</span> <span class="nv">parents</span><span class="p">)</span>
+    <span class="nv">obj</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">rget</span> <span class="p">(</span><span class="nv">prop</span> <span class="nv">obj</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">dolist</span> <span class="p">(</span><span class="nv">c</span> <span class="p">(</span><span class="nb">gethash</span> <span class="ss">:preclist</span> <span class="nv">obj</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">multiple-value-bind</span> <span class="p">(</span><span class="nv">val</span> <span class="nv">in</span><span class="p">)</span> <span class="p">(</span><span class="nb">gethash</span> <span class="nv">prop</span> <span class="nv">c</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">if</span> <span class="nv">in</span> <span class="p">(</span><span class="nb">return</span> <span class="p">(</span><span class="nb">values</span> <span class="nv">val</span> <span class="nv">in</span><span class="p">))))))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 17.4：创建对象</strong></p>
+</div>
+<div class="section" id="functional-syntax">
+<h2>17.4 函数式语法 (Functional Syntax)<a class="headerlink" href="#functional-syntax" title="永久链接至标题">¶</a></h2>
+<p>另一个可以改善的空间是消息调用的语法。 <tt class="docutils literal"><span class="pre">tell</span></tt> 本身是无谓的杂乱不堪，这也使得动词在第三顺位才出现，同时代表著我们的程序不再可以像一般 Lisp 前序表达式那样阅读:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">tell</span> <span class="p">(</span><span class="nv">tell</span> <span class="nv">obj</span> <span class="ss">&#39;find-owner</span><span class="p">)</span> <span class="ss">&#39;find-owner</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>我们可以使用图 17.5 所定义的 <tt class="docutils literal"><span class="pre">defprop</span></tt> 宏，通过定义作为函数的属性名称来摆脱这种 <tt class="docutils literal"><span class="pre">tell</span></tt> 语法。若选择性参数 <tt class="docutils literal"><span class="pre">meth?</span></tt> 为真的话，会将此属性视为方法。不然会将属性视为槽，而由 <tt class="docutils literal"><span class="pre">rget</span></tt> 所取回的值会直接返回。一旦我们定义了属性作为槽或方法的名字，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defmacro</span> <span class="nv">defprop</span> <span class="p">(</span><span class="nv">name</span> <span class="k">&amp;optional</span> <span class="nv">meth?</span><span class="p">)</span>
+  <span class="o">`</span><span class="p">(</span><span class="k">progn</span>
+     <span class="p">(</span><span class="nb">defun</span> <span class="o">,</span><span class="nv">name</span> <span class="p">(</span><span class="nv">obj</span> <span class="k">&amp;rest</span> <span class="nv">args</span><span class="p">)</span>
+       <span class="o">,</span><span class="p">(</span><span class="k">if</span> <span class="nv">meth?</span>
+          <span class="o">`</span><span class="p">(</span><span class="nv">run-methods</span> <span class="nv">obj</span> <span class="ss">&#39;,name</span> <span class="nv">args</span><span class="p">)</span>
+          <span class="o">`</span><span class="p">(</span><span class="nv">rget</span> <span class="ss">&#39;,name</span> <span class="nv">obj</span><span class="p">)))</span>
+     <span class="p">(</span><span class="nb">defun</span> <span class="p">(</span><span class="nb">setf</span> <span class="o">,</span><span class="nv">name</span><span class="p">)</span> <span class="p">(</span><span class="nv">val</span> <span class="nv">obj</span><span class="p">)</span>
+       <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">gethash</span> <span class="ss">&#39;,name</span> <span class="nv">obj</span><span class="p">)</span> <span class="nv">val</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">run-methods</span> <span class="p">(</span><span class="nv">obj</span> <span class="nv">name</span> <span class="nv">args</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">meth</span> <span class="p">(</span><span class="nv">rget</span> <span class="nv">name</span> <span class="nv">obj</span><span class="p">)))</span>
+    <span class="p">(</span><span class="k">if</span> <span class="nv">meth</span>
+        <span class="p">(</span><span class="nb">apply</span> <span class="nv">meth</span> <span class="nv">obj</span> <span class="nv">args</span><span class="p">)</span>
+        <span class="p">(</span><span class="nb">error</span> <span class="s">&quot;No ~A method for ~A.&quot;</span> <span class="nv">name</span> <span class="nv">obj</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 17.5: 函数式语法</strong></p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">defprop</span> <span class="nv">find-owner</span> <span class="no">t</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>我们就可以在函数调用里引用它，则我们的代码读起来将会再次回到 Lisp 本来那样：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">find-owner</span> <span class="p">(</span><span class="nv">find-owner</span> <span class="nv">obj</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>我们的前一个例子在某种程度上可读性变得更高了：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">progn</span>
+    <span class="p">(</span><span class="nb">setf</span> <span class="nv">scoundrel</span>           <span class="p">(</span><span class="nv">obj</span><span class="p">)</span>
+          <span class="nv">patriot</span>             <span class="p">(</span><span class="nv">obj</span><span class="p">)</span>
+          <span class="nv">patriotic-scoundrel</span> <span class="p">(</span><span class="nv">obj</span> <span class="nv">scoundrel</span> <span class="nv">patriot</span><span class="p">))</span>
+    <span class="p">(</span><span class="nv">defprop</span> <span class="nv">serves</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nv">serves</span> <span class="nv">scoundrel</span><span class="p">)</span> <span class="ss">&#39;self</span>
+          <span class="p">(</span><span class="nv">serves</span> <span class="nv">patriot</span><span class="p">)</span> <span class="ss">&#39;country</span><span class="p">)</span>
+    <span class="p">(</span><span class="nv">serves</span> <span class="nv">patriotic-scoundrel</span><span class="p">))</span>
+<span class="nv">SELF</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<div class="section" id="defining-methods">
+<h2>17.5 定义方法 (Defining Methods)<a class="headerlink" href="#defining-methods" title="永久链接至标题">¶</a></h2>
+<p>到目前为止，我们藉由叙述如下的东西来定义一个方法：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">defprop</span> <span class="nv">area</span> <span class="no">t</span><span class="p">)</span>
+
+<span class="p">(</span><span class="nb">setf</span> <span class="nv">circle-class</span> <span class="p">(</span><span class="nv">obj</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nv">area</span> <span class="nv">circle-class</span><span class="p">)</span>
+      <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">c</span><span class="p">)</span> <span class="p">(</span><span class="nb">*</span> <span class="nv">pi</span> <span class="p">(</span><span class="nb">expt</span> <span class="p">(</span><span class="nv">radius</span> <span class="nv">c</span><span class="p">)</span> <span class="mi">2</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defmacro</span> <span class="nv">defmeth</span> <span class="p">(</span><span class="nv">name</span> <span class="nv">obj</span> <span class="nv">parms</span> <span class="k">&amp;rest</span> <span class="nv">body</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">gobj</span> <span class="p">(</span><span class="nb">gensym</span><span class="p">)))</span>
+    <span class="o">`</span><span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="o">,</span><span class="nv">gobj</span> <span class="o">,</span><span class="nv">obj</span><span class="p">))</span>
+       <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">gethash</span> <span class="ss">&#39;,name</span> <span class="o">,</span><span class="nv">gobj</span><span class="p">)</span>
+             <span class="p">(</span><span class="k">labels</span> <span class="p">((</span><span class="nv">next</span> <span class="p">()</span> <span class="p">(</span><span class="nv">get-next</span> <span class="o">,</span><span class="nv">gobj</span> <span class="ss">&#39;,name</span><span class="p">)))</span>
+               <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="o">,</span><span class="nv">parms</span> <span class="o">,@</span><span class="nv">body</span><span class="p">))))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">get-next</span> <span class="p">(</span><span class="nv">obj</span> <span class="nv">name</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">some</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">gethash</span> <span class="nv">name</span> <span class="nv">x</span><span class="p">))</span>
+        <span class="p">(</span><span class="nb">cdr</span> <span class="p">(</span><span class="nb">gethash</span> <span class="ss">:preclist</span> <span class="nv">obj</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 17.6 定义方法。</strong></p>
+<p>在一个方法里，我们可以通过给对象的 <tt class="docutils literal"><span class="pre">:preclist</span></tt>         的 <tt class="docutils literal"><span class="pre">cdr</span></tt>  获得如内置 <tt class="docutils literal"><span class="pre">call-next-method</span></tt> 方法的效果。所以举例来说，若我们想要定义一个特殊的圆形，这个圆形在返回面积的过程中印出某个东西，我们可以说：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">setf</span> <span class="nv">grumpt-circle</span> <span class="p">(</span><span class="nv">obj</span> <span class="nv">circle-class</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nv">area</span> <span class="nv">grumpt-circle</span><span class="p">)</span>
+      <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">c</span><span class="p">)</span>
+          <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;How dare you stereotype me!~%&quot;</span><span class="p">)</span>
+          <span class="p">(</span><span class="nb">funcall</span> <span class="p">(</span><span class="nb">some</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">gethash</span> <span class="ss">&#39;area</span> <span class="nv">x</span><span class="p">))</span>
+                         <span class="p">(</span><span class="nb">cdr</span> <span class="p">(</span><span class="nb">gethash</span> <span class="ss">:preclist</span> <span class="nv">c</span><span class="p">)))</span>
+                   <span class="nv">c</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>这里 <tt class="docutils literal"><span class="pre">funcall</span></tt> 等同于一个 <tt class="docutils literal"><span class="pre">call-next-method</span></tt> 调用，但他..</p>
+<p>图 17.6 的 <tt class="docutils literal"><span class="pre">defmeth</span></tt> 宏提供了一个便捷方式来定义方法，并使得调用下个方法变得简单。一个 <tt class="docutils literal"><span class="pre">defmeth</span></tt> 的调用会展开成一个 <tt class="docutils literal"><span class="pre">setf</span></tt> 表达式，但 <tt class="docutils literal"><span class="pre">setf</span></tt> 在一個 <tt class="docutils literal"><span class="pre">labels</span></tt> 表达式里定义了 <tt class="docutils literal"><span class="pre">next</span></tt> 作为取出下个方法的函数。这个函数与 <tt class="docutils literal"><span class="pre">next-method-p</span></tt> 类似（第 188 页「譯註: 11.7 節」），但返回的是我们可以调用的东西，同時作為 <tt class="docutils literal"><span class="pre">call-next-method</span></tt> 。 <a class="reference external" href="http://ansi-common-lisp.readthedocs.org/en/latest/zhCN/notes-cn.html#notes-273">λ</a> 前述两个方法可以被定义成：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">defmeth</span> <span class="nv">area</span> <span class="nv">circle-class</span> <span class="p">(</span><span class="nv">c</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">*</span> <span class="nv">pi</span> <span class="p">(</span><span class="nb">expt</span> <span class="p">(</span><span class="nv">radius</span> <span class="nv">c</span><span class="p">)</span> <span class="mi">2</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nv">defmeth</span> <span class="nv">area</span> <span class="nv">grumpy-circle</span> <span class="p">(</span><span class="nv">c</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;How dare you stereotype me!~%&quot;</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">funcall</span> <span class="p">(</span><span class="nv">next</span><span class="p">)</span> <span class="nv">c</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>顺道一提，注意 <tt class="docutils literal"><span class="pre">defmeth</span></tt> 的定义也利用到了符号捕捉。方法的主体被插入至函数 <tt class="docutils literal"><span class="pre">next</span></tt> 是局部定义的一个上下文里。</p>
+</div>
+<div class="section" id="instances">
+<h2>17.6 实例 (Instances)<a class="headerlink" href="#instances" title="永久链接至标题">¶</a></h2>
+<p>到目前为止，我们还没有将类别与实例做区别。我们使用了一个术语来表示两者，<em>对象</em>(<em>object</em>)。将所有的对象视为一体是优雅且灵活的，但这非常没效率。在许多面向对象应用里，继承图的底部会是复杂的。举例来说，模拟一个交通情况，我们可能有少于十个对象来表示车子的种类，但会有上百个对象来表示特定的车子。由于后者会全部共享少数的优先级列表，创建它们是浪费时间的，并且浪费空间来保存它们。</p>
+<p>图 17.7 定义一个宏 <tt class="docutils literal"><span class="pre">inst</span></tt> ，用来创建实例。实例就像其他对象一样（现在也可称为类别），有区别的是只有一个父类且不需维护优先级列表。它们也没有包含在列表 <tt class="docutils literal"><span class="pre">*objs**</span></tt> 里。在前述例子里，我们可以说：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">setf</span> <span class="nv">grumpy-circle</span> <span class="p">(</span><span class="nv">inst</span> <span class="nv">circle-class</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>由于某些对象不再有优先级列表，函数 <tt class="docutils literal"><span class="pre">rget</span></tt> 以及 <tt class="docutils literal"><span class="pre">get-next</span></tt> 现在被重新定义，检查这些对象的父类来取代。获得的效率不用拿灵活性交换。我们可以对一个实例做任何我们可以给其它种对象做的事，包括创建一个实例以及重定义其父类。在后面的情况里， <tt class="docutils literal"><span class="pre">(setf</span> <span class="pre">parents)</span></tt> 会有效地将对象转换成一个“类别”。</p>
+</div>
+<div class="section" id="new-implementation">
+<h2>17.7 新的实现 (New Implementation)<a class="headerlink" href="#new-implementation" title="永久链接至标题">¶</a></h2>
+<p>我们到目前为止所做的改善都是牺牲灵活性交换而来。在这个系统的开发后期，一个 Lisp 程序通常可以牺牲些许灵活性来获得好处，这里也不例外。目前为止我们使用哈希表来表示所有的对象。这给我们带来了超乎我们所需的灵活性，以及超乎我们所想的花费。在这个小节里，我们会重写我们的程序，用简单向量来表示对象。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">inst</span> <span class="p">(</span><span class="nv">parent</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">obj</span> <span class="p">(</span><span class="nb">make-hash-table</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">gethash</span> <span class="ss">:parents</span> <span class="nv">obj</span><span class="p">)</span> <span class="nv">parent</span><span class="p">)</span>
+    <span class="nv">obj</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">rget</span> <span class="p">(</span><span class="nv">prop</span> <span class="nv">obj</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">prec</span> <span class="p">(</span><span class="nb">gethash</span> <span class="ss">:preclist</span> <span class="nv">obj</span><span class="p">)))</span>
+    <span class="p">(</span><span class="k">if</span> <span class="nv">prec</span>
+        <span class="p">(</span><span class="nb">dolist</span> <span class="p">(</span><span class="nv">c</span> <span class="nv">prec</span><span class="p">)</span>
+          <span class="p">(</span><span class="nb">multiple-value-bind</span> <span class="p">(</span><span class="nv">val</span> <span class="nv">in</span><span class="p">)</span> <span class="p">(</span><span class="nb">gethash</span> <span class="nv">prop</span> <span class="nv">c</span><span class="p">)</span>
+            <span class="p">(</span><span class="k">if</span> <span class="nv">in</span> <span class="p">(</span><span class="nb">return</span> <span class="p">(</span><span class="nb">values</span> <span class="nv">val</span> <span class="nv">in</span><span class="p">)))))</span>
+      <span class="p">(</span><span class="nb">multiple-value-bind</span> <span class="p">(</span><span class="nv">val</span> <span class="nv">in</span><span class="p">)</span> <span class="p">(</span><span class="nb">gethash</span> <span class="nv">prop</span> <span class="nv">obj</span><span class="p">)</span>
+        <span class="p">(</span><span class="k">if</span> <span class="nv">in</span>
+            <span class="p">(</span><span class="nb">values</span> <span class="nv">val</span> <span class="nv">in</span><span class="p">)</span>
+            <span class="p">(</span><span class="nv">rget</span> <span class="nv">prop</span> <span class="p">(</span><span class="nb">gethash</span> <span class="ss">:parents</span> <span class="nv">obj</span><span class="p">)))))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">get-next</span> <span class="p">(</span><span class="nv">obj</span> <span class="nv">name</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">prec</span> <span class="p">(</span><span class="nb">gethash</span> <span class="ss">:preclist</span> <span class="nv">obj</span><span class="p">)))</span>
+    <span class="p">(</span><span class="k">if</span> <span class="nv">prec</span>
+        <span class="p">(</span><span class="nb">some</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">gethash</span> <span class="nv">name</span> <span class="nv">x</span><span class="p">))</span>
+              <span class="p">(</span><span class="nb">cdr</span> <span class="nv">prec</span><span class="p">))</span>
+      <span class="p">(</span><span class="nv">get-next</span> <span class="p">(</span><span class="nb">gethash</span> <span class="nv">obj</span> <span class="ss">:parents</span><span class="p">)</span> <span class="nv">name</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 17.7: 定义实例</strong></p>
+<p>这个改变意味著放弃动态定义新属性的可能性。目前我们可通过引用任何对象，给它定义一个属性。现在当一个类别被创建时，我们会需要给出一个列表，列出该类有的新属性，而当实例被创建时，他们会恰好有他们所继承的属性。</p>
+<p>在先前的实现里，类别与实例没有实际区别。一个实例只是一个恰好有一个父类的类别。如果我们改动一个实例的父类，它就变成了一个类别。在新的实现里，类别与实例有实际区别；它使得将实例转成类别不再可能。</p>
+<p>在图 17.8-17.10 的代码是一个完整的新实现。图片 17.8 给创建类别与实例定义了新的操作符。类别与实例用向量来表示。表示类别与实例的向量的前三个元素包含程序自身要用到的信息，而图 17.8 的前三个宏是用来引用这些元素的：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defmacro</span> <span class="nv">parents</span> <span class="p">(</span><span class="nv">v</span><span class="p">)</span> <span class="o">`</span><span class="p">(</span><span class="nb">svref</span> <span class="o">,</span><span class="nv">v</span> <span class="mi">0</span><span class="p">))</span>
+<span class="p">(</span><span class="nb">defmacro</span> <span class="nv">layout</span> <span class="p">(</span><span class="nv">v</span><span class="p">)</span> <span class="o">`</span><span class="p">(</span><span class="k">the</span> <span class="kt">simple-vector</span> <span class="p">(</span><span class="nb">svref</span> <span class="o">,</span><span class="nv">v</span> <span class="mi">1</span><span class="p">)))</span>
+<span class="p">(</span><span class="nb">defmacro</span> <span class="nv">preclist</span> <span class="p">(</span><span class="nv">v</span><span class="p">)</span> <span class="o">`</span><span class="p">(</span><span class="nb">svref</span> <span class="o">,</span><span class="nv">v</span> <span class="mi">2</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defmacro</span> <span class="nc">class</span> <span class="p">(</span><span class="k">&amp;optional</span> <span class="nv">parents</span> <span class="k">&amp;rest</span> <span class="nv">props</span><span class="p">)</span>
+  <span class="o">`</span><span class="p">(</span><span class="nv">class-fn</span> <span class="p">(</span><span class="nb">list</span> <span class="o">,@</span><span class="nv">parents</span><span class="p">)</span> <span class="ss">&#39;,props</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">class-fn</span> <span class="p">(</span><span class="nv">parents</span> <span class="nv">props</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let*</span> <span class="p">((</span><span class="nv">all</span> <span class="p">(</span><span class="nb">union</span> <span class="p">(</span><span class="nv">inherit-props</span> <span class="nv">parents</span><span class="p">)</span> <span class="nv">props</span><span class="p">))</span>
+         <span class="p">(</span><span class="nv">obj</span> <span class="p">(</span><span class="nb">make-array</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nb">length</span> <span class="nv">all</span><span class="p">)</span> <span class="mi">3</span><span class="p">)</span>
+                          <span class="ss">:initial-element</span> <span class="ss">:nil</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nv">parents</span> <span class="nv">obj</span><span class="p">)</span>  <span class="nv">parents</span>
+          <span class="p">(</span><span class="nv">layout</span> <span class="nv">obj</span><span class="p">)</span>   <span class="p">(</span><span class="nb">coerce</span> <span class="nv">all</span> <span class="ss">&#39;simple-vector</span><span class="p">)</span>
+          <span class="p">(</span><span class="nv">preclist</span> <span class="nv">obj</span><span class="p">)</span> <span class="p">(</span><span class="nv">precedence</span> <span class="nv">obj</span><span class="p">))</span>
+    <span class="nv">obj</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">inherit-props</span> <span class="p">(</span><span class="nv">classes</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">delete-duplicates</span>
+    <span class="p">(</span><span class="nb">mapcan</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">c</span><span class="p">)</span>
+                <span class="p">(</span><span class="nb">nconc</span> <span class="p">(</span><span class="nb">coerce</span> <span class="p">(</span><span class="nv">layout</span> <span class="nv">c</span><span class="p">)</span> <span class="ss">&#39;list</span><span class="p">)</span>
+                       <span class="p">(</span><span class="nv">inherit-props</span> <span class="p">(</span><span class="nv">parents</span> <span class="nv">c</span><span class="p">))))</span>
+            <span class="nv">classes</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">precedence</span> <span class="p">(</span><span class="nv">obj</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">labels</span> <span class="p">((</span><span class="nv">traverse</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+             <span class="p">(</span><span class="nb">cons</span> <span class="nv">x</span>
+                   <span class="p">(</span><span class="nb">mapcan</span> <span class="nf">#&#39;</span><span class="nv">traverse</span> <span class="p">(</span><span class="nv">parents</span> <span class="nv">x</span><span class="p">)))))</span>
+    <span class="p">(</span><span class="nb">delete-duplicates</span> <span class="p">(</span><span class="nv">traverse</span> <span class="nv">obj</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">inst</span> <span class="p">(</span><span class="nv">parent</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">obj</span> <span class="p">(</span><span class="nb">copy-seq</span> <span class="nv">parent</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nv">parents</span> <span class="nv">obj</span><span class="p">)</span>  <span class="nv">parent</span>
+          <span class="p">(</span><span class="nv">preclist</span> <span class="nv">obj</span><span class="p">)</span> <span class="no">nil</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">fill</span> <span class="nv">obj</span> <span class="ss">:nil</span> <span class="ss">:start</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="nv">obj</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 17.8: 向量实现：创建</strong></p>
+<ol class="arabic simple">
+<li><tt class="docutils literal"><span class="pre">parents</span></tt> 字段取代旧实现中，哈希表条目里 <tt class="docutils literal"><span class="pre">:parents</span></tt> 的位置。在一个类别里， <tt class="docutils literal"><span class="pre">parents</span></tt> 会是一个列出父类的列表。在一个实例里， <tt class="docutils literal"><span class="pre">parents</span></tt> 会是一个单一的父类。</li>
+<li><tt class="docutils literal"><span class="pre">layout</span></tt> 字段是一个包含属性名字的向量，指出类别或实例的从第四个元素开始的设计 (layout)。</li>
+<li><tt class="docutils literal"><span class="pre">preclist</span></tt> 字段取代旧实现中，哈希表条目里 <tt class="docutils literal"><span class="pre">:preclist</span></tt> 的位置。它会是一个类别的优先级列表，实例的话就是一个空表。</li>
+</ol>
+<p>因为这些操作符是宏，他们全都可以被 <tt class="docutils literal"><span class="pre">setf</span></tt> 的第一个参数使用（参考 10.6 节）。</p>
+<p><tt class="docutils literal"><span class="pre">class</span></tt> 宏用来创建类别。它接受一个含有其基类的选择性列表，伴随著零个或多个属性名称。它返回一个代表类别的对象。新的类别会同时有自己本身的属性名，以及从所有基类继承而来的属性。</p>
+<div class="highlight-cl"><pre>&gt; (setf *print-array* nil
+        gemo-class (class nil area)
+        circle-class (class (geom-class) radius))
+#&lt;Simple-Vector T 5 C6205E&gt;</pre>
+</div>
+<p>这里我们创建了两个类别： <tt class="docutils literal"><span class="pre">geom-class</span></tt> 没有基类，且只有一个属性， <tt class="docutils literal"><span class="pre">area</span></tt> ； <tt class="docutils literal"><span class="pre">circle-class</span></tt> 是 <tt class="docutils literal"><span class="pre">gemo-class</span></tt> 的子类，并添加了一个属性， <tt class="docutils literal"><span class="pre">radius</span></tt> 。 <a class="footnote-reference" href="#id8" id="id4">[1]</a> <tt class="docutils literal"><span class="pre">circle-class</span></tt> 类的设计</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">coerce</span> <span class="p">(</span><span class="nv">layout</span> <span class="nv">circle-class</span><span class="p">)</span> <span class="ss">&#39;list</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">AREA</span> <span class="nv">RADIUS</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>显示了五个字段里，最后两个的名称。 <a class="footnote-reference" href="#id9" id="id5">[2]</a></p>
+<p><tt class="docutils literal"><span class="pre">class</span></tt> 宏只是一个 <tt class="docutils literal"><span class="pre">class-fn</span></tt> 的介面，而 <tt class="docutils literal"><span class="pre">class-fn</span></tt> 做了实际的工作。它调用 <tt class="docutils literal"><span class="pre">inherit-props</span></tt> 来汇整所有新对象的父类，汇整成一个列表，创建一个正确长度的向量，并适当地配置前三个字段。（ <tt class="docutils literal"><span class="pre">preclist</span></tt> 由 <tt class="docutils literal"><span class="pre">precedence</span></tt> 创建，本质上 <tt class="docutils literal"><span class="pre">precedence</span></tt> 没什么改变。）类别馀下的字段设置为 <tt class="docutils literal"><span class="pre">:nil</span></tt> 来指出它们尚未初始化。要检视 <tt class="docutils literal"><span class="pre">circle-class</span></tt> 的 <tt class="docutils literal"><span class="pre">area</span></tt> 属性，我们可以：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">svref</span> <span class="nv">circle-class</span>
+         <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nb">position</span> <span class="ss">&#39;area</span> <span class="p">(</span><span class="nv">layout</span> <span class="nv">circle-class</span><span class="p">))</span> <span class="mi">3</span><span class="p">))</span>
+<span class="ss">:NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>稍后我们会定义存取函数来自动办到这件事。</p>
+<p>最后，函数 <tt class="docutils literal"><span class="pre">inst</span></tt> 用来创建实例。它不需要是一个宏，因为它仅接受一个参数：</p>
+<div class="highlight-cl"><pre>&gt; (setf our-circle (inst circle-class))
+#&lt;Simple-Vector T 5 C6464E&gt;</pre>
+</div>
+<p>比较 <tt class="docutils literal"><span class="pre">inst</span></tt> 与 <tt class="docutils literal"><span class="pre">class-fn</span></tt> 是有益学习的，它们做了差不多的事。因为实例仅有一个父类，不需要决定它继承什么属性。实例可以仅拷贝其父类的设计。它也不需要构造一个优先级列表，因为实例没有优先级列表。创建实例因此与创建类别比起来来得快许多，因为创建实例在多数应用里比创建类别更常见。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">declaim</span> <span class="p">(</span><span class="k">inline</span> <span class="nv">lookup</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">lookup</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">rget</span> <span class="p">(</span><span class="nv">prop</span> <span class="nv">obj</span> <span class="nv">next?</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">prec</span> <span class="p">(</span><span class="nv">preclist</span> <span class="nv">obj</span><span class="p">)))</span>
+    <span class="p">(</span><span class="k">if</span> <span class="nv">prec</span>
+        <span class="p">(</span><span class="nb">dolist</span> <span class="p">(</span><span class="nv">c</span> <span class="p">(</span><span class="k">if</span> <span class="nv">next?</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">prec</span><span class="p">)</span> <span class="nv">prec</span><span class="p">)</span> <span class="ss">:nil</span><span class="p">)</span>
+          <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">val</span> <span class="p">(</span><span class="nv">lookup</span> <span class="nv">prop</span> <span class="nv">c</span><span class="p">)))</span>
+            <span class="p">(</span><span class="nb">unless</span> <span class="p">(</span><span class="nb">eq</span> <span class="nv">val</span> <span class="ss">:nil</span><span class="p">)</span> <span class="p">(</span><span class="nb">return</span> <span class="nv">val</span><span class="p">))))</span>
+        <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">val</span> <span class="p">(</span><span class="nv">lookup</span> <span class="nv">prop</span> <span class="nv">obj</span><span class="p">)))</span>
+          <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">eq</span> <span class="nv">val</span> <span class="ss">:nil</span><span class="p">)</span>
+              <span class="p">(</span><span class="nv">rget</span> <span class="nv">prop</span> <span class="p">(</span><span class="nv">parents</span> <span class="nv">obj</span><span class="p">)</span> <span class="no">nil</span><span class="p">)</span>
+              <span class="nv">val</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">lookup</span> <span class="p">(</span><span class="nv">prop</span> <span class="nv">obj</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">off</span> <span class="p">(</span><span class="nb">position</span> <span class="nv">prop</span> <span class="p">(</span><span class="nv">layout</span> <span class="nv">obj</span><span class="p">)</span> <span class="ss">:test</span> <span class="nf">#&#39;</span><span class="nb">eq</span><span class="p">)))</span>
+    <span class="p">(</span><span class="k">if</span> <span class="nv">off</span> <span class="p">(</span><span class="nb">svref</span> <span class="nv">obj</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">off</span> <span class="mi">3</span><span class="p">))</span> <span class="ss">:nil</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">lookup</span><span class="p">)</span> <span class="p">(</span><span class="nv">val</span> <span class="nv">prop</span> <span class="nv">obj</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">off</span> <span class="p">(</span><span class="nb">position</span> <span class="nv">prop</span> <span class="p">(</span><span class="nv">layout</span> <span class="nv">obj</span><span class="p">)</span> <span class="ss">:test</span> <span class="nf">#&#39;</span><span class="nb">eq</span><span class="p">)))</span>
+    <span class="p">(</span><span class="k">if</span> <span class="nv">off</span>
+        <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">svref</span> <span class="nv">obj</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">off</span> <span class="mi">3</span><span class="p">))</span> <span class="nv">val</span><span class="p">)</span>
+        <span class="p">(</span><span class="nb">error</span> <span class="s">&quot;Can&#39;t set ~A of ~A.&quot;</span> <span class="nv">val</span> <span class="nv">obj</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 17.9: 向量实现：存取</strong></p>
+<p>现在我们可以创建所需的类别层级及实例，以及需要的函数来读写它们的属性。图 17.9 的第一个函数是 <tt class="docutils literal"><span class="pre">rget</span></tt> 的新定义。它的形状与图 17.7 的 <tt class="docutils literal"><span class="pre">rget</span></tt> 相似。条件式的两个分支，分别处理类别与实例。</p>
+<ol class="arabic simple">
+<li>若对象是一个类别，我们遍历其优先级列表，直到我们找到一个对象，其中欲找的属性不是 <tt class="docutils literal"><span class="pre">:nil</span></tt> 。如果没有找到，返回 <tt class="docutils literal"><span class="pre">:nil</span></tt> 。</li>
+<li>若对象是一个实例，我们直接查找属性，并在没找到时递回地调用 <tt class="docutils literal"><span class="pre">rget</span></tt> 。</li>
+</ol>
+<p><tt class="docutils literal"><span class="pre">rget</span></tt> 与 <tt class="docutils literal"><span class="pre">next?</span></tt> 新的第三个参数稍后解释。现在只要了解如果是 <tt class="docutils literal"><span class="pre">nil</span></tt> ， <tt class="docutils literal"><span class="pre">rget</span></tt> 会像平常那样工作。</p>
+<p>函数 <tt class="docutils literal"><span class="pre">lookup</span></tt> 及其反相扮演著先前 <tt class="docutils literal"><span class="pre">rget</span></tt> 函数里 <tt class="docutils literal"><span class="pre">gethash</span></tt> 的角色。它们使用一个对象的 <tt class="docutils literal"><span class="pre">layout</span></tt> ，来取出或设置一个给定名称的属性。这条查询是先前的一个复本：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">lookup</span> <span class="ss">&#39;area</span> <span class="nv">circle-class</span><span class="p">)</span>
+<span class="ss">:NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>由于 <tt class="docutils literal"><span class="pre">lookup</span></tt> 的 <tt class="docutils literal"><span class="pre">setf</span></tt> 也定义了，我们可以给 <tt class="docutils literal"><span class="pre">circle-class</span></tt> 定义一个 <tt class="docutils literal"><span class="pre">area</span></tt> 方法，通过：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nv">lookup</span> <span class="ss">&#39;area</span> <span class="nv">circle-class</span><span class="p">)</span>
+      <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">c</span><span class="p">)</span>
+          <span class="p">(</span><span class="nb">*</span> <span class="nv">pi</span> <span class="p">(</span><span class="nb">expt</span> <span class="p">(</span><span class="nv">rget</span> <span class="ss">&#39;radius</span> <span class="nv">c</span> <span class="no">nil</span><span class="p">)</span> <span class="mi">2</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>在这个程序里，和先前的版本一样，没有特别区别出方法与槽。一个“方法”只是一个字段，里面有著一个函数。这将很快会被一个更方便的前端所隐藏起来。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">declaim</span> <span class="p">(</span><span class="k">inline</span> <span class="nv">run-methods</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defmacro</span> <span class="nv">defprop</span> <span class="p">(</span><span class="nv">name</span> <span class="k">&amp;optional</span> <span class="nv">meth?</span><span class="p">)</span>
+  <span class="o">`</span><span class="p">(</span><span class="k">progn</span>
+     <span class="p">(</span><span class="nb">defun</span> <span class="o">,</span><span class="nv">name</span> <span class="p">(</span><span class="nv">obj</span> <span class="k">&amp;rest</span> <span class="nv">args</span><span class="p">)</span>
+       <span class="o">,</span><span class="p">(</span><span class="k">if</span> <span class="nv">meth?</span>
+            <span class="o">`</span><span class="p">(</span><span class="nv">run-methods</span> <span class="nv">obj</span> <span class="ss">&#39;,name</span> <span class="nv">args</span><span class="p">)</span>
+            <span class="o">`</span><span class="p">(</span><span class="nv">rget</span> <span class="ss">&#39;,name</span> <span class="nv">obj</span> <span class="no">nil</span><span class="p">)))</span>
+     <span class="p">(</span><span class="nb">defun</span> <span class="p">(</span><span class="nb">setf</span> <span class="o">,</span><span class="nv">name</span><span class="p">)</span> <span class="p">(</span><span class="nv">val</span> <span class="nv">obj</span><span class="p">)</span>
+       <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nv">lookup</span> <span class="ss">&#39;,name</span> <span class="nv">obj</span><span class="p">)</span> <span class="nv">val</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">run-methods</span> <span class="p">(</span><span class="nv">obj</span> <span class="nv">name</span> <span class="nv">args</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">meth</span> <span class="p">(</span><span class="nv">rget</span> <span class="nv">name</span> <span class="nv">obj</span> <span class="no">nil</span><span class="p">)))</span>
+    <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="nb">eq</span> <span class="nv">meth</span> <span class="ss">:nil</span><span class="p">))</span>
+        <span class="p">(</span><span class="nb">apply</span> <span class="nv">meth</span> <span class="nv">obj</span> <span class="nv">args</span><span class="p">)</span>
+        <span class="p">(</span><span class="nb">error</span> <span class="s">&quot;No ~A method for ~A.&quot;</span> <span class="nv">name</span> <span class="nv">obj</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nb">defmacro</span> <span class="nv">defmeth</span> <span class="p">(</span><span class="nv">name</span> <span class="nv">obj</span> <span class="nv">parms</span> <span class="k">&amp;rest</span> <span class="nv">body</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">gobj</span> <span class="p">(</span><span class="nb">gensym</span><span class="p">)))</span>
+    <span class="o">`</span><span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="o">,</span><span class="nv">gobj</span> <span class="o">,</span><span class="nv">obj</span><span class="p">))</span>
+       <span class="p">(</span><span class="nv">defprop</span> <span class="o">,</span><span class="nv">name</span> <span class="no">t</span><span class="p">)</span>
+       <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nv">lookup</span> <span class="ss">&#39;,name</span> <span class="o">,</span><span class="nv">gobj</span><span class="p">)</span>
+             <span class="p">(</span><span class="k">labels</span> <span class="p">((</span><span class="nv">next</span> <span class="p">()</span> <span class="p">(</span><span class="nv">rget</span> <span class="o">,</span><span class="nv">gobj</span> <span class="ss">&#39;,name</span> <span class="no">t</span><span class="p">)))</span>
+               <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="o">,</span><span class="nv">parms</span> <span class="o">,@</span><span class="nv">body</span><span class="p">))))))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 17.10: 向量实现：宏介面</strong></p>
+<p>图 17.10 包含了新的实现的最后部分。这个代码没有给程序加入任何威力，但使程序更容易使用。宏 <tt class="docutils literal"><span class="pre">defprop</span></tt> 本质上没有改变；现在仅调用 <tt class="docutils literal"><span class="pre">lookup</span></tt> 而不是 <tt class="docutils literal"><span class="pre">gethash</span></tt> 。与先前相同，它允许我们用函数式的语法来引用属性：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">defprop</span> <span class="nv">radius</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">SETF</span> <span class="nv">RADIUS</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nv">radius</span> <span class="nv">our-circle</span><span class="p">)</span>
+<span class="ss">:NIL</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nv">radius</span> <span class="nv">our-circle</span><span class="p">)</span> <span class="mi">2</span><span class="p">)</span>
+<span class="mi">2</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果 <tt class="docutils literal"><span class="pre">defprop</span></tt> 的第二个选择性参数为真的话，它展开成一个 <tt class="docutils literal"><span class="pre">run-methods</span></tt> 调用，基本上也没什么改变。</p>
+<p>最后，函数 <tt class="docutils literal"><span class="pre">defmeth</span></tt> 提供了一个便捷方式来定义方法。这个版本有三件新的事情：它隐含了 <tt class="docutils literal"><span class="pre">defprop</span></tt> ，它调用 <tt class="docutils literal"><span class="pre">lookup</span></tt> 而不是 <tt class="docutils literal"><span class="pre">gethash</span></tt> ，且它调用 <tt class="docutils literal"><span class="pre">regt</span></tt> 而不是 278 页的 <tt class="docutils literal"><span class="pre">get-next</span></tt> (译注: 图 17.7 的 <tt class="docutils literal"><span class="pre">get-next</span></tt> )来获得下个方法。现在我们理解给 <tt class="docutils literal"><span class="pre">rget</span></tt> 添加额外参数的理由。它与 <tt class="docutils literal"><span class="pre">get-next</span></tt> 非常相似，我们同样通过添加一个额外参数，在一个函数里实现。若这额外参数为真时， <tt class="docutils literal"><span class="pre">rget</span></tt> 取代 <tt class="docutils literal"><span class="pre">get-next</span></tt> 的位置。</p>
+<p>现在我们可以达到先前方法定义所有的效果，但更加清晰：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">defmeth</span> <span class="nv">area</span> <span class="nv">circle-class</span> <span class="p">(</span><span class="nv">c</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">*</span> <span class="nv">pi</span> <span class="p">(</span><span class="nb">expt</span> <span class="p">(</span><span class="nv">radius</span> <span class="nv">c</span><span class="p">)</span> <span class="mi">2</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>注意我们可以直接调用 <tt class="docutils literal"><span class="pre">radius</span></tt> 而无须调用 <tt class="docutils literal"><span class="pre">rget</span></tt> ，因为我们使用 <tt class="docutils literal"><span class="pre">defprop</span></tt> 将它定义成一个函数。因为隐含的 <tt class="docutils literal"><span class="pre">defprop</span></tt> 由 <tt class="docutils literal"><span class="pre">defmeth</span></tt> 实现，我们也可以调用 <tt class="docutils literal"><span class="pre">area</span></tt> 来获得 <tt class="docutils literal"><span class="pre">our-circle</span></tt> 的面积：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">area</span> <span class="nv">our-circle</span><span class="p">)</span>
+<span class="mf">12.566370614359173</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<div class="section" id="analysis">
+<h2>17.8 分析 (Analysis)<a class="headerlink" href="#analysis" title="永久链接至标题">¶</a></h2>
+<p>我们现在有了一个适合撰写实际面向对象程序的嵌入式语言。它很简单，但就大小来说相当强大。而在典型应用里，它也会是快速的。在一个典型的应用里，操作实例应比操作类别更常见。我们重新设计的重点在于如何使得操作实例的花费降低。</p>
+<p>在我们的程序里，创建类别既慢且产生了许多垃圾。如果类别不是在速度为关键考量时创建，这还是可以接受的。会需要速度的是存取函数以及创建实例。这个程序里的没有做编译优化的存取函数大约与我们预期的一样快。 <a class="reference external" href="http://ansi-common-lisp.readthedocs.org/en/latest/zhCN/notes-cn.html#notes-284">λ</a> 而创建实例也是如此。且两个操作都没有用到构造 (consing)。除了用来表达实例的向量例外。会自然的以为这应该是动态地配置才对。但我们甚至可以避免动态配置实例，如果我们使用像是 13.4 节所提出的策略。</p>
+<p>我们的嵌入式语言是 Lisp 编程的一个典型例子。只不过是一个嵌入式语言就可以是一个例子了。但 Lisp 的特性是它如何从一个小的、受限版本的程序，进化成一个强大但低效的版本，最终演化成快速但稍微受限的版本。</p>
+<p>Lisp 恶名昭彰的缓慢不是 Lisp 本身导致（Lisp 编译器早在 1980 年代就可以产生出与 C 编译器一样快的代码），而是由于许多程序员在第二个阶段就放弃的事实。如同 Richard Gabriel 所写的，</p>
+<blockquote>
+<div>要在 Lisp 撰写出性能极差的程序相当简单；而在 C 这几乎是不可能的。 <a class="reference external" href="http://ansi-common-lisp.readthedocs.org/en/latest/zhCN/notes-cn.html#notes-284-2">λ</a></div></blockquote>
+<p>这完全是一个真的论述，但也可以解读为赞扬或贬低 Lisp 的论点：</p>
+<ol class="arabic simple">
+<li>通过牺牲灵活性换取速度，你可以在 Lisp 里轻松地写出程序；在 C 语言里，你没有这个选择。</li>
+<li>除非你优化你的 Lisp 代码，不然要写出缓慢的软件根本易如反掌。</li>
+</ol>
+<p>你的程序属于哪一种解读完全取决于你。但至少在开发初期，Lisp 使你有牺牲执行速度来换取时间的选择。</p>
+<p>有一件我们示例程序没有做的很好的事是，它不是一个称职的 CLOS 模型（除了可能没有说明难以理解的 <tt class="docutils literal"><span class="pre">call-next-method</span></tt> 如何工作是件好事例外）。如大象般庞大的 CLOS 与这个如蚊子般微小的 70 行程序之间，存在多少的相似性呢？当然，这两者的差别是出自于教育性，而不是探讨有多相似。首先，这使我们理解到“面向对象”的广度。我们的程序比任何被称为是面向对象的都来得强大，而这只不过是 CLOS 的一小部分威力。</p>
+<p>我们程序与 CLOS 不同的地方是，方法是属于某个对象的。这个方法的概念使它们与对第一个参数做派发的函数相同。而当我们使用函数式语法来调用方法时，这看起来就跟 Lisp 的函数一样。相反地，一个 CLOS 的通用函数，可以派发它的任何参数。一个通用函数的组件称为方法，而若你将它们定义成只对第一个参数特化，你可以制造出它们是某个类或实例的方法的错觉。但用面向对象编程的消息传递模型来思考 CLOS 最终只会使你困惑，因为 CLOS 凌驾在面向对象编程之上。</p>
+<p>CLOS 的缺点之一是它太庞大了，并且 CLOS 费煞苦心的隐藏了面向对象编程，其实只不过是改写 Lisp 的这个事实。本章的例子至少阐明了这一点。如果我们满足于旧的消息传递模型，我们可以用一页多一点的代码来实现。面向对象编程不过是 Lisp 可以做的小事之一而已。更发人深省的问题是，Lisp 除此之外还能做些什么？</p>
+<p class="rubric">脚注</p>
+<table class="docutils footnote" frame="void" id="id8" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[1]</a></td><td>当类别被显示时， <tt class="docutils literal"><span class="pre">*print-array*</span></tt> 应当是 <tt class="docutils literal"><span class="pre">nil</span></tt> 。 任何类别的 <tt class="docutils literal"><span class="pre">preclist</span></tt> 的第一个元素都是类别本身，所以试图显示类别的内部结构会导致一个无限循环。</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id9" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id5">[2]</a></td><td>这个向量被 coerced 成一个列表，只是为了看看里面有什么。有了 <tt class="docutils literal"><span class="pre">*print-array*</span></tt> 被设成 <tt class="docutils literal"><span class="pre">nil</span></tt> ，一个向量的内容应该不会显示出来。</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'acl-chinese';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+                  </div></div>
+              </article><div class="clearer"></div>
+          </div><div class="span3">
+                <div class="sphinxsidebar">
+      <div id="sidenav" class="box sphinxsidebarwrapper">
+
+
+<h4><a href="../index.html">內容目录</a></h4>
+  <ul>
+<li><a class="reference internal" href="#">第十七章：示例：对象</a><ul>
+<li><a class="reference internal" href="#inheritance">17.1 继承 (Inheritance)</a></li>
+<li><a class="reference internal" href="#multiple-inheritance">17.2 多重继承 (Multiple Inheritance)</a></li>
+<li><a class="reference internal" href="#defining-objects">17.3 定义对象 (Defining Objects)</a></li>
+<li><a class="reference internal" href="#functional-syntax">17.4 函数式语法 (Functional Syntax)</a></li>
+<li><a class="reference internal" href="#defining-methods">17.5 定义方法 (Defining Methods)</a></li>
+<li><a class="reference internal" href="#instances">17.6 实例 (Instances)</a></li>
+<li><a class="reference internal" href="#new-implementation">17.7 新的实现 (New Implementation)</a></li>
+<li><a class="reference internal" href="#analysis">17.8 分析 (Analysis)</a></li>
+</ul>
+</li>
+</ul>
+
+  
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      
+      
+        <li><a href="https://github.com/acl-translation/acl-chinese/blob/redirect-to-new-domain/zhCN/ch17-cn.rst">
+          Show on GitHub</a></li>
+        <li><a href="https://github.com/acl-translation/acl-chinese/edit/redirect-to-new-domain/zhCN/ch17-cn.rst">
+          Edit on GitHub</a></li>
+      
+    </ul>
+  
+</div>
+    </div>
+              </div></div>
+      </div>
+<footer class="container-fluid">
+        <hr />&copy; 版权所有 2012, Juanito Fatas Huang.最后更新日期是 Apr 22, 2013.使用 <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.</footer>
+ <!-- End original user content -->
+
+
+<br>
+<br>
+<br>
+
+
+<style type="text/css">
+  .rtd-badge {
+    position: fixed;
+    display: block;
+    bottom: 5px;
+    height: 40px;
+    text-indent: -9999em;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -moz-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  }
+  #version_menu {
+    position: fixed;
+    display: none;
+    bottom: 11px;
+    right: 166px;
+    list-style-type: none;
+    margin: 0;
+  }
+  .footer_popout:hover #version_menu {
+    display: block;
+  }
+  #version_menu li {
+    display: block;
+    float: right;
+  }
+  #version_menu li a {
+    display: block;
+    padding: 6px 10px 4px 10px;
+    margin: 7px 7px 0 0;
+    font-weight: bold;
+    font-size: 14px;
+    height: 20px;
+    line-height: 17px;
+    text-decoration: none;
+    color: #fff;
+    background: #8ca1af url(../images/gradient-light.png) bottom left repeat-x;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 1px #465158;
+    -moz-box-shadow: 0 1px 1px #465158;
+    -webkit-box-shadow: 0 1px 1px #465158;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+  }
+  #version_menu li a:hover {
+    text-decoration: none;
+    background-color: #697983;
+    box-shadow: 0 1px 0px #465158;
+    -moz-box-shadow: 0 1px 0px #465158;
+    -webkit-box-shadow: 0 1px 0px #465158;
+  }
+  .rtd-badge.rtd {
+    background: #3b4449 url(//media.readthedocs.org//images/badge-rtd.png) scroll 0px -46px no-repeat;
+    border: 1px solid #282E32;
+    width: 41px;
+    right: 5px;
+  }
+  .footer_popout:hover .rtd-badge.rtd {
+    background-position: top left;
+    width: 160px;
+  }
+  .rtd-badge.revsys { background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline-sponsored {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys-sm.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 205px;
+    right: 173px;
+  }
+
+</style>
+<div class="rtd_doc_footer">
+  <div class="footer_popout">
+    <a href="//readthedocs.org/projects/ansi-common-lisp/?fromdocs=ansi-common-lisp" class="rtd-badge rtd"> Brought to you by Read the Docs</a>
+    <ul id="version_menu">
+      
+        <li><a href="/en/latest/">latest</a></li>
+      
+    </ul>
+  </div>
+</div>
+<!-- RTD Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-17997319-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+<!-- User Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-26995626-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+</body>
+</html>

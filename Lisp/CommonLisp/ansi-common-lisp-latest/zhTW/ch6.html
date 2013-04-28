@@ -1,0 +1,1014 @@
+<!DOCTYPE HTML>
+
+  <html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+<title>第六章：函數 &mdash; ANSI Common Lisp 中文版</title>
+    
+<!-- RTD <head> -->
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/underscore.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/doctools.js"></script>
+
+<script type="text/javascript">
+  // This is included here for Javascript that doesn't have access to the templates.
+  var doc_version = "latest";
+  var doc_slug = "ansi-common-lisp";
+</script>
+
+<script type="text/javascript" src="//media.readthedocs.org/javascript/rtd.js"></script>
+<!-- end RTD <head> -->
+
+    <link rel="stylesheet" href="../_static/han.min.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/rosefinch.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/main.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:       '../',
+        VERSION:        '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX:    '.html',
+        HAS_SOURCE:     true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/han.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  <script type="text/javascript" src=../_static/jquery.dimensions.js"></script>
+  <script type="text/javascript" src="../_static/main.js"></script><link rel="top" title="ANSI Common Lisp 中文版" href="../index.html" /></head>
+
+  <body><div class="navbar navbar-static-top navbar-inverse">
+        <div id="top-bar" class="navbar-inner">
+
+          <h1 id="logo">ANSI Common Lisp 中文版<a href="../index.html" class="brand">ANSI Common Lisp 中文版</a></h1>
+          <ul class="nav"></ul><a href="https://github.com/acl-translation/acl-chinese"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
+        </div>
+      </div><div class="content container-fluid">
+        <div class="row-fluid"><div class="document span9"><article >
+                <div class="documentwrapper"><div class="body"><div class="section" id="id1">
+<h1>第六章：函數<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h1>
+<p>理解函數是理解 Lisp 的關鍵之一。概念上來說，函數位於 Lisp 的核心。實際上呢，函數是一個你可以使用的最有用工具之一。</p>
+<div class="section" id="global-functions">
+<h2>6.1 全域函數 (Global Functions)<a class="headerlink" href="#global-functions" title="永久链接至标题">¶</a></h2>
+<p>判斷式 <tt class="docutils literal"><span class="pre">fboundp</span></tt> 告訴我們是否有一個函數的名字是一個給定的符號。如果一個符號是函數的名字， <tt class="docutils literal"><span class="pre">symbol-name</span></tt> 會回傳它：</p>
+<div class="highlight-cl"><pre>&gt; (fboundp '+)
+T
+&gt; (symbol-function '+)
+#&lt;Compiled-function + 17BA4E&gt;</pre>
+</div>
+<p>藉由 <tt class="docutils literal"><span class="pre">symbol-function</span></tt> 來設定某個名字給一個函數：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">symbol-function</span> <span class="ss">&#39;add2</span><span class="p">)</span>
+  <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="mi">2</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>我們可以定義一個新的全域函數，我們可以像是使用 <tt class="docutils literal"><span class="pre">defun</span></tt> 所定義的函數那樣使用它：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">add2</span> <span class="mi">1</span><span class="p">)</span>
+      <span class="mi">3</span>
+</pre></div>
+</td></tr></table></div>
+<p>實際上 <tt class="docutils literal"><span class="pre">defun</span></tt> 做了稍微多的工作，將某些像是</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">add2</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="mi">2</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>翻譯成上述的 <tt class="docutils literal"><span class="pre">setf</span></tt> 表達式。使用 <tt class="docutils literal"><span class="pre">defun</span></tt> 讓程式看起來更美觀並或多或少幫助了編譯器，但嚴格來說，你不需要它來撰寫程式。</p>
+<p>藉由把 <tt class="docutils literal"><span class="pre">defun</span></tt> 的第一個參數變成一個這樣形式的列表 <tt class="docutils literal"><span class="pre">(setf</span> <span class="pre">f)</span></tt> ，你定義了當 <tt class="docutils literal"><span class="pre">setf</span></tt> 第一個參數是一個 <tt class="docutils literal"><span class="pre">f</span></tt> 的函數呼叫時會發生的事情。下面這對函數把 <tt class="docutils literal"><span class="pre">primo</span></tt> 定義成 <tt class="docutils literal"><span class="pre">car</span></tt> 的同義詞：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">primo</span> <span class="p">(</span><span class="nv">lst</span><span class="p">)</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">lst</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">primo</span><span class="p">)</span> <span class="p">(</span><span class="nv">val</span> <span class="nv">lst</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">lst</span><span class="p">)</span> <span class="nv">val</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>在一個函數名是這種形式 <tt class="docutils literal"><span class="pre">(setf</span> <span class="pre">f)</span></tt> 的函數定義中，第一個參數代表新的數值，而剩餘的參數代表了傳給 <tt class="docutils literal"><span class="pre">f</span></tt> 的參數。</p>
+<p>現在任何 <tt class="docutils literal"><span class="pre">primo</span></tt> 的 <tt class="docutils literal"><span class="pre">setf</span></tt> 會是一個上面後者的函數呼叫：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">x</span> <span class="p">(</span><span class="nb">list</span> <span class="ss">&#39;a</span> <span class="ss">&#39;b</span> <span class="ss">&#39;c</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nv">primo</span> <span class="nv">x</span> <span class="p">)</span> <span class="mi">480</span><span class="p">)</span>
+    <span class="nv">x</span><span class="p">)</span>
+<span class="p">(</span><span class="mi">480</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>不需要為了定義 <tt class="docutils literal"><span class="pre">(setf</span> <span class="pre">primo)</span></tt> 而定義 <tt class="docutils literal"><span class="pre">primo</span></tt> ，但這樣的定義通常是成對的。</p>
+<p>由於字串是 Lisp 表達式，沒有理由它們不能出現在程式碼的主體。一個字串本身是沒有副作用的，除非它是最後一個表達式，否則不會造成任何差別。如果你讓一個字串成為 <tt class="docutils literal"><span class="pre">defun</span></tt> 所定義的函數主體的第一個表達式，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">foo</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+  <span class="s">&quot;Implements an enhanced paradigm of diversity&quot;</span>
+  <span class="nv">x</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>那麼這個字串會變成函數的文件字串 (documentation string)。一個全域定義的函數的文件，可以藉由呼叫 <tt class="docutils literal"><span class="pre">documentation</span></tt> 來取得：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">documentation</span> <span class="ss">&#39;foo</span> <span class="ss">&#39;function</span><span class="p">)</span>
+<span class="s">&quot;Implements an enhanced paradigm of diversity&quot;</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<div class="section" id="local-functions">
+<h2>6.2 區域函數 (Local Functions)<a class="headerlink" href="#local-functions" title="永久链接至标题">¶</a></h2>
+<p>通過 <tt class="docutils literal"><span class="pre">defun</span></tt> 或 <tt class="docutils literal"><span class="pre">symbol-function</span></tt> 搭配 <tt class="docutils literal"><span class="pre">setf</span></tt> 所定義的函數是全域函數。你可以像存取全域變數那樣，在任何地方存取它們。定義區域函數也是有可能的，區域函數和區域變數一樣，只在某些語境 (context)內可以存取。</p>
+<p>區域函數可以使用 <tt class="docutils literal"><span class="pre">labels</span></tt> 定義，它是一種像是給函數使用的 <tt class="docutils literal"><span class="pre">let</span></tt> 。它的第一個參數是一個新區域函數的定義列表，而不是一個變數規格說明的列表。每一個列表中的元素為如下形式：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">name</span> <span class="nv">parameters</span> <span class="o">.</span> <span class="nv">body</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>而 <tt class="docutils literal"><span class="pre">labels</span></tt> 表達式剩下的部份，呼叫 <tt class="docutils literal"><span class="pre">name</span></tt> 等同於呼叫 <tt class="docutils literal"><span class="pre">(lambda</span> <span class="pre">parameters</span> <span class="pre">.</span> <span class="pre">body)</span></tt> 。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">labels</span> <span class="p">((</span><span class="nv">add10</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="mi">10</span><span class="p">))</span>
+           <span class="p">(</span><span class="nv">consa</span>  <span class="p">(</span><span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">cons</span> <span class="ss">&#39;a</span> <span class="nv">x</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nv">consa</span> <span class="p">(</span><span class="nv">add10</span> <span class="mi">3</span><span class="p">)))</span>
+<span class="p">(</span><span class="nv">A</span> <span class="o">.</span> <span class="mi">13</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p><tt class="docutils literal"><span class="pre">label</span></tt> 與 <tt class="docutils literal"><span class="pre">let</span></tt> 的類比在一個方面上被打破了。由 <tt class="docutils literal"><span class="pre">labels</span></tt> 表達式所定義的區域函數，可以被其他任何在此定義的函數參照，包括自己。所以是可能可以這樣定義一個遞迴的區域函數：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="k">labels</span> <span class="p">((</span><span class="nv">len</span> <span class="p">(</span><span class="nv">lst</span><span class="p">)</span>
+           <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">lst</span><span class="p">)</span>
+               <span class="mi">0</span>
+               <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nv">len</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">))</span> <span class="mi">1</span><span class="p">))))</span>
+  <span class="p">(</span><span class="nv">len</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>5.2 小節展示了一個 <tt class="docutils literal"><span class="pre">let</span></tt> 表達式可以被理解成一個函數呼叫。一個 <tt class="docutils literal"><span class="pre">do</span></tt> 表達式可以同樣被解釋成一個遞迴函數的呼叫。一個這樣形式的 <tt class="docutils literal"><span class="pre">do</span></tt> :</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">do</span> <span class="p">((</span><span class="nv">x</span> <span class="nv">a</span> <span class="p">(</span><span class="nv">b</span> <span class="nv">x</span><span class="p">))</span>
+     <span class="p">(</span><span class="nv">y</span> <span class="nv">c</span> <span class="p">(</span><span class="nv">d</span> <span class="nv">y</span><span class="p">)))</span>
+    <span class="p">((</span><span class="nv">test</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">)</span> <span class="p">(</span><span class="nv">z</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">))</span>
+  <span class="p">(</span><span class="nv">f</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>等同於</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="k">labels</span> <span class="p">((</span><span class="nv">rec</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">y</span><span class="p">)</span>
+           <span class="p">(</span><span class="nb">cond</span> <span class="p">((</span><span class="nv">test</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">)</span>
+                  <span class="p">(</span><span class="nv">z</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">))</span>
+                 <span class="p">(</span><span class="no">t</span>
+                  <span class="p">(</span><span class="nv">f</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">)</span>
+                  <span class="p">(</span><span class="nv">rec</span> <span class="p">(</span><span class="nv">b</span> <span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nv">d</span> <span class="nv">y</span><span class="p">))))))</span>
+  <span class="p">(</span><span class="nv">rec</span> <span class="nv">a</span> <span class="nv">c</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>這個模型可以用來解決任何你仍然對於 <tt class="docutils literal"><span class="pre">do</span></tt> 行為還有疑惑的問題。</p>
+</div>
+<div class="section" id="parameter-lists">
+<h2>6.3 參數列表 (Parameter Lists)<a class="headerlink" href="#parameter-lists" title="永久链接至标题">¶</a></h2>
+<p>2.1 節我們展示過，有了前序表達式， <tt class="docutils literal"><span class="pre">+</span></tt> 可以接受任何數目的參數。從那時開始，我們看過許多可以接受不定數量參數的函數。要寫出這樣的函數，我們需要使用一個叫做 <em>rest</em> 參數的東西。</p>
+<p>如果我們在一個函數的參數列表裡的最後一個變數前插入 <tt class="docutils literal"><span class="pre">&amp;rest</span></tt> 符號 (token)，那麼當這個函數被呼叫時，這個變數會被設成一個帶有剩餘參數的列表。現在我們可以明白 <tt class="docutils literal"><span class="pre">funcall</span></tt> 是如何根據 <tt class="docutils literal"><span class="pre">apply</span></tt> 寫成的。它或許可以定義成：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">our-funcall</span> <span class="p">(</span><span class="nv">fn</span> <span class="k">&amp;rest</span> <span class="nv">args</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">apply</span> <span class="nv">fn</span> <span class="nv">args</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>我們也看過運算元中，有的參數可以被忽略，並可以預設成特定的值。這樣的參數稱為選擇性參數 (optional parameters)。（相比之下普通的參數有時稱為需要的參數「required parameters」) 如果符號 <tt class="docutils literal"><span class="pre">&amp;optional</span></tt> 出現在一個函數的參數列表時，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">pilosoph</span> <span class="p">(</span><span class="nv">thing</span> <span class="k">&amp;optional</span> <span class="nv">property</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">list</span> <span class="nv">thing</span> <span class="ss">&#39;is</span> <span class="nv">property</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>那麼在 <tt class="docutils literal"><span class="pre">&amp;optional</span></tt> 之後的參數都是選擇性的，預設為 <tt class="docutils literal"><span class="pre">nil</span></tt> :</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">philosoph</span> <span class="ss">&#39;death</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">DEATH</span> <span class="nv">IS</span> <span class="no">NIL</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>我們可以明確指定預設值，通過將預設值附在一個列表裡給入。這版的 <tt class="docutils literal"><span class="pre">philosoph</span></tt> 有一個更鼓舞人心的預設值：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">philosoph</span> <span class="ss">&#39;death</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">DEATH</span> <span class="nv">IS</span> <span class="nv">FUN</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>選擇性參數的預設值不需要是常數。它可以是任何的 Lisp 表達式。若這個表達式不是常數，它會在每次需要用到預設值時被重新求值。</p>
+<p>一個關鍵字參數 (keyword parameter)是一種更靈活的選擇性參數。如果你把符號 <tt class="docutils literal"><span class="pre">&amp;key</span></tt> 放在一個參數列表，那在它之後的參數都是選擇性的。此外，當函數被呼叫時，這些參數會被識別出來，與位置無關，而是用符號標籤（譯註: <tt class="docutils literal"><span class="pre">:</span></tt> )來識別：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">defun</span> <span class="nv">keylist</span> <span class="p">(</span><span class="nv">a</span> <span class="k">&amp;key</span> <span class="nv">x</span> <span class="nv">y</span> <span class="nv">z</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">list</span> <span class="nv">a</span> <span class="nv">x</span> <span class="nv">y</span> <span class="nv">z</span><span class="p">))</span>
+<span class="nv">KEYLIST</span>
+
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nv">keylist</span> <span class="mi">1</span> <span class="ss">:y</span> <span class="mi">2</span><span class="p">)</span>
+<span class="p">(</span><span class="mi">1</span> <span class="no">NIL</span> <span class="mi">2</span> <span class="no">NIL</span><span class="p">)</span>
+
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nv">keylist</span> <span class="mi">1</span> <span class="ss">:y</span> <span class="mi">3</span> <span class="ss">:x</span> <span class="mi">2</span><span class="p">)</span>
+<span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="no">NIL</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>與普通的選擇性參數一樣，關鍵字參數預設是 <tt class="docutils literal"><span class="pre">nil</span></tt> ，但可以在參數列表中明確地指定預設值。</p>
+<p>關鍵字與其相關的參數可以被 <em>rest</em> 參數收集起來，並傳遞給其他預期收到這些參數的函數。舉例來說，我們可以這樣定義 <tt class="docutils literal"><span class="pre">adjoin</span></tt> :</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">our-adjoin</span> <span class="p">(</span><span class="nv">obj</span> <span class="nv">lst</span> <span class="k">&amp;rest</span> <span class="nv">args</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">apply</span> <span class="nf">#&#39;</span><span class="nb">member</span> <span class="nv">obj</span> <span class="nv">lst</span> <span class="nv">args</span><span class="p">)</span>
+      <span class="nv">lst</span>
+      <span class="p">(</span><span class="nb">cons</span> <span class="nv">obj</span> <span class="nv">lst</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>由於 <tt class="docutils literal"><span class="pre">adjoin</span></tt> 與 <tt class="docutils literal"><span class="pre">member</span></tt> 接受一樣的關鍵字，我們可以用 <em>rest</em> 參數收集它們，再傳給 <tt class="docutils literal"><span class="pre">member</span></tt> 函數。</p>
+<p>5.2 節介紹了 <tt class="docutils literal"><span class="pre">destructuring-bind</span></tt> 巨集。在通常情況下，每個模式 (pattern)中作為第一個參數的子樹，可以與函數的參數列表一樣複雜：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">destructuring-bind</span> <span class="p">((</span><span class="k">&amp;key</span> <span class="nv">w</span> <span class="nv">x</span><span class="p">)</span> <span class="k">&amp;rest</span> <span class="nv">y</span><span class="p">)</span> <span class="o">&#39;</span><span class="p">((</span><span class="ss">:w</span> <span class="mi">3</span><span class="p">)</span> <span class="nv">a</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">list</span> <span class="nv">w</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">))</span>
+<span class="p">(</span><span class="mi">3</span> <span class="no">NIL</span> <span class="nv">A</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<div class="section" id="example-utilities">
+<h2>6.4 範例：實用函數 (Example: Utilities)<a class="headerlink" href="#example-utilities" title="永久链接至标题">¶</a></h2>
+<p>2.6 節提到了 Lisp 是由大部分的 Lisp 函數組成，這些函數與你可以自己定義的函數一樣。這是程式語言中一個有用的特色：你不需要更改你的想法來配合語言，因為你可以更改語言來配合你的想法。如果你想要 Common Lisp 有某個特定的函數，你可以自己寫一個，而這個函數會成為語言的一部分，就跟 <tt class="docutils literal"><span class="pre">+</span></tt> 或 <tt class="docutils literal"><span class="pre">eql</span></tt> 一樣。</p>
+<p>有經驗的 Lisp 程式設計師由上而下 (top-down)也由下而上 (bottom-up)地工作。當他們朝著語言撰寫程式的同時，他們也建造了一個更適合他們的程式的語言。通過這種方式，語言與程式結合的更好，也更好用 (meet sooner, and neatly)。</p>
+<p>寫來擴展 Lisp 的運算元稱作實用函數 (utilities)。當你寫了更多 Lisp 程式時，你會發現你開發了一系列的程式，而你在一個專案寫過的這麼多實用函數，下個專案裡也會變得很有用。</p>
+<p>專業的程式設計師常發現他們正在寫的程式，與過去所寫的程式有很大的關聯。這就是軟體重用讓人聽起來很吸引人的感覺。但重用已經被聯想成物件導向程式設計。但軟體不需要是物件導向的才能重用––這是很明顯的，我們看看程式語言（換言之，編譯器），它是重用性最高的軟體。</p>
+<p>要獲得可重用軟體的方法是由下而上地寫程式，而程式不需要是物件導向的才能由下而上地寫出。實際上，函數式風格相比之下，更適合寫出重用軟體。想想看 <tt class="docutils literal"><span class="pre">sort</span></tt> 。在 Common Lisp 你幾乎不需要自己寫一個排序程式； <tt class="docutils literal"><span class="pre">sort</span></tt> 是如此的快與普遍，以致於它不值得我們煩惱。這才是可重用軟體。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">single?</span> <span class="p">(</span><span class="nv">lst</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nb">consp</span> <span class="nv">lst</span><span class="p">)</span> <span class="p">(</span><span class="nb">null</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">append1</span> <span class="p">(</span><span class="nv">lst</span> <span class="nv">obj</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">append</span> <span class="nv">lst</span> <span class="p">(</span><span class="nb">list</span> <span class="nv">obj</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">map-int</span> <span class="p">(</span><span class="nv">fn</span> <span class="nv">n</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">acc</span> <span class="no">nil</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">dotimes</span> <span class="p">(</span><span class="nv">i</span> <span class="nv">n</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">push</span> <span class="p">(</span><span class="nb">funcall</span> <span class="nv">fn</span> <span class="nv">i</span><span class="p">)</span> <span class="nv">acc</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">nreverse</span> <span class="nv">acc</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">filter</span> <span class="p">(</span><span class="nv">fn</span> <span class="nv">lst</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">acc</span> <span class="no">nil</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">dolist</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">lst</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">val</span> <span class="p">(</span><span class="nb">funcall</span> <span class="nv">fn</span> <span class="nv">x</span><span class="p">)))</span>
+        <span class="p">(</span><span class="k">if</span> <span class="nv">val</span> <span class="p">(</span><span class="nb">push</span> <span class="nv">val</span> <span class="nv">acc</span><span class="p">))))</span>
+    <span class="p">(</span><span class="nb">nreverse</span> <span class="nv">acc</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">most</span> <span class="p">(</span><span class="nv">fn</span> <span class="nv">lst</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">lst</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">values</span> <span class="no">nil</span> <span class="no">nil</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">let*</span> <span class="p">((</span><span class="nv">wins</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">lst</span><span class="p">))</span>
+             <span class="p">(</span><span class="nb">max</span> <span class="p">(</span><span class="nb">funcall</span> <span class="nv">fn</span> <span class="nv">wins</span><span class="p">)))</span>
+        <span class="p">(</span><span class="nb">dolist</span> <span class="p">(</span><span class="nv">obj</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">))</span>
+          <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">score</span> <span class="p">(</span><span class="nb">funcall</span> <span class="nv">fn</span> <span class="nv">obj</span><span class="p">)))</span>
+            <span class="p">(</span><span class="nb">when</span> <span class="p">(</span><span class="nb">&gt;</span> <span class="nv">score</span> <span class="nb">max</span><span class="p">)</span>
+              <span class="p">(</span><span class="nb">setf</span> <span class="nv">wins</span> <span class="nv">obj</span>
+                    <span class="nb">max</span>  <span class="nv">score</span><span class="p">))))</span>
+        <span class="p">(</span><span class="nb">values</span> <span class="nv">wins</span> <span class="nb">max</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>圖 6.1 實用函數</strong></p>
+<p>你可以藉由撰寫實用函數，在你的程式裡做到同樣的事情。圖 6.1 挑選了一套實用的函數。前兩個 <tt class="docutils literal"><span class="pre">single?</span></tt> 與 <tt class="docutils literal"><span class="pre">append1</span></tt> 函數，納入的原因是要展示，即便是小程式也很有用。前一個函數 <tt class="docutils literal"><span class="pre">single?</span></tt> 當參數是一個只有一個元素的列表時，回傳真。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">single?</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span><span class="p">))</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+<p>而後一個函數 <tt class="docutils literal"><span class="pre">append1</span></tt> 和 <tt class="docutils literal"><span class="pre">cons</span></tt> 很像，但在列表後面新增一個元素，而不是在前面:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">append1</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">)</span><span class="ss">&#39;d</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span> <span class="nv">D</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>下一個實用函數是 <tt class="docutils literal"><span class="pre">map-int</span></tt> ，接受一個函數與整數 <tt class="docutils literal"><span class="pre">n</span></tt> ，並回傳將函數應用至整數 <tt class="docutils literal"><span class="pre">0</span></tt> 到 <tt class="docutils literal"><span class="pre">n-1</span></tt> 的結果的列表。</p>
+<p>這在測試的時候非常好用 (一個 Lisp 的優點之一是，互動環境讓你輕鬆寫出測試你程式的程式）。如果我們只想要一個 <tt class="docutils literal"><span class="pre">0</span></tt> 到 <tt class="docutils literal"><span class="pre">9</span></tt> 的列表，我們可以：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">map-int</span> <span class="nf">#&#39;</span><span class="nb">identity</span> <span class="mi">10</span><span class="p">)</span>
+<span class="p">(</span><span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mi">9</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>然而要是我們想要一個具有 10 個隨機數的列表，每個數介於 0 至 99 之間（包含），我們可以忽略參數並只要:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">map-int</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">random</span> <span class="mi">100</span><span class="p">)</span>
+           <span class="mi">10</span><span class="p">)</span>
+<span class="p">(</span><span class="mi">85</span> <span class="mi">50</span> <span class="mi">73</span> <span class="mi">64</span> <span class="mi">28</span> <span class="mi">21</span> <span class="mi">40</span> <span class="mi">67</span> <span class="mi">5</span> <span class="mi">32</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p><tt class="docutils literal"><span class="pre">map-int</span></tt> 的定義說明了Lisp 建造一個列表的標準方法 (standard idiom)之一。我們創造一個累積器 <tt class="docutils literal"><span class="pre">acc</span></tt> ，初始化是 <tt class="docutils literal"><span class="pre">nil</span></tt> ，並將之後的物件累積起來。當我們完成時，我們反轉累積器。 <a class="footnote-reference" href="#id5" id="id2">[1]</a></p>
+<p>我們在 <tt class="docutils literal"><span class="pre">filter</span></tt> 中看到同樣的方法 (idiom)。這個函數接受一個函數與一個列表，將函數應用至列表元素上時，回傳所有非 <tt class="docutils literal"><span class="pre">nil</span></tt> 元素:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">filter</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+              <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nb">evenp</span> <span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="mi">10</span><span class="p">)))</span>
+          <span class="o">&#39;</span><span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span><span class="p">))</span>
+<span class="p">(</span><span class="mi">12</span> <span class="mi">14</span> <span class="mi">16</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>另一種思考 <tt class="docutils literal"><span class="pre">filter</span></tt> 的方式是用一個通用版本的 <tt class="docutils literal"><span class="pre">remove-if</span></tt> 。</p>
+<p>圖 6.1 最後一個函數， <tt class="docutils literal"><span class="pre">most</span></tt> ，根據某個評分函數 (scoring function)，回傳列表中最高分的元素。它回傳兩個值，獲勝的元素以及它的分數:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">most</span> <span class="nf">#&#39;</span><span class="nb">length</span> <span class="o">&#39;</span><span class="p">((</span><span class="nv">a</span> <span class="nv">b</span><span class="p">)</span> <span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">)</span> <span class="p">(</span><span class="nv">a</span><span class="p">)))</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+<span class="mi">3</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果平手的話，回傳先發生的元素。</p>
+<p>注意圖 6.1 的最後三個函數，它們全接受函數作為參數。 Lisp 使傳遞函數作為參數變得便捷，而這也是為什麼它這麼適合由下而上程式設計的原因之一。一個成功的實用函數必須是通用的，當你可以將細節作為函數參數傳遞時，要將通用的部份抽象起來就變得容易許多。</p>
+<p>本節給出的函數是通用的實用函數。他們可以被用在任何種類的程式。但你也可以替特定類別的程式撰寫實用函數。確實，當我們談到巨集時，你可以在 Lisp 之上寫出自己的特定語言，如果你想的話。如果你想要寫可重用軟體，這看起來是最可靠的方式。</p>
+</div>
+<div class="section" id="closures">
+<h2>6.5 閉包 (Closures)<a class="headerlink" href="#closures" title="永久链接至标题">¶</a></h2>
+<p>一個函數可以像是表達式的值或是其它物件那樣被回傳。以下是一個接受一個參數，並將相同型別結合起來回傳的函數:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">combiner</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">typecase</span> <span class="nv">x</span>
+    <span class="p">(</span><span class="nc">number</span> <span class="nf">#&#39;</span><span class="nb">+</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">list</span> <span class="nf">#&#39;</span><span class="nb">append</span><span class="p">)</span>
+    <span class="p">(</span><span class="no">t</span> <span class="nf">#&#39;</span><span class="nb">list</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>在這之上，我們可以創造一個通用的結合函數:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">combine</span> <span class="p">(</span><span class="k">&amp;rest</span> <span class="nv">args</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">apply</span> <span class="p">(</span><span class="nv">combiner</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">args</span><span class="p">))</span>
+         <span class="nv">args</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>它接受任何型別的參數，並以適合它們型別的方式結合。(為了簡化這個例子，我們假定所有的參數都是同樣的型別。)</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">combine</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">)</span>
+<span class="mi">5</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nv">combine</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span><span class="p">)</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">c</span> <span class="nv">d</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span> <span class="nv">D</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>2.10 小節提到詞法變數 (lexical variables) 只在被定義的語境 (context)內有效。隨著這個限制而來的是，只要那個語境還有在使用，它們就保證會是有效的。</p>
+<p>如果一個函數在一個詞法變數的作用域裡被定義時，它仍可參照到那個變數，即便它被作為一個值回傳至變數被創造的語境之外。這裡我們創造了一個把參數加上 <tt class="docutils literal"><span class="pre">3</span></tt> 的函數:</p>
+<div class="highlight-cl"><pre>&gt; (setf fn (let ((i 3))
+             #'(lambda (x) (+ x i))))
+#&lt;Interpreted-Function C0A51E&gt;
+&gt; (funcall fn 2)
+5</pre>
+</div>
+<p>當一個函數參照到外部定義的變數時，稱為一個自由變數 (free variable)。一個函數參照到一個自由的詞法變數 (free lexical variable)時，稱為閉包 (closure)。 <a class="footnote-reference" href="#id6" id="id3">[2]</a> 只要函數還存在，這個變數就必須存在。</p>
+<p>一個閉包是函數與環境 (environment)的結合；無論何時，當一個函數參照到周圍詞法環境的某個東西時，閉包被隱式地創造出來。這悄悄地發生在像是下面這個函數，但是同樣的概念:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">add-to-list</span> <span class="p">(</span><span class="nv">num</span> <span class="nv">lst</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">mapcar</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+              <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="nv">num</span><span class="p">))</span>
+          <span class="nv">lst</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>這個函數接受一個數字及列表，並回傳一個具有每個元素的和與數字的列表。在 lambda 表達式裡的變數 <tt class="docutils literal"><span class="pre">num</span></tt> 是自由的，所以像是這樣的情況，我們傳遞一個閉包給 <tt class="docutils literal"><span class="pre">mapcar</span></tt> 。</p>
+<p>一個更顯著的例子會是一個函數在被呼叫時，每次都回傳不同的閉包。下面這個函數回傳一個加法器 (adder):</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">make-adder</span> <span class="p">(</span><span class="nv">n</span><span class="p">)</span>
+  <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="nv">n</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>它接受一個數字，並回傳一個將該數字與其參數相加的函數。</p>
+<div class="highlight-cl"><pre>&gt; (setf add3 (make-adder 3))
+#&lt;Interpreted-Function COEBF6&gt;
+&gt; (funcall add3 2)
+5
+&gt; (setf add27 (make-adder 27))
+#&lt;Interpreted-Function C0EE4E&gt;
+&gt; (funcall add27 2)
+29</pre>
+</div>
+<p>我們可以產生數個共享變數的閉包。下面我們定義兩個共享一個計數器的函數:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">counter</span> <span class="mi">0</span><span class="p">))</span>
+  <span class="p">(</span><span class="nb">defun</span> <span class="nv">reset</span> <span class="p">()</span>
+    <span class="p">(</span><span class="nb">setf</span> <span class="nv">counter</span> <span class="mi">0</span><span class="p">))</span>
+  <span class="p">(</span><span class="nb">defun</span> <span class="nv">stamp</span> <span class="p">()</span>
+    <span class="p">(</span><span class="nb">setf</span> <span class="nv">counter</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">counter</span> <span class="mi">1</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>這樣的一對函數或許可以用來創造時間戳章 (time-stamps)。每次我們呼叫 <tt class="docutils literal"><span class="pre">stamp</span></tt> 時，我們獲得一個比之前高的數字，而呼叫 <tt class="docutils literal"><span class="pre">reset</span></tt> 我們可以將計數器 (counter)歸零:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">list</span> <span class="p">(</span><span class="nv">stamp</span><span class="p">)</span> <span class="p">(</span><span class="nv">stamp</span><span class="p">)</span> <span class="p">(</span><span class="nv">reset</span><span class="p">)</span> <span class="p">(</span><span class="nv">stamp</span><span class="p">))</span>
+<span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">0</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>你可以使用全域計數器來做到同樣的事情，但這樣子使用計數器可以保護計數器被未預期的參照。</p>
+<p>Common Lisp 有一個內建的函數 <tt class="docutils literal"><span class="pre">complement</span></tt> 函數，接受一個判斷式，並返回判斷式的補數。比如：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">mapcar</span> <span class="p">(</span><span class="nb">complement</span> <span class="nf">#&#39;</span><span class="nb">oddp</span><span class="p">)</span>
+          <span class="o">&#39;</span><span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span><span class="p">))</span>
+<span class="p">(</span><span class="no">NIL</span> <span class="no">T</span> <span class="no">NIL</span> <span class="no">T</span> <span class="no">NIL</span> <span class="no">T</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>有了閉包，這樣的函數很容易就可以寫出來:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">our-complement</span> <span class="p">(</span><span class="nv">f</span><span class="p">)</span>
+  <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="k">&amp;rest</span> <span class="nv">args</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="nb">apply</span> <span class="nv">f</span> <span class="nv">args</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果你停下來好好想想，這是一個非凡的小例子；而這僅是冰山一角。閉包是 Lisp 特有的美妙事物之一。閉包開創了一種在別的語言中像是不可思議的程式設計方法。</p>
+</div>
+<div class="section" id="example-function-builders">
+<h2>6.6 範例：函數建構器 (Example: Function Builders)<a class="headerlink" href="#example-function-builders" title="永久链接至标题">¶</a></h2>
+<p>Dylan 是 Common Lisp 與 Scheme 的混合物 (hybrid)，有著 Pascal 一般的語法。它有著大量回傳函數的函數: 除了上一節我們所看過的 <cite>complement</cite> ，Dylan 包含: <tt class="docutils literal"><span class="pre">compose</span></tt> , <tt class="docutils literal"><span class="pre">disjoin</span></tt> , <tt class="docutils literal"><span class="pre">conjoin</span></tt> , <tt class="docutils literal"><span class="pre">curry</span></tt> , <tt class="docutils literal"><span class="pre">rcurry</span></tt> 以及 <tt class="docutils literal"><span class="pre">always</span></tt> 。圖 6.2 有這些函數的 Common Lisp 實現，而圖 6.3 展示了一些從定義延伸出的等價函數。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">compose</span> <span class="p">(</span><span class="k">&amp;rest</span> <span class="nv">fns</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">destructuring-bind</span> <span class="p">(</span><span class="nv">fn1</span> <span class="o">.</span> <span class="nb">rest</span><span class="p">)</span> <span class="p">(</span><span class="nb">reverse</span> <span class="nv">fns</span><span class="p">)</span>
+    <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="k">&amp;rest</span> <span class="nv">args</span><span class="p">)</span>
+        <span class="p">(</span><span class="nb">reduce</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">v</span> <span class="nv">f</span><span class="p">)</span> <span class="p">(</span><span class="nb">funcall</span> <span class="nv">f</span> <span class="nv">v</span><span class="p">))</span>
+                <span class="nb">rest</span>
+                <span class="ss">:initial-value</span> <span class="p">(</span><span class="nb">apply</span> <span class="nv">fn1</span> <span class="nv">args</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">disjoin</span> <span class="p">(</span><span class="nv">fn</span> <span class="k">&amp;rest</span> <span class="nv">fns</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">fns</span><span class="p">)</span>
+      <span class="nv">fn</span>
+      <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">disj</span> <span class="p">(</span><span class="nb">apply</span> <span class="nf">#&#39;</span><span class="nv">disjoin</span> <span class="nv">fns</span><span class="p">)))</span>
+        <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="k">&amp;rest</span> <span class="nv">args</span><span class="p">)</span>
+            <span class="p">(</span><span class="nb">or</span> <span class="p">(</span><span class="nb">apply</span> <span class="nv">fn</span> <span class="nv">args</span><span class="p">)</span> <span class="p">(</span><span class="nb">apply</span> <span class="nv">disj</span> <span class="nv">args</span><span class="p">))))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">conjoin</span> <span class="p">(</span><span class="nv">fn</span> <span class="k">&amp;rest</span> <span class="nv">fns</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">fns</span><span class="p">)</span>
+      <span class="nv">fn</span>
+      <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">conj</span> <span class="p">(</span><span class="nb">apply</span> <span class="nf">#&#39;</span><span class="nv">conjoin</span> <span class="nv">fns</span><span class="p">)))</span>
+        <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="k">&amp;rest</span> <span class="nv">args</span><span class="p">)</span>
+            <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nb">apply</span> <span class="nv">fn</span> <span class="nv">args</span><span class="p">)</span> <span class="p">(</span><span class="nb">apply</span> <span class="nv">conj</span> <span class="nv">args</span><span class="p">))))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">curry</span> <span class="p">(</span><span class="nv">fn</span> <span class="k">&amp;rest</span> <span class="nv">args</span><span class="p">)</span>
+  <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="k">&amp;rest</span> <span class="nv">args2</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">apply</span> <span class="nv">fn</span> <span class="p">(</span><span class="nb">append</span> <span class="nv">args</span> <span class="nv">args2</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">rcurry</span> <span class="p">(</span><span class="nv">fn</span> <span class="k">&amp;rest</span> <span class="nv">args</span><span class="p">)</span>
+  <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="k">&amp;rest</span> <span class="nv">args2</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">apply</span> <span class="nv">fn</span> <span class="p">(</span><span class="nb">append</span> <span class="nv">args2</span> <span class="nv">args</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">always</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="k">&amp;rest</span> <span class="nv">args</span><span class="p">)</span> <span class="nv">x</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>圖 6.2 Dylan 函數建構器</strong></p>
+<p>首先， <tt class="docutils literal"><span class="pre">compose</span></tt> 接受一個或多個函數，並回傳一個依序將其參數應用的新函數，即，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">compose</span> <span class="nf">#&#39;</span><span class="nv">a</span> <span class="nf">#&#39;</span><span class="nv">b</span> <span class="nf">#&#39;</span><span class="nv">c</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>回傳一個函數等同於</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="k">&amp;rest</span> <span class="nv">args</span><span class="p">)</span> <span class="p">(</span><span class="nv">a</span> <span class="p">(</span><span class="nv">b</span> <span class="p">(</span><span class="nb">apply</span> <span class="nf">#&#39;</span><span class="nv">c</span> <span class="nv">args</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>這代表著 <tt class="docutils literal"><span class="pre">compose</span></tt> 的最後一個參數可以接受任何數量的參數，但其它函數只能接受一個參數。</p>
+<p>下面我們建構了一個函數，接受平方根作為參數，取整數 (round)，再放至列表裡回傳:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">mapcar</span> <span class="p">(</span><span class="nv">compose</span> <span class="nf">#&#39;</span><span class="nb">list</span> <span class="nf">#&#39;</span><span class="nb">round</span> <span class="nf">#&#39;</span><span class="nb">sqrt</span><span class="p">)</span>
+          <span class="o">&#39;</span><span class="p">(</span><span class="mi">4</span> <span class="mi">9</span> <span class="mi">16</span> <span class="mi">25</span><span class="p">))</span>
+<span class="p">((</span><span class="mi">2</span><span class="p">)</span> <span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="p">(</span><span class="mi">4</span><span class="p">)</span> <span class="p">(</span><span class="mi">5</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>接下來的兩個函數， <tt class="docutils literal"><span class="pre">disjoin</span></tt> 及 <tt class="docutils literal"><span class="pre">conjoin</span></tt> 皆接受一個或多個判斷式作為參數: <tt class="docutils literal"><span class="pre">disjoin</span></tt> 當任何判斷式回傳真時，回傳一個判斷式，而 <tt class="docutils literal"><span class="pre">conjoin</span></tt> 當所有判斷式回傳真時，回傳一個判斷式。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">mapcar</span> <span class="p">(</span><span class="nv">disjoin</span> <span class="nf">#&#39;</span><span class="nb">integerp</span> <span class="nf">#&#39;</span><span class="nb">symbolp</span><span class="p">)</span>
+          <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="s">&quot;a&quot;</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">))</span>
+<span class="p">(</span><span class="no">T</span> <span class="no">NIL</span> <span class="no">T</span> <span class="no">T</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">mapcar</span> <span class="p">(</span><span class="nv">conjoin</span> <span class="nf">#&#39;</span><span class="nb">integerp</span> <span class="nf">#&#39;</span><span class="nb">symbolp</span><span class="p">)</span>
+          <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="s">&quot;a&quot;</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">))</span>
+<span class="p">(</span><span class="no">NIL</span> <span class="no">NIL</span> <span class="no">NIL</span> <span class="no">T</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>若考慮將判斷式定義成集合， <tt class="docutils literal"><span class="pre">disjoin</span></tt> 回傳傳入參數的聯集 (union)，而 <tt class="docutils literal"><span class="pre">conjoin</span></tt> 回傳傳入參數的交集 (intersection)。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12</pre></div></td><td class="code"><div class="highlight"><pre>      <span class="nb">cddr</span> <span class="nb">=</span> <span class="p">(</span><span class="nv">compose</span> <span class="nf">#&#39;</span><span class="nb">cdr</span> <span class="nf">#&#39;</span><span class="nb">cdr</span><span class="p">)</span>
+      <span class="nb">nth</span>  <span class="nb">=</span> <span class="p">(</span><span class="nv">compose</span> <span class="nf">#&#39;</span><span class="nb">car</span> <span class="nf">#&#39;</span><span class="nb">nthcdr</span><span class="p">)</span>
+      <span class="nb">atom</span> <span class="nb">=</span> <span class="p">(</span><span class="nv">compose</span> <span class="nf">#&#39;</span><span class="nb">not</span> <span class="nf">#&#39;</span><span class="nb">consp</span><span class="p">)</span>
+           <span class="nb">=</span> <span class="p">(</span><span class="nv">rcurry</span> <span class="nf">#&#39;</span><span class="nb">typep</span> <span class="ss">&#39;atom</span><span class="p">)</span>
+        <span class="nb">&lt;=</span> <span class="nb">=</span> <span class="p">(</span><span class="nv">disjoin</span> <span class="nf">#&#39;</span><span class="nb">&lt;</span> <span class="nf">#&#39;</span><span class="nb">=</span><span class="p">)</span>
+     <span class="nb">listp</span> <span class="nb">=</span> <span class="p">(</span><span class="nv">disjoin</span> <span class="nf">#&#39;</span><span class="nb">&lt;</span> <span class="nf">#&#39;</span><span class="nb">=</span><span class="p">)</span>
+           <span class="nb">=</span> <span class="p">(</span><span class="nv">rcurry</span> <span class="nf">#&#39;</span><span class="nb">typep</span> <span class="ss">&#39;list</span><span class="p">)</span>
+        <span class="nb">1+</span> <span class="nb">=</span> <span class="p">(</span><span class="nv">curry</span> <span class="nf">#&#39;</span><span class="nb">+</span> <span class="mi">1</span><span class="p">)</span>
+           <span class="nb">=</span> <span class="p">(</span><span class="nv">rcurry</span> <span class="nf">#&#39;</span><span class="nb">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="nb">1-</span> <span class="nb">=</span> <span class="p">(</span><span class="nv">rcurry</span> <span class="nf">#&#39;</span><span class="nb">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="nb">mapcan</span> <span class="nb">=</span> <span class="p">(</span><span class="nv">compose</span> <span class="p">(</span><span class="nv">curry</span> <span class="nf">#&#39;</span><span class="nb">apply</span> <span class="nf">#&#39;</span><span class="nb">nconc</span><span class="p">)</span> <span class="nf">#&#39;</span><span class="nb">mapcar</span>
+<span class="nb">complement</span> <span class="nb">=</span> <span class="p">(</span><span class="nv">curry</span> <span class="nf">#&#39;</span><span class="nv">compose</span> <span class="nf">#&#39;</span><span class="nb">not</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>圖 6.3 某些等價函數</strong></p>
+<p>函數 <tt class="docutils literal"><span class="pre">curry</span></tt> 與 <tt class="docutils literal"><span class="pre">rcurry</span></tt> (“right curry”) 精神上與前一小節的 <tt class="docutils literal"><span class="pre">make-adder</span></tt> 相同。兩者皆接受一個函數及某些參數，並回傳一個預期其餘參數的新函數。下列任一個函數等效於 <tt class="docutils literal"><span class="pre">(make-adder</span> <span class="pre">3)</span></tt> :</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">curry</span> <span class="nf">#&#39;</span><span class="nb">+</span> <span class="mi">3</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">rcurry</span> <span class="nf">#&#39;</span><span class="nb">+</span> <span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>當函數的參數順序重要時，很明顯可以看出 <tt class="docutils literal"><span class="pre">curry</span></tt> 與 <tt class="docutils literal"><span class="pre">rcurry</span></tt> 的差別。如果我們 <tt class="docutils literal"><span class="pre">curry</span> <span class="pre">-</span></tt> ，我們得到一個用其參數減去某特定數的函數，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">funcall</span> <span class="p">(</span><span class="nv">curry</span> <span class="nf">#&#39;</span><span class="nb">-</span> <span class="mi">3</span><span class="p">)</span> <span class="mi">2</span><span class="p">)</span>
+<span class="mi">1</span>
+</pre></div>
+</td></tr></table></div>
+<p>而當我們 <tt class="docutils literal"><span class="pre">rcurry</span> <span class="pre">-</span></tt> 時，我們得到一個用某特定數減去其參數的函數:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">funcall</span> <span class="p">(</span><span class="nv">rcurry</span> <span class="nf">#&#39;</span><span class="nb">-</span> <span class="mi">3</span><span class="p">)</span> <span class="mi">2</span><span class="p">)</span>
+<span class="mi">-1</span>
+</pre></div>
+</td></tr></table></div>
+<p>最後， <tt class="docutils literal"><span class="pre">always</span></tt> 函數是 Common Lisp 函數 <tt class="docutils literal"><span class="pre">constantly</span></tt> 。它接受一個參數並回傳一個返回此參數的函數。和 <tt class="docutils literal"><span class="pre">identity</span></tt> 一樣，在很多需要函數參數的情況下很有用。</p>
+</div>
+<div class="section" id="dynamic-scope">
+<h2>6.7 動態作用域 (Dynamic Scope)<a class="headerlink" href="#dynamic-scope" title="永久链接至标题">¶</a></h2>
+<p>2.11 小節解釋了區域與全域變數的差別。實際的差別是詞法作用域 (lexical scope)的詞法變數 (lexical variable)，與動態作用域 (dynamic scope)的特別變數 (special variable)的區別。但這幾乎是沒有區別，因為區域變數幾乎總是是詞法變數，而全域變數總是是特別變數。</p>
+<p>在詞法作用域下，一個符號參照到語境中符號名字出現的地方。區域變數預設有著詞法作用域。所以如果我們在一個環境 (environment)裡定義一個函數，其中有一個變數叫做 <tt class="docutils literal"><span class="pre">x</span></tt> ，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">x</span> <span class="mi">10</span><span class="p">))</span>
+  <span class="p">(</span><span class="nb">defun</span> <span class="nv">foo</span> <span class="p">()</span>
+    <span class="nv">x</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>則無論 <tt class="docutils literal"><span class="pre">foo</span></tt> 被呼叫時有存在其它的 <tt class="docutils literal"><span class="pre">x</span></tt> ，主體內的 <tt class="docutils literal"><span class="pre">x</span></tt> 都會參照到那個變數:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">x</span> <span class="mi">20</span><span class="p">))</span> <span class="p">(</span><span class="nv">foo</span><span class="p">))</span>
+<span class="mi">10</span>
+</pre></div>
+</td></tr></table></div>
+<p>而動態作用域，我們在環境中函數被呼叫的地方尋找一個變數。要使一個變數是動態作用域的，我們需要在任何它出現的語境中宣告它是 <tt class="docutils literal"><span class="pre">special</span></tt> 。如果我們這樣定義 <tt class="docutils literal"><span class="pre">foo</span></tt> :</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">x</span> <span class="mi">10</span><span class="p">))</span>
+  <span class="p">(</span><span class="nb">defun</span> <span class="nv">foo</span> <span class="p">()</span>
+    <span class="p">(</span><span class="k">declare</span> <span class="p">(</span><span class="k">special</span> <span class="nv">x</span><span class="p">))</span>
+    <span class="nv">x</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>則函數內的 <tt class="docutils literal"><span class="pre">x</span></tt> 就不再參照到函數定義裡的那個詞法變數，但會參照到函數被呼叫時所存在的任何特別變數 <tt class="docutils literal"><span class="pre">x</span></tt> :</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">x</span> <span class="mi">20</span><span class="p">))</span>
+  <span class="p">(</span><span class="k">declare</span> <span class="p">(</span><span class="k">special</span> <span class="nv">x</span><span class="p">))</span>
+  <span class="p">(</span><span class="nv">foo</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>新的變數被創造出來之後， 一個 <tt class="docutils literal"><span class="pre">declare</span></tt> 呼叫可以在程式碼的任何地方出現。 <tt class="docutils literal"><span class="pre">special</span></tt> 宣告是獨一無二的，因為它可以改變程式的行為。 13 章討論其它種類的宣告。所有其它的宣告只是給編譯器的建議；他們或許可以讓一個程式運行的更快，但他們不會改變程式的行為。</p>
+<p>藉由在頂層呼叫 <tt class="docutils literal"><span class="pre">setf</span></tt> 來配置全域變數是隱式地宣告為特殊的 (speical):</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">x</span> <span class="mi">30</span><span class="p">)</span>
+<span class="mi">30</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nv">foo</span><span class="p">)</span>
+<span class="mi">30</span>
+</pre></div>
+</td></tr></table></div>
+<p>在一個檔案裡的程式碼，如果你不想依賴隱式的特殊宣告，可以使用 <tt class="docutils literal"><span class="pre">defparameter</span></tt> 取代，讓程式看起來更簡潔。</p>
+<p>動態作用域在何處有用呢？通常它用來暫時給某些全域變數一個新的值。舉例來說，有 11 個變數來控制物件印出的方式，包括了 <tt class="docutils literal"><span class="pre">*print-base*</span></tt> ，預設是 <tt class="docutils literal"><span class="pre">10</span></tt> 。如果你想要用 16 進制顯示數字，你可以重新綁定 <tt class="docutils literal"><span class="pre">*print-base*</span></tt> :</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="vg">*print-base*</span> <span class="mi">16</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">princ</span> <span class="mi">32</span><span class="p">)</span>
+<span class="mi">20</span>
+<span class="mi">32</span>
+</pre></div>
+</td></tr></table></div>
+<p>這裡顯示了兩件事情，由 <tt class="docutils literal"><span class="pre">princ</span></tt> 產生的輸出，以及它所回傳的值。他們代表著同樣的數字，第一次在被印出時，用 16 進制顯示，而第二次，因為在 <tt class="docutils literal"><span class="pre">let</span></tt> 表達式外部，所以是用十進制顯示，因為 <tt class="docutils literal"><span class="pre">*print-base*</span></tt> 回到之前的數值， <tt class="docutils literal"><span class="pre">10</span></tt> 。</p>
+</div>
+<div class="section" id="compilation">
+<h2>6.8 編譯 (Compilation)<a class="headerlink" href="#compilation" title="永久链接至标题">¶</a></h2>
+<p>Common Lisp 函數可以獨立被編譯或一個一個檔案編譯。如果你只是在頂層輸入一個 <tt class="docutils literal"><span class="pre">defun</span></tt> 表達式：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">defun</span> <span class="nv">foo</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="mi">1</span><span class="p">))</span>
+<span class="nv">FOO</span>
+</pre></div>
+</td></tr></table></div>
+<p>許多實現會創造一個直譯的函數 (interpreted function)。你可以將一個函數傳給 <tt class="docutils literal"><span class="pre">compiled-function-p</span></tt> 來檢查一個函數是否有被編譯:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">compiled-function-p</span> <span class="nf">#&#39;</span><span class="nv">foo</span><span class="p">)</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>若你將 <tt class="docutils literal"><span class="pre">foo</span></tt> 函數的名字傳給 <tt class="docutils literal"><span class="pre">compile</span></tt> :</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">compile</span> <span class="ss">&#39;foo</span><span class="p">)</span>
+<span class="nv">FOO</span>
+</pre></div>
+</td></tr></table></div>
+<p>它的定義會被編譯，而直譯的定義會被編譯出來的取代。編譯與直譯函數的行為一樣，只不過對 <tt class="docutils literal"><span class="pre">compiled-function-p</span></tt> 來說不一樣。</p>
+<p>你可以用列表作為參數傳給 <tt class="docutils literal"><span class="pre">compile</span></tt> 。這種 <tt class="docutils literal"><span class="pre">compile</span></tt> 的用法在 161 頁 (譯註: 10.1 小節)。</p>
+<p>有一種函數你不能作為參數傳給 <tt class="docutils literal"><span class="pre">compile</span></tt> : 一個像是 <tt class="docutils literal"><span class="pre">stamp</span></tt> 或是 <tt class="docutils literal"><span class="pre">reset</span></tt> 這種在頂層明確使用詞法語境輸入的函數 (即一個 <tt class="docutils literal"><span class="pre">let</span></tt> ) <a class="footnote-reference" href="#id7" id="id4">[3]</a> 在一個檔案裡面定義這些函數，接著編譯然後載入檔案是可以的。這個加在直譯的程式碼的限制是實作的原因，而不是因為在詞法語境裡明確定義函數有什麼問題。</p>
+<p>通常要編譯 Lisp 程式碼不是一個一個函數編譯，而是使用 <tt class="docutils literal"><span class="pre">compile-file</span></tt> 編譯整個檔案。這個函數接受一個檔案名，並創造一個原始碼的編譯版本 –– 通常會有同樣的名稱，但不同的副檔名。當編譯過的檔案被載入時， <tt class="docutils literal"><span class="pre">compiled-function-p</span></tt> 應給所有定義在檔案內的函數回傳真。</p>
+<p>當一個函數包含在另一個函數內時，包含它的函數會被編譯，而且內部的函數也會被編譯。所以 <tt class="docutils literal"><span class="pre">make-adder</span></tt> (108 頁)被編譯時，它會回傳編譯的函數:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">compile</span> <span class="ss">&#39;make-adder</span><span class="p">)</span>
+<span class="nv">MAKE-ADDER</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">compiled-function-p</span> <span class="p">(</span><span class="nv">make-adder</span> <span class="mi">2</span><span class="p">))</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<div class="section" id="using-recursion">
+<h2>6.9 使用遞迴 (Using Recursion)<a class="headerlink" href="#using-recursion" title="永久链接至标题">¶</a></h2>
+<p>比起多數別的語言，遞迴在 Lisp 中扮演了一個重要的角色。這主要有三個原因：</p>
+<ol class="arabic simple">
+<li>函數式程式設計 (Functional programming)。遞迴演算法有副作用的可能性較低。</li>
+<li>遞迴資料結構 (Recursive data structures)。 Lisp 隱式地使用了指標，使得遞迴地定義資料結構變簡單了。最常見的是用在列表: 一個列表是空表或是一個 <tt class="docutils literal"><span class="pre">cdr</span></tt> 是 一個列表的 <tt class="docutils literal"><span class="pre">cons</span></tt> 。</li>
+<li>優雅性 (Elegance)。 Lisp 程式設計師非常關心它們的程式是否漂亮，而遞迴演算法通常是比迭代演算法來得優雅。</li>
+</ol>
+<p>學生起初覺得遞迴很難理解。但 3.9 節指出了，如果你想要知道是否正確，你不需要去想遞迴函數的所有呼叫過程。</p>
+<p>同樣的如果你想寫一個遞迴函數。如果你可以描述一個問題的遞迴解法，通常是很容易將你的解法轉成程式碼。要使用遞迴來解決一個問題，你需要做兩件事：</p>
+<ol class="arabic simple">
+<li>你必須要示範如何解決一般情況 (general case)的問題，通過將問題切分成有限小並更小的問題。</li>
+<li>你必須要示範如何通過 –– 有限的步驟，來解決最小的問題 –– 基本情況 (base case)。</li>
+</ol>
+<p>如果你辦得到這個，那問題解決了。因為每次遞迴都將問題變得更小，你知道一個有限的問題終究會被解決的，而最小的問題僅需幾個有限的步驟。</p>
+<p>舉例來說，下面這個找到一個正規列表 (proper list)長度的遞迴算法，我們每次遞迴時，都可以找到更小列表的長度：</p>
+<ol class="arabic simple">
+<li>在一般情況下，一個正規列表的長度是它的 <tt class="docutils literal"><span class="pre">cdr</span></tt> 加一。</li>
+<li>空列表長度為 <tt class="docutils literal"><span class="pre">0</span></tt> 。</li>
+</ol>
+<p>當這個描述翻譯成程式碼時，基本情況先處理；但公式化遞迴演算法時，我們通常從一般情況開始。</p>
+<p>前述的演算法明確地描述了一種找到正規列表長度的方法。當你定義一個遞迴函數時，你必須要確定你在分解問題時，問題實際上越變越小。取得一個正規列表的 <tt class="docutils literal"><span class="pre">cdr</span></tt> 會給出 <tt class="docutils literal"><span class="pre">length</span></tt> 更小的子問題，但取得環狀列表 (circular list)的 <tt class="docutils literal"><span class="pre">cdr</span></tt> 不會。</p>
+<p>這裡有兩個遞迴算法的範例。同樣假定參數是有限的。注意第二個範例，我們每次遞迴時，將問題分成兩個更小的問題:</p>
+<p><tt class="docutils literal"><span class="pre">member</span></tt> 我們說某物是一個列表的成員，如果它是第一個元素的成員或是 <tt class="docutils literal"><span class="pre">member</span></tt> 的 <tt class="docutils literal"><span class="pre">cdr</span></tt> 的成員。空列表沒有任何成員。</p>
+<p><tt class="docutils literal"><span class="pre">copy-tree</span></tt> 一個 <tt class="docutils literal"><span class="pre">cons</span></tt> 的 <tt class="docutils literal"><span class="pre">copy-tree</span></tt> ，是一個由 <tt class="docutils literal"><span class="pre">cons</span></tt> 的 <tt class="docutils literal"><span class="pre">car</span></tt> 的 <tt class="docutils literal"><span class="pre">copy-tree</span></tt> 與 <tt class="docutils literal"><span class="pre">cdr</span></tt> 的 <tt class="docutils literal"><span class="pre">copy-tree</span></tt> 所組成的。一個原子的 <tt class="docutils literal"><span class="pre">copy-treee</span></tt> 是它自己。</p>
+<p>一旦你可以這樣描述算法，要寫出遞迴函數只差一步之遙。</p>
+<p>某些算法通常是這樣表達最自然，而某些算法不是。你可能需要翻回前面，不使用遞迴來定義 <tt class="docutils literal"><span class="pre">our-copy-tree</span></tt> (41 頁，譯註: 3.8 小節)。另一方面來說，23 頁 (譯註: 2.13 節) 迭代版本的 <tt class="docutils literal"><span class="pre">show-squares</span></tt> 可能更容易比 24 頁的遞迴版本要容易理解。某些時候是很難看出哪個形式比較自然，直到你試著去寫出程式來。</p>
+<p>如果你關心效率，有兩個你需要考慮的議題。第一，尾遞迴 (tail-recursive)，會在 13.2 節討論。一個好的編譯器，使用迴圈或是尾遞迴的速度應該是沒有或是差別很小的。然而如果你需要使一個函數變成尾遞歸的形式時，或許直接用迭代會更好。</p>
+<p>另一個議題需要銘記在心的是，最顯而易見的遞迴算法不一定是最有效的。經典的例子是費氏函數 (Fibonacci function)。它是遞迴地這樣被定義的，</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Fib(0) = Fib(1) = 1</li>
+<li>Fib(n) = Fib(n-1)+Fib(n-2)</li>
+</ol>
+</div></blockquote>
+<p>直接翻譯這個定義，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">fib</span> <span class="p">(</span><span class="nv">n</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">&lt;=</span> <span class="nv">n</span> <span class="mi">1</span><span class="p">)</span>
+      <span class="mi">1</span>
+      <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nv">fib</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">n</span> <span class="mi">1</span><span class="p">))</span>
+         <span class="p">(</span><span class="nv">fib</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">n</span> <span class="mi">2</span><span class="p">)))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>這樣是效率極差的。一次又一次的重複計算。如果你要找 <tt class="docutils literal"><span class="pre">(fib</span> <span class="pre">10)</span></tt> ，這個函數計算 <tt class="docutils literal"><span class="pre">(fib</span> <span class="pre">9)</span></tt> 與 <tt class="docutils literal"><span class="pre">(fib</span> <span class="pre">8)</span></tt> 。但要計算出 <tt class="docutils literal"><span class="pre">(fib</span> <span class="pre">9)</span></tt> ，它需要再次計算 <tt class="docutils literal"><span class="pre">(fib</span> <span class="pre">8)</span></tt> ，等等。</p>
+<p>下面是一個算出同樣結果的迭代版本:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">fib</span> <span class="p">(</span><span class="nv">n</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">do</span> <span class="p">((</span><span class="nv">i</span> <span class="nv">n</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">i</span> <span class="mi">1</span><span class="p">))</span>
+       <span class="p">(</span><span class="nv">f1</span> <span class="mi">1</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">f1</span> <span class="nv">f2</span><span class="p">))</span>
+       <span class="p">(</span><span class="nv">f2</span> <span class="mi">1</span> <span class="nv">f1</span><span class="p">))</span>
+      <span class="p">((</span><span class="nb">&lt;=</span> <span class="nv">i</span> <span class="mi">1</span><span class="p">)</span> <span class="nv">f1</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>迭代的版本不如遞迴版本來得直觀，但是效率遠遠高出許多。這樣的事情在實踐中常發生嗎？非常少 –– 這也是為什麼所有的教科書都使用一樣的例子 –– 但這是需要注意的事。</p>
+</div>
+<div class="section" id="chapter-6-summary">
+<h2>Chapter 6 總結 (Summary)<a class="headerlink" href="#chapter-6-summary" title="永久链接至标题">¶</a></h2>
+<ol class="arabic simple">
+<li>一個命名函數是一個存在符號的 <tt class="docutils literal"><span class="pre">symbol-function</span></tt> 的函數。 <tt class="docutils literal"><span class="pre">defun</span></tt> 巨集隱藏了這樣的細節。它也允許你定義文件字串 (documentation string)，並指定 <tt class="docutils literal"><span class="pre">setf</span></tt> 要怎麼處理函數呼叫。</li>
+<li>定義區域函數是有可能的，與定義區域變數有相似的精神。</li>
+<li>函數可以有選擇性參數 (optional)、剩餘 (rest)以及關鍵字 (keyword)參數。</li>
+<li>實用函數是 Lisp 的擴充。他們是由下而上編程的小規模範例。</li>
+<li>只要有某物參照到詞法變數時，它們會一直存在。閉包是參照到自由變數的函數。你可以寫出回傳閉包的函數。</li>
+<li>Dylan 提供了建構函數的函數。很簡單就可以使用閉包在 Common Lisp 中實現它們。</li>
+<li>特別變數 (special variable)有動態作用域 (dynamic scope)。</li>
+<li>Lisp 函數可以單獨編譯，或（更常見）一個一個檔案編譯。</li>
+<li>一個遞迴演算法通過將問題細分成更小、更小的問題來解決問題。</li>
+</ol>
+</div>
+<div class="section" id="chapter-6-exercises">
+<h2>Chapter 6 練習 (Exercises)<a class="headerlink" href="#chapter-6-exercises" title="永久链接至标题">¶</a></h2>
+<ol class="arabic simple">
+<li>定義一個 <tt class="docutils literal"><span class="pre">tokens</span></tt> 版本 (67 頁)，接受 <tt class="docutils literal"><span class="pre">:test</span></tt> 與 <tt class="docutils literal"><span class="pre">:start</span></tt> 參數，預設分別是 <tt class="docutils literal"><span class="pre">#'constituent</span></tt> 與 <tt class="docutils literal"><span class="pre">0</span></tt> 。(譯註: 67 頁在 4.5 小節)</li>
+<li>定義一個 <tt class="docutils literal"><span class="pre">bin-search</span></tt> (60 頁)的版本，接受 <tt class="docutils literal"><span class="pre">:key</span></tt> , <tt class="docutils literal"><span class="pre">:test</span></tt> , <tt class="docutils literal"><span class="pre">start</span></tt> 與 <tt class="docutils literal"><span class="pre">end</span></tt> 參數，有著一般的意義與預設值。(譯註: 60 頁在 4.1 小節)</li>
+<li>定義一個函數，接受任何數目的參數，並回傳傳入的參數。</li>
+<li>修改 <tt class="docutils literal"><span class="pre">most</span></tt> 函數 (105 頁)，使其回傳 2 個數值，一個列表中最高分的兩個元素。(譯註: 105 頁在 6.4 小節)</li>
+<li>用 <tt class="docutils literal"><span class="pre">filter</span></tt> (105 頁) 來定義 <tt class="docutils literal"><span class="pre">remove-if</span></tt> （沒有關鍵字）。(譯註: 105 頁在 6.4 小節)</li>
+<li>定義一個函數，接受一個參數、一個數字，並回傳目前傳入參數中最大的那個。</li>
+<li>定義一個函數，接受一個參數、一個數字，若傳入參數比上個參數大時，回傳真。函數第一次呼叫時應回傳 <tt class="docutils literal"><span class="pre">nil</span></tt> 。</li>
+<li>假設 <tt class="docutils literal"><span class="pre">expensive</span></tt> 是一個接受一個參數的函數，一個介於 0 至 100 的整數（包含 100)，回傳一個耗時的計算結果。定義一個函數 <tt class="docutils literal"><span class="pre">frugal</span></tt> 來回傳同樣的答案，但僅在沒見過傳入參數時呼叫 <tt class="docutils literal"><span class="pre">expensive</span></tt> 。</li>
+<li>定義一個像是 <tt class="docutils literal"><span class="pre">apply</span></tt> 的函數，但在任何數字印出前，預設用 8 進制印出。</li>
+</ol>
+<p class="rubric">腳註</p>
+<table class="docutils footnote" frame="void" id="id5" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[1]</a></td><td>在這個情況下， <tt class="docutils literal"><span class="pre">nreverse</span></tt> (在 222 頁描述)和 <tt class="docutils literal"><span class="pre">reverse</span></tt> 做一樣的事情，但更有效率。</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id6" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[2]</a></td><td>“閉包”這個名字是早期的 Lisp 方言流傳而來。它是從閉包需要在動態作用域裡實現的方式衍生而來。</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id7" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[3]</a></td><td>在之前的 ANSI Common Lisp， <tt class="docutils literal"><span class="pre">compile</span></tt> 的第一個參數也不能是一個已經編譯的函數。</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'acl-chinese';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+                  </div></div>
+              </article><div class="clearer"></div>
+          </div><div class="span3">
+                <div class="sphinxsidebar">
+      <div id="sidenav" class="box sphinxsidebarwrapper">
+
+
+<h4><a href="../index.html">內容目录</a></h4>
+  <ul>
+<li><a class="reference internal" href="#">第六章：函數</a><ul>
+<li><a class="reference internal" href="#global-functions">6.1 全域函數 (Global Functions)</a></li>
+<li><a class="reference internal" href="#local-functions">6.2 區域函數 (Local Functions)</a></li>
+<li><a class="reference internal" href="#parameter-lists">6.3 參數列表 (Parameter Lists)</a></li>
+<li><a class="reference internal" href="#example-utilities">6.4 範例：實用函數 (Example: Utilities)</a></li>
+<li><a class="reference internal" href="#closures">6.5 閉包 (Closures)</a></li>
+<li><a class="reference internal" href="#example-function-builders">6.6 範例：函數建構器 (Example: Function Builders)</a></li>
+<li><a class="reference internal" href="#dynamic-scope">6.7 動態作用域 (Dynamic Scope)</a></li>
+<li><a class="reference internal" href="#compilation">6.8 編譯 (Compilation)</a></li>
+<li><a class="reference internal" href="#using-recursion">6.9 使用遞迴 (Using Recursion)</a></li>
+<li><a class="reference internal" href="#chapter-6-summary">Chapter 6 總結 (Summary)</a></li>
+<li><a class="reference internal" href="#chapter-6-exercises">Chapter 6 練習 (Exercises)</a></li>
+</ul>
+</li>
+</ul>
+
+  
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      
+      
+        <li><a href="https://github.com/acl-translation/acl-chinese/blob/redirect-to-new-domain/zhTW/ch6.rst">
+          Show on GitHub</a></li>
+        <li><a href="https://github.com/acl-translation/acl-chinese/edit/redirect-to-new-domain/zhTW/ch6.rst">
+          Edit on GitHub</a></li>
+      
+    </ul>
+  
+</div>
+    </div>
+              </div></div>
+      </div>
+<footer class="container-fluid">
+        <hr />&copy; 版权所有 2012, Juanito Fatas Huang.最后更新日期是 Apr 22, 2013.使用 <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.</footer>
+ <!-- End original user content -->
+
+
+<br>
+<br>
+<br>
+
+
+<style type="text/css">
+  .rtd-badge {
+    position: fixed;
+    display: block;
+    bottom: 5px;
+    height: 40px;
+    text-indent: -9999em;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -moz-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  }
+  #version_menu {
+    position: fixed;
+    display: none;
+    bottom: 11px;
+    right: 166px;
+    list-style-type: none;
+    margin: 0;
+  }
+  .footer_popout:hover #version_menu {
+    display: block;
+  }
+  #version_menu li {
+    display: block;
+    float: right;
+  }
+  #version_menu li a {
+    display: block;
+    padding: 6px 10px 4px 10px;
+    margin: 7px 7px 0 0;
+    font-weight: bold;
+    font-size: 14px;
+    height: 20px;
+    line-height: 17px;
+    text-decoration: none;
+    color: #fff;
+    background: #8ca1af url(../images/gradient-light.png) bottom left repeat-x;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 1px #465158;
+    -moz-box-shadow: 0 1px 1px #465158;
+    -webkit-box-shadow: 0 1px 1px #465158;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+  }
+  #version_menu li a:hover {
+    text-decoration: none;
+    background-color: #697983;
+    box-shadow: 0 1px 0px #465158;
+    -moz-box-shadow: 0 1px 0px #465158;
+    -webkit-box-shadow: 0 1px 0px #465158;
+  }
+  .rtd-badge.rtd {
+    background: #3b4449 url(//media.readthedocs.org//images/badge-rtd.png) scroll 0px -46px no-repeat;
+    border: 1px solid #282E32;
+    width: 41px;
+    right: 5px;
+  }
+  .footer_popout:hover .rtd-badge.rtd {
+    background-position: top left;
+    width: 160px;
+  }
+  .rtd-badge.revsys { background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline-sponsored {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys-sm.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 205px;
+    right: 173px;
+  }
+
+</style>
+<div class="rtd_doc_footer">
+  <div class="footer_popout">
+    <a href="//readthedocs.org/projects/ansi-common-lisp/?fromdocs=ansi-common-lisp" class="rtd-badge rtd"> Brought to you by Read the Docs</a>
+    <ul id="version_menu">
+      
+        <li><a href="/en/latest/">latest</a></li>
+      
+    </ul>
+  </div>
+</div>
+<!-- RTD Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-17997319-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+<!-- User Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-26995626-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,561 @@
+<!DOCTYPE HTML>
+
+  <html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+<title>附录 A：调试 &mdash; ANSI Common Lisp 中文版</title>
+    
+<!-- RTD <head> -->
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/underscore.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/doctools.js"></script>
+
+<script type="text/javascript">
+  // This is included here for Javascript that doesn't have access to the templates.
+  var doc_version = "latest";
+  var doc_slug = "ansi-common-lisp";
+</script>
+
+<script type="text/javascript" src="//media.readthedocs.org/javascript/rtd.js"></script>
+<!-- end RTD <head> -->
+
+    <link rel="stylesheet" href="../_static/han.min.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/rosefinch.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/main.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:       '../',
+        VERSION:        '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX:    '.html',
+        HAS_SOURCE:     true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/han.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  <script type="text/javascript" src=../_static/jquery.dimensions.js"></script>
+  <script type="text/javascript" src="../_static/main.js"></script><link rel="top" title="ANSI Common Lisp 中文版" href="../index.html" /></head>
+
+  <body><div class="navbar navbar-static-top navbar-inverse">
+        <div id="top-bar" class="navbar-inner">
+
+          <h1 id="logo">ANSI Common Lisp 中文版<a href="../index.html" class="brand">ANSI Common Lisp 中文版</a></h1>
+          <ul class="nav"></ul><a href="https://github.com/acl-translation/acl-chinese"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
+        </div>
+      </div><div class="content container-fluid">
+        <div class="row-fluid"><div class="document span9"><article >
+                <div class="documentwrapper"><div class="body"><div class="section" id="a">
+<h1>附录 A：调试<a class="headerlink" href="#a" title="永久链接至标题">¶</a></h1>
+<p>这个附录演示了如何调试 Lisp 程序，并给出你可能会遇到的常见错误。</p>
+<div class="section" id="breakloop">
+<h2>中断循环 (Breakloop)<a class="headerlink" href="#breakloop" title="永久链接至标题">¶</a></h2>
+<p>如果你要求 Lisp 做些它不能做的事，求值过程会被一个错误讯息中断，而你会发现你位于一个称为中断循环的地方。中断循环工作的方式取决于不同的实现，但通常它至少会显示三件事：一个错误信息，一组选项，以及一个特别的提示符。</p>
+<p>在中断循环里，你也可以像在顶层那样给表达式求值。在中断循环里，你或许能够找出错误的起因，甚至是修正它，并继续你程序的求值过程。然而，在一个中断循环里，你想做的最常见的事是跳出去。多数的错误起因于打错字或是小疏忽，所以通常你只会想终止程序并返回顶层。在下面这个假定的实现里，我们输入 <tt class="docutils literal"><span class="pre">:abort</span></tt> 来回到顶层。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">/</span> <span class="mi">1</span> <span class="mi">0</span><span class="p">)</span>
+<span class="nv">Error:</span> <span class="nv">Division</span> <span class="nv">by</span> <span class="nv">zero.</span>
+       <span class="nv">Options:</span> <span class="ss">:abort,</span> <span class="ss">:backtrace</span>
+<span class="nv">&gt;&gt;</span> <span class="ss">:abort</span>
+<span class="nb">&gt;</span>
+</pre></div>
+</td></tr></table></div>
+<p>在这些情况里，实际上的输入取决于实现。</p>
+<p>当你在中断循环里，如果一个错误发生的话，你会到另一个中断循环。多数的 Lisp 会指出你是在第几层的中断循环，要嘛通过印出多个提示符，不然就是在提示符前印出数字：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nv">&gt;&gt;</span> <span class="p">(</span><span class="nb">/</span> <span class="mi">2</span> <span class="mi">0</span><span class="p">)</span>
+<span class="nv">Error:</span> <span class="nv">Division</span> <span class="nv">by</span> <span class="nv">zero.</span>
+       <span class="nv">Options:</span> <span class="ss">:abort,</span> <span class="ss">:backtrace,</span> <span class="ss">:previous</span>
+<span class="nv">&gt;&gt;&gt;</span>
+</pre></div>
+</td></tr></table></div>
+<p>现在我们位于两层深的中断循环。此时我们可以选择回到前一个中断循环，或是直接返回顶层。</p>
+</div>
+<div class="section" id="traces-and-backtraces">
+<h2>追踪与回溯 (Traces and Backtraces)<a class="headerlink" href="#traces-and-backtraces" title="永久链接至标题">¶</a></h2>
+<p>当你的程序不如你预期的那样工作时，有时候第一件该解决的事情是，它在做什么？如果你输入 <tt class="docutils literal"><span class="pre">(trace</span> <span class="pre">foo)</span></tt> ，则 Lisp 会在每次调用或返回 <tt class="docutils literal"><span class="pre">foo</span></tt> 时显示一个信息，显示传给 <tt class="docutils literal"><span class="pre">foo</span></tt> 的参数，或是 <tt class="docutils literal"><span class="pre">foo</span></tt> 返回的值。你可以追踪任何自己定义的 (user-defined)函数。</p>
+<p>一个追踪通常会根据调用树来缩进。在一个做遍历的函数，像下面这个函数，它给一个树的每一个非空元素加上 1，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">tree1+</span> <span class="p">(</span><span class="nv">tr</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">cond</span> <span class="p">((</span><span class="nb">null</span> <span class="nv">tr</span><span class="p">)</span> <span class="no">nil</span><span class="p">)</span>
+        <span class="p">((</span><span class="nb">atom</span> <span class="nv">tr</span><span class="p">)</span> <span class="p">(</span><span class="nb">1+</span> <span class="nv">tr</span><span class="p">))</span>
+        <span class="p">(</span><span class="no">t</span> <span class="p">(</span><span class="nb">cons</span> <span class="p">(</span><span class="nv">treel+</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">tr</span><span class="p">))</span>
+                 <span class="p">(</span><span class="nv">treel+</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">tr</span><span class="p">))))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>一个树的形状会因此反映出它被遍历时的数据结构：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">trace</span> <span class="nv">tree1+</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">tree1+</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nv">tree1+</span> <span class="o">&#39;</span><span class="p">((</span><span class="mi">1</span> <span class="o">.</span> <span class="mi">3</span><span class="p">)</span> <span class="mi">5</span> <span class="o">.</span> <span class="mi">7</span><span class="p">))</span>
+<span class="mi">1</span> <span class="nv">Enter</span> <span class="nv">TREE1+</span> <span class="p">((</span><span class="mi">1</span> <span class="o">.</span> <span class="mi">3</span><span class="p">)</span> <span class="mi">5</span> <span class="o">.</span> <span class="mi">7</span><span class="p">)</span>
+  <span class="mi">2</span> <span class="nv">Enter</span> <span class="nv">TREE1+</span> <span class="p">(</span><span class="mf">1.3</span><span class="p">)</span>
+    <span class="mi">3</span> <span class="nv">Enter</span> <span class="nv">TREE1+</span> <span class="mi">1</span>
+    <span class="mi">3</span> <span class="nv">Exit</span> <span class="nv">TREE1+</span> <span class="mi">2</span>
+    <span class="mi">3</span> <span class="nv">Enter</span> <span class="nv">TREE1+</span> <span class="mi">3</span>
+    <span class="mi">3</span> <span class="nv">Exit</span> <span class="nv">TREE1+</span> <span class="mi">4</span>
+  <span class="mi">2</span> <span class="nv">Exit</span> <span class="nv">TREE1+</span> <span class="p">(</span><span class="mi">2</span> <span class="o">.</span> <span class="mi">4</span><span class="p">)</span>
+  <span class="mi">2</span> <span class="nv">Enter</span> <span class="nv">TREE1+</span> <span class="p">(</span><span class="mi">5</span> <span class="o">.</span> <span class="mi">7</span><span class="p">)</span>
+    <span class="mi">3</span> <span class="nv">Enter</span> <span class="nv">TREE1+</span> <span class="mi">5</span>
+    <span class="mi">3</span> <span class="nv">Exit</span> <span class="nv">TREE1+</span> <span class="mi">6</span>
+    <span class="mi">3</span> <span class="nv">Enter</span> <span class="nv">TREE1+</span> <span class="mi">7</span>
+    <span class="mi">3</span> <span class="nv">Exit</span> <span class="nv">TREE1+</span> <span class="mi">8</span>
+  <span class="mi">2</span> <span class="nv">Exit</span> <span class="nv">TREE1+</span> <span class="p">(</span><span class="mi">6</span> <span class="o">.</span> <span class="mi">8</span><span class="p">)</span>
+<span class="mi">1</span> <span class="nv">Exit</span> <span class="nv">TREE1+</span> <span class="p">((</span><span class="mi">2</span> <span class="o">.</span> <span class="mi">4</span><span class="p">)</span> <span class="mi">6</span> <span class="o">.</span> <span class="mi">8</span><span class="p">)</span>
+<span class="p">((</span><span class="mi">2</span> <span class="o">.</span> <span class="mi">4</span><span class="p">)</span> <span class="mi">6</span> <span class="o">.</span> <span class="mi">8</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>要关掉 <tt class="docutils literal"><span class="pre">foo</span></tt> 的追踪，输入 <tt class="docutils literal"><span class="pre">(untrace</span> <span class="pre">foo)</span></tt> ；要关掉所有正在追踪的函数，只要输入 <tt class="docutils literal"><span class="pre">(untrace)</span></tt> 就好。</p>
+<p>一个更灵活的追踪办法是在你的代码里插入诊断性的打印语句。如果已经知道结果了，这个经典的方法大概会与复杂的调适工具一样被使用数十次。这也是为什么可以互动地重定义函数式多么有用的原因。</p>
+<p>一个回溯 (<em>backtrace</em>)是一个当前存在栈的调用的列表，当一个错误中止求值时，会由一个中断循环生成此列表。如果追踪像是&#8221;让我看看你在做什么&#8221;，一个回溯像是询问&#8221;我们是怎么到达这里的？&#8221; 在某方面上，追踪与回溯是互补的。一个追踪会显示在一个程序的调用树里，选定函数的调用。一个回溯会显示在一个程序部分的调用树里，所有函数的调用（路径为从顶层调用到发生错误的地方）。</p>
+<p>在一个典型的实现里，我们可通过在中断循环里输入 <tt class="docutils literal"><span class="pre">:backtrace</span></tt> 来获得一个回溯，看起来可能像下面这样：</p>
+<div class="highlight-cl"><pre>&gt; (tree1+ ' ( ( 1 . 3) 5 . A))
+Error: A is not a valid argument to 1+.
+       Options: :abort, :backtrace
+» :backtrace
+(1+ A)
+(TREE1+ A)
+(TREE1+ (5 . A))
+(TREE1+ ((1 . 3) 5 . A))</pre>
+</div>
+<p>出现在回溯里的臭虫较容易被发现。你可以仅往回检视调用链，直到你找到第一个不该发生的事情。另一个函数式编程 (2.12 节)的好处是所有的臭虫都会在回溯里出现。在纯函数式代码里，每一个可能出错的调用，在错误发生时，一定会在栈出现。</p>
+<p>一个回溯每个实现所提供的信息量都不同。某些实现会完整显示一个所有待调用的历史，并显示参数。其他实现可能仅显示调用历史。一般来说，追踪与回溯解释型的代码会得到较多的信息，这也是为什么你要在确定你的程序可以工作之后，再来编译。</p>
+<p>传统上我们在解释器里调试代码，且只在工作的情况下才编译。但这个观点也是可以改变的：至少有两个 Common Lisp 实现没有包含解释器。</p>
+</div>
+<div class="section" id="when-noting-happens">
+<h2>当什么事都没发生时 (When Noting Happens)<a class="headerlink" href="#when-noting-happens" title="永久链接至标题">¶</a></h2>
+<p>不是所有的 bug 都会打断求值过程。另一个常见并可能更危险的情况是，当 Lisp 好像不鸟你一样。通常这是程序进入无穷循环的徵兆。</p>
+<p>如果无穷循环是出自于迭代的代码，Lisp 会开心的一直循环。但要是出自于递归的代码 （没有做尾递归优化的），你最终会得到一个错误信息说，Lisp 把栈的内存都用光了：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">defun</span> <span class="nv">blow-stack</span> <span class="p">()</span> <span class="p">(</span><span class="nb">1+</span> <span class="p">(</span><span class="nv">blow-stack</span><span class="p">)))</span>
+<span class="nv">BLOW-STACK</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nv">blow-stack</span><span class="p">)</span>
+<span class="nv">Error:</span> <span class="nv">Stack</span> <span class="nv">overflow.</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果你怀疑你进入了无穷循环，解决方法是中止执行，并跳出中断循环。</p>
+<p>如果循环是用迭代写成的代码，Lisp 会开心地执行到天荒地老。但若是用递归写成的代码（没有做尾递归优化），你最终会获得一个信息，信息说 Lisp 把栈的空间给用光了：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">defun</span> <span class="nv">blow-stack</span> <span class="p">()</span> <span class="p">(</span><span class="nb">1+</span> <span class="p">(</span><span class="nv">blow-stack</span><span class="p">)))</span>
+<span class="nv">BLOW-STACK</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nv">blow-stack</span><span class="p">)</span>
+<span class="nv">Error:</span> <span class="nv">Stack</span> <span class="nv">Overflow</span>
+</pre></div>
+</td></tr></table></div>
+<p>在这两个情况里，如果你怀疑进入了无穷循环，解决办法是中断执行，并跳出由于中断所产生的中断循环。</p>
+<p>有时候程序在处理一个非常庞大的问题时，就算没有进入无穷循环，也会把栈的空间用光。虽然这很少见。通常把栈空间用光是编程错误的徵兆。</p>
+<p>递归函数最常见的错误是忘记了基本用例 (base case)。用英语来描述递归，通常会忽略基本用例。不严谨地说，我们可能说“obj 是列表的成员，如果它是列表的第一个元素，或是剩馀列表的成员” 严格上来讲，应该添加一句“若列表为空，则 obj 不是列表的成员”。不然我们描述的就是个无穷递归了。</p>
+<p>在 Common Lisp 里，如果给入 <tt class="docutils literal"><span class="pre">nil</span></tt> 作为参数， <tt class="docutils literal"><span class="pre">car</span></tt> 与 <tt class="docutils literal"><span class="pre">cdr</span></tt> 皆返回 <tt class="docutils literal"><span class="pre">nil</span></tt> ：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">car</span> <span class="no">nil</span><span class="p">)</span>
+<span class="no">NIL</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">cdr</span> <span class="no">nil</span><span class="p">)</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>所以若我们在 <tt class="docutils literal"><span class="pre">member</span></tt> 函数里忽略了基本用例：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">our-member</span> <span class="p">(</span><span class="nv">obj</span> <span class="nv">lst</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">eql</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">lst</span><span class="p">)</span> <span class="nv">obj</span><span class="p">)</span>
+      <span class="nv">lst</span>
+      <span class="p">(</span><span class="nv">our-member</span> <span class="nv">obj</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>要是我们找的对象不在列表里的话，则会陷入无穷循环。当我们到达列表底端而无所获时，递归调用会等价于：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">our-member</span> <span class="nv">obj</span> <span class="no">nil</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>在正确的定义中（第十六页「译注: 2.7 节」），基本用例在此时会停止递归，并返回 <tt class="docutils literal"><span class="pre">nil</span></tt> 。但在上面错误的定义里，函数愚昧地寻找 <tt class="docutils literal"><span class="pre">nil</span></tt> 的 <tt class="docutils literal"><span class="pre">car</span></tt> ，是 <tt class="docutils literal"><span class="pre">nil</span></tt> ，并将 <tt class="docutils literal"><span class="pre">nil</span></tt> 拿去跟我们寻找的对象比较。除非我们要找的对象刚好是 <tt class="docutils literal"><span class="pre">nil</span></tt> ，不然函数会继续在 <tt class="docutils literal"><span class="pre">nil</span></tt> 的 <tt class="docutils literal"><span class="pre">cdr</span></tt> 里寻找，刚好也是 <tt class="docutils literal"><span class="pre">nil</span></tt> –– 整个过程又重来了。</p>
+<p>如果一个无穷循环的起因不是那么直观，可能可以通过看看追踪或回溯来诊断出来。无穷循环有两种。简单发现的那种是依赖程序结构的那种。一个追踪或回溯会即刻演示出，我们的 <tt class="docutils literal"><span class="pre">our-member</span></tt> 究竟哪里出错了。</p>
+<p>比较难发现的那种，是因为数据结构有缺陷才发生的无穷循环。如果你无意中创建了环状结构（见 199页「12.3 节」，遍历结构的代码可能会掉入无穷循环里。这些 bug 很难发现，因为不在后面不会发生，看起来像没有错误的代码一样。最佳的解决办法是预防，如同 199 页所描述的：避免使用破坏性操作，直到程序已经正常工作，且你已准备好要调优代码来获得效率。</p>
+<p>如果 Lisp 有不鸟你的倾向，也有可能是等待你完成输入什么。在多数系统里，按下回车是没有效果的，直到你输入了一个完整的表达式。这个方法的好事是它允许你输入多行的表达式。坏事是如果你无意中少了一个闭括号，或是一个闭引号，Lisp 会一直等你，直到你真正完成输入完整的表达式：</p>
+<div class="highlight-cl"><pre>&gt; (format t "for example ~A~% 'this)</pre>
+</div>
+<p>这里我们在控制字串的最后忽略了闭引号。在此时按下回车是没用的，因为 Lisp 认为我们还在输入一个字串。</p>
+<p>在某些实现里，你可以回到上一行，并插入闭引号。在不允许你回到前行的系统，最佳办法通常是中断执行，并从中断循环回到顶层。</p>
+</div>
+<div class="section" id="no-value-unbound">
+<h2>没有值或未绑定 (No Value/Unbound)<a class="headerlink" href="#no-value-unbound" title="永久链接至标题">¶</a></h2>
+<p>一个你最常听到 Lisp 的抱怨是一个符号没有值或未绑定。数种不同的问题都用这种方式呈现。</p>
+<p>局部变量，如 <tt class="docutils literal"><span class="pre">let</span></tt> 与 <tt class="docutils literal"><span class="pre">defun</span></tt> 设置的那些，只在创建它们的表达式主体里合法。所以要是我们试著在 创建变量的 <tt class="docutils literal"><span class="pre">let</span></tt> 外部引用它，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">progn</span>
+    <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">x</span> <span class="mi">10</span><span class="p">))</span>
+      <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;Here x = ~A. ~%&quot;</span> <span class="nv">x</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;But now it&#39;s gone...~%&quot;</span><span class="p">)</span>
+    <span class="nv">x</span><span class="p">)</span>
+<span class="nv">Here</span> <span class="nv">x</span> <span class="nb">=</span> <span class="mi">10.</span>
+<span class="nv">But</span> <span class="nv">now</span> <span class="nv">it</span><span class="ss">&#39;s</span> <span class="nv">gone...</span>
+<span class="nv">Error:</span> <span class="nv">X</span> <span class="nv">has</span> <span class="nv">no</span> <span class="nv">value.</span>
+</pre></div>
+</td></tr></table></div>
+<p>我们获得一个错误。当 Lisp 抱怨某些东西没有值或未绑定时，祂的意思通常是你无意间引用了一个不存在的变量。因为没有叫做 <tt class="docutils literal"><span class="pre">x</span></tt> 的局部变量，Lisp 假定我们要引用一个有著这个名字的全局变量或常量。错误会发生是因为当 Lisp 试著要查找它的值的时候，却发现根本没有给值。打错变量的名字通常会给出同样的结果。</p>
+<p>一个类似的问题发生在我们无意间将函数引用成变量。举例来说：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="nb">defun</span> <span class="nv">foo</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="mi">1</span><span class="p">))</span>
+<span class="nv">Error:</span> <span class="nv">DEFUN</span> <span class="nv">has</span> <span class="nv">no</span> <span class="nv">value</span>
+</pre></div>
+</td></tr></table></div>
+<p>这在第一次发生时可能会感到疑惑： <tt class="docutils literal"><span class="pre">defun</span></tt> 怎么可能会没有值？问题的症结点在于我们忽略了最初的左括号，导致 Lisp 把符号 <tt class="docutils literal"><span class="pre">defun</span></tt> 解读错误，将它视为一个全局变量的引用。</p>
+<p>有可能你真的忘记初始化某个全局变量。如果你没有给 <tt class="docutils literal"><span class="pre">defvar</span></tt> 第二个参数，你的全局变量会被宣告出来，但没有初始化；这可能是问题的根源。</p>
+</div>
+<div class="section" id="nil-unexpected-nils">
+<h2>意料之外的 Nil (Unexpected Nils)<a class="headerlink" href="#nil-unexpected-nils" title="永久链接至标题">¶</a></h2>
+<p>当函数抱怨传入 <tt class="docutils literal"><span class="pre">nil</span></tt> 作为参数时，通常是程序先前出错的徵兆。数个内置操作符返回 <tt class="docutils literal"><span class="pre">nil</span></tt> 来指出失败。但由于 <tt class="docutils literal"><span class="pre">nil</span></tt> 是一个合法的 Lisp 对象，问题可能之后才发生，在程序某部分试著要使用这个信以为真的返回值时。</p>
+<p>举例来说，返回一个月有多少天的函数有一个 bug；假设我们忘记十月份了：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">month-length</span> <span class="p">(</span><span class="nv">mon</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">case</span> <span class="nv">mon</span>
+    <span class="p">((</span><span class="nv">jan</span> <span class="nv">mar</span> <span class="nv">may</span> <span class="nv">jul</span> <span class="nv">aug</span> <span class="nv">dec</span><span class="p">)</span> <span class="mi">31</span><span class="p">)</span>
+    <span class="p">((</span><span class="nv">apr</span> <span class="nv">jun</span> <span class="nv">sept</span> <span class="nv">nov</span><span class="p">)</span> <span class="mi">30</span><span class="p">)</span>
+    <span class="p">(</span><span class="nv">feb</span> <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nv">leap-year</span><span class="p">)</span> <span class="mi">29</span> <span class="mi">28</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果有另一个函数，企图想计算出一个月当中有几个礼拜，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">month-weeks</span> <span class="p">(</span><span class="nv">mon</span><span class="p">)</span> <span class="p">(</span><span class="nb">/</span> <span class="p">(</span><span class="nv">month-length</span> <span class="nv">mon</span><span class="p">)</span> <span class="mf">7.0</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>则会发生下面的情形：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">month-weeks</span> <span class="ss">&#39;out</span><span class="p">)</span>
+<span class="nv">Error:</span> <span class="no">NIL</span> <span class="nv">is</span> <span class="nb">not</span> <span class="nv">a</span> <span class="nv">valud</span> <span class="nv">argument</span> <span class="nv">to</span> <span class="nv">/.</span>
+</pre></div>
+</td></tr></table></div>
+<p>问题发生的原因是因为 <tt class="docutils literal"><span class="pre">month-length</span></tt> 在 <tt class="docutils literal"><span class="pre">case</span></tt> 找不到匹配 。当这个情形发生时， <tt class="docutils literal"><span class="pre">case</span></tt> 返回 <tt class="docutils literal"><span class="pre">nil</span></tt> 。然后 <tt class="docutils literal"><span class="pre">month-weeks</span></tt> ，认为获得了一个数字，将值传给 <tt class="docutils literal"><span class="pre">/</span></tt> ，``/`` 就抱怨了。</p>
+<p>在这里最起码 bug 与 bug 的临床表现是挨著发生的。这样的 bug 在它们相距很远时很难找到。要避免这个可能性，某些 Lisp 方言让跑完 <tt class="docutils literal"><span class="pre">case</span></tt> 或 <tt class="docutils literal"><span class="pre">cond</span></tt> 又没匹配的情形，产生一个错误。在 Common Lisp 里，在这种情况里可以做的是使用 <tt class="docutils literal"><span class="pre">ecase</span></tt> ，如 14.6 节所描述的。</p>
+</div>
+<div class="section" id="renaming">
+<h2>重新命名 (Renaming)<a class="headerlink" href="#renaming" title="永久链接至标题">¶</a></h2>
+<p>在某些场合里（但不是全部场合），有一种特别狡猾的 bug ，起因于重新命名函数或变量，。举例来说，假设我们定义下列（低效的）
+函数来找出双重嵌套列表的深度：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">depth</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">atom</span> <span class="nv">x</span><span class="p">)</span>
+      <span class="mi">1</span>
+      <span class="p">(</span><span class="nb">1+</span> <span class="p">(</span><span class="nb">apply</span> <span class="nf">#&#39;</span><span class="nb">max</span> <span class="p">(</span><span class="nb">mapcar</span> <span class="nf">#&#39;</span><span class="nv">depth</span> <span class="nv">x</span><span class="p">)))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>测试函数时，我们发现它给我们错误的答案（应该是 1）：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">depth</span> <span class="o">&#39;</span><span class="p">((</span><span class="nv">a</span><span class="p">)))</span>
+<span class="mi">3</span>
+</pre></div>
+</td></tr></table></div>
+<p>起初的 <tt class="docutils literal"><span class="pre">1</span></tt> 应该是 <tt class="docutils literal"><span class="pre">0</span></tt> 才对。如果我们修好这个错误，并给这个函数一个较不模糊的名称：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">nesting-depth</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">atom</span> <span class="nv">x</span><span class="p">)</span>
+      <span class="mi">0</span>
+      <span class="p">(</span><span class="nb">1+</span> <span class="p">(</span><span class="nb">apply</span> <span class="nf">#&#39;</span><span class="nb">max</span> <span class="p">(</span><span class="nb">mapcar</span> <span class="nf">#&#39;</span><span class="nv">depth</span> <span class="nv">x</span><span class="p">)))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>当我们再测试上面的例子，它返回同样的结果：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">nesting-depth</span> <span class="o">&#39;</span><span class="p">((</span><span class="nv">a</span><span class="p">)))</span>
+<span class="mi">3</span>
+</pre></div>
+</td></tr></table></div>
+<p>我们不是修好这个函数了吗？没错，但答案不是来自我们修好的代码。我们忘记也改掉递归调用中的名称。在递归用例里，我们的新函数仍调用先前的 <tt class="docutils literal"><span class="pre">depth</span></tt> ，这当然是不对的。</p>
+</div>
+<div class="section" id="keywords-as-optional-parameters">
+<h2>作为选择性参数的关键字 (Keywords as Optional Parameters)<a class="headerlink" href="#keywords-as-optional-parameters" title="永久链接至标题">¶</a></h2>
+<p>若函数同时接受关键字与选择性参数，这通常是个错误，无心地提供了关键字作为选择性参数。举例来说，函数 <tt class="docutils literal"><span class="pre">read-from-string</span></tt> 有著下列的参数列表：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">read-from-string</span> <span class="nb">string</span> <span class="k">&amp;optional</span> <span class="nv">eof-error</span> <span class="nv">eof-value</span>
+                         <span class="k">&amp;key</span> <span class="nv">start</span> <span class="nv">end</span> <span class="nv">preserve-whitespace</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>这样一个函数你需要依序提供值，给所有的选择性参数，再来才是关键字参数。如果你忘记了选择性参数，看看下面这个例子，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">read-from-string</span> <span class="s">&quot;abcd&quot;</span> <span class="ss">:start</span> <span class="mi">2</span><span class="p">)</span>
+<span class="nv">ABCD</span>
+<span class="mi">4</span>
+</pre></div>
+</td></tr></table></div>
+<p>则 <tt class="docutils literal"><span class="pre">:start</span></tt> 与 <tt class="docutils literal"><span class="pre">2</span></tt> 会成为前两个选择性参数的值。若我们想要 <tt class="docutils literal"><span class="pre">read</span></tt> 从第二个字符开始读取，我们应该这么说：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">read-from-string</span> <span class="s">&quot;abcd&quot;</span> <span class="no">nil</span> <span class="no">nil</span> <span class="ss">:start</span> <span class="mi">2</span><span class="p">)</span>
+<span class="nv">CD</span>
+<span class="mi">4</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<div class="section" id="misdeclarations">
+<h2>错误声明 (Misdeclarations)<a class="headerlink" href="#misdeclarations" title="永久链接至标题">¶</a></h2>
+<p>第十三章解释了如何给变量及数据结构做类型声明。通过给变量做类型声明，你保证变量只会包含某种类型的值。当产生代码时，Lisp 编译器会依赖这个假定。举例来说，这个函数的两个参数都声明为 <tt class="docutils literal"><span class="pre">double-floats</span></tt> ，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">df*</span> <span class="p">(</span><span class="nv">a</span> <span class="nv">b</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">declare</span> <span class="p">(</span><span class="kt">double-float</span> <span class="nv">a</span> <span class="nv">b</span><span class="p">))</span>
+  <span class="p">(</span><span class="nb">*</span> <span class="nv">a</span> <span class="nv">b</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>因此编译器在产生代码时，被授权直接将浮点乘法直接硬连接 (hard-wire)到代码里。</p>
+<p>如果调用 <tt class="docutils literal"><span class="pre">df*</span></tt> 的参数不是声明的类型时，可能会捕捉一个错误，或单纯地返回垃圾。在某个实现里，如果我们传入两个定长数，我们获得一个硬体中断：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">df*</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">)</span>
+<span class="nv">Error:</span> <span class="nv">Interrupt.</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果获得这样严重的错误，通常是由于数值不是先前声明的类型。</p>
+</div>
+<div class="section" id="warnings">
+<h2>警告 (Warnings)<a class="headerlink" href="#warnings" title="永久链接至标题">¶</a></h2>
+<p>有些时候 Lisp 会抱怨一下，但不会中断求值过程。许多这样的警告是错误的警钟。一种最常见的可能是由编译器所产生的，关于未宣告或未使用的变量。举例来说，在 66 页「译注: 6.4 节」， <tt class="docutils literal"><span class="pre">map-int</span></tt> 的第二个调用，有一个 <tt class="docutils literal"><span class="pre">x</span></tt> 变量没有使用到。如果想要编译器在每次编译程序时，停止通知你这些事，使用一个忽略声明：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">map-int</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+             <span class="p">(</span><span class="k">declare</span> <span class="p">(</span><span class="k">ignore</span> <span class="nv">x</span><span class="p">))</span>
+             <span class="p">(</span><span class="nb">random</span> <span class="mi">100</span><span class="p">))</span>
+         <span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+</div>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'acl-chinese';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+                  </div></div>
+              </article><div class="clearer"></div>
+          </div><div class="span3">
+                <div class="sphinxsidebar">
+      <div id="sidenav" class="box sphinxsidebarwrapper">
+
+
+<h4><a href="../index.html">內容目录</a></h4>
+  <ul>
+<li><a class="reference internal" href="#">附录 A：调试</a><ul>
+<li><a class="reference internal" href="#breakloop">中断循环 (Breakloop)</a></li>
+<li><a class="reference internal" href="#traces-and-backtraces">追踪与回溯 (Traces and Backtraces)</a></li>
+<li><a class="reference internal" href="#when-noting-happens">当什么事都没发生时 (When Noting Happens)</a></li>
+<li><a class="reference internal" href="#no-value-unbound">没有值或未绑定 (No Value/Unbound)</a></li>
+<li><a class="reference internal" href="#nil-unexpected-nils">意料之外的 Nil (Unexpected Nils)</a></li>
+<li><a class="reference internal" href="#renaming">重新命名 (Renaming)</a></li>
+<li><a class="reference internal" href="#keywords-as-optional-parameters">作为选择性参数的关键字 (Keywords as Optional Parameters)</a></li>
+<li><a class="reference internal" href="#misdeclarations">错误声明 (Misdeclarations)</a></li>
+<li><a class="reference internal" href="#warnings">警告 (Warnings)</a></li>
+</ul>
+</li>
+</ul>
+
+  
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      
+      
+        <li><a href="https://github.com/acl-translation/acl-chinese/blob/redirect-to-new-domain/zhCN/appendix-A-cn.rst">
+          Show on GitHub</a></li>
+        <li><a href="https://github.com/acl-translation/acl-chinese/edit/redirect-to-new-domain/zhCN/appendix-A-cn.rst">
+          Edit on GitHub</a></li>
+      
+    </ul>
+  
+</div>
+    </div>
+              </div></div>
+      </div>
+<footer class="container-fluid">
+        <hr />&copy; 版权所有 2012, Juanito Fatas Huang.最后更新日期是 Apr 22, 2013.使用 <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.</footer>
+ <!-- End original user content -->
+
+
+<br>
+<br>
+<br>
+
+
+<style type="text/css">
+  .rtd-badge {
+    position: fixed;
+    display: block;
+    bottom: 5px;
+    height: 40px;
+    text-indent: -9999em;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -moz-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  }
+  #version_menu {
+    position: fixed;
+    display: none;
+    bottom: 11px;
+    right: 166px;
+    list-style-type: none;
+    margin: 0;
+  }
+  .footer_popout:hover #version_menu {
+    display: block;
+  }
+  #version_menu li {
+    display: block;
+    float: right;
+  }
+  #version_menu li a {
+    display: block;
+    padding: 6px 10px 4px 10px;
+    margin: 7px 7px 0 0;
+    font-weight: bold;
+    font-size: 14px;
+    height: 20px;
+    line-height: 17px;
+    text-decoration: none;
+    color: #fff;
+    background: #8ca1af url(../images/gradient-light.png) bottom left repeat-x;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 1px #465158;
+    -moz-box-shadow: 0 1px 1px #465158;
+    -webkit-box-shadow: 0 1px 1px #465158;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+  }
+  #version_menu li a:hover {
+    text-decoration: none;
+    background-color: #697983;
+    box-shadow: 0 1px 0px #465158;
+    -moz-box-shadow: 0 1px 0px #465158;
+    -webkit-box-shadow: 0 1px 0px #465158;
+  }
+  .rtd-badge.rtd {
+    background: #3b4449 url(//media.readthedocs.org//images/badge-rtd.png) scroll 0px -46px no-repeat;
+    border: 1px solid #282E32;
+    width: 41px;
+    right: 5px;
+  }
+  .footer_popout:hover .rtd-badge.rtd {
+    background-position: top left;
+    width: 160px;
+  }
+  .rtd-badge.revsys { background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline-sponsored {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys-sm.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 205px;
+    right: 173px;
+  }
+
+</style>
+<div class="rtd_doc_footer">
+  <div class="footer_popout">
+    <a href="//readthedocs.org/projects/ansi-common-lisp/?fromdocs=ansi-common-lisp" class="rtd-badge rtd"> Brought to you by Read the Docs</a>
+    <ul id="version_menu">
+      
+        <li><a href="/en/latest/">latest</a></li>
+      
+    </ul>
+  </div>
+</div>
+<!-- RTD Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-17997319-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+<!-- User Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-26995626-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+</body>
+</html>

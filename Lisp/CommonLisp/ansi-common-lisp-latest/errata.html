@@ -1,0 +1,322 @@
+<!DOCTYPE HTML>
+
+  <html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+<title>ANSI Common Lisp 勘誤表 &mdash; ANSI Common Lisp 中文版</title>
+    
+<!-- RTD <head> -->
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/underscore.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/doctools.js"></script>
+
+<script type="text/javascript">
+  // This is included here for Javascript that doesn't have access to the templates.
+  var doc_version = "latest";
+  var doc_slug = "ansi-common-lisp";
+</script>
+
+<script type="text/javascript" src="//media.readthedocs.org/javascript/rtd.js"></script>
+<!-- end RTD <head> -->
+
+    <link rel="stylesheet" href="_static/han.min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="_static/rosefinch.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/main.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:       '',
+        VERSION:        '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX:    '.html',
+        HAS_SOURCE:     true
+      };
+    </script>
+    <script type="text/javascript" src="_static/han.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  <script type="text/javascript" src=_static/jquery.dimensions.js"></script>
+  <script type="text/javascript" src="_static/main.js"></script><link rel="top" title="ANSI Common Lisp 中文版" href="index.html" /></head>
+
+  <body><div class="navbar navbar-static-top navbar-inverse">
+        <div id="top-bar" class="navbar-inner">
+
+          <h1 id="logo">ANSI Common Lisp 中文版<a href="index.html" class="brand">ANSI Common Lisp 中文版</a></h1>
+          <ul class="nav"></ul><a href="https://github.com/acl-translation/acl-chinese"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
+        </div>
+      </div><div class="content container-fluid">
+        <div class="row-fluid"><div class="document span9"><article >
+                <div class="documentwrapper"><div class="body"><div class="section" id="ansi-common-lisp">
+<h1>ANSI Common Lisp 勘誤表<a class="headerlink" href="#ansi-common-lisp" title="永久链接至标题">¶</a></h1>
+<p>Here&#8217;s a list of problems people have reported in ANSI Common Lisp. I haven&#8217;t checked them all yet. The ones that say caught I have checked, the ones that say reported I haven&#8217;t.</p>
+<ol class="loweralpha simple" start="16">
+<li><ol class="first arabic" start="34">
+<li>I should have said that our-equal works for &#8220;lists of symbols,&#8221; rather than just &#8220;lists&#8221;. Caught by Bill Stratford.</li>
+</ol>
+</li>
+</ol>
+<ol class="loweralpha simple" start="16">
+<li><ol class="first arabic" start="46">
+<li>Richard Fateman points out that the best way to check for palindromes is simply (equal x (reverse x)).</li>
+</ol>
+</li>
+</ol>
+<ol class="loweralpha simple" start="16">
+<li><ol class="first arabic" start="57">
+<li>To solve problem 3.6(b) you need to use a rest parameter, which is not introduced until p. 102. Caught by Ricardo Ferreira de Oliveira.</li>
+</ol>
+</li>
+</ol>
+<ol class="loweralpha simple" start="16">
+<li><ol class="first arabic" start="57">
+<li>Problem 3.9 should say the longest path with no duplicates.</li>
+</ol>
+</li>
+</ol>
+<ol class="loweralpha simple" start="16">
+<li><ol class="first arabic" start="60">
+<li>The version of bin-search in figure 4.1 blows up if you give it an obj which is smaller than the smallest element in vec. Reported by Richard Green.</li>
+</ol>
+</li>
+</ol>
+<ol class="loweralpha simple" start="16">
+<li><ol class="first arabic" start="71">
+<li>The definition of bst-remove is broken. Sorry about that! It and bst-delete have been corrected in the source code. Caught by Chris Stover.</li>
+</ol>
+</li>
+</ol>
+<ol class="loweralpha simple" start="16">
+<li><ol class="first arabic" start="80">
+<li>In exercise 4.5, the definition of bst-adjoin is identical to the functionality of the already written bst-insert. Reported by Richard Green.</li>
+</ol>
+</li>
+</ol>
+<ol class="loweralpha simple" start="16">
+<li><ol class="first arabic" start="97">
+<li>In exercise 5.4, num-month should be month-num. Caught by David Sletten.</li>
+</ol>
+</li>
+</ol>
+<ol class="loweralpha simple" start="16">
+<li><ol class="first arabic" start="120">
+<li>&#8220;there should be single line&#8221; should have an &#8220;a&#8221; in it. Caught by Marcel Molina Jr.</li>
+</ol>
+</li>
+</ol>
+<ol class="loweralpha simple" start="16">
+<li><ol class="first arabic" start="165">
+<li>In the definition of quicksort, &gt; should be &gt;= on lines 12 and 13. Reported by Jed Crosby.</li>
+</ol>
+</li>
+</ol>
+<ol class="loweralpha simple" start="16">
+<li><ol class="first arabic" start="177">
+<li>Pierpaolo Bernardi reports that bubble sort should be selection sort.</li>
+</ol>
+</li>
+</ol>
+<ol class="loweralpha simple" start="16">
+<li><ol class="first arabic" start="203">
+<li>The definition of bst-delete is broken. See note on p. 71.</li>
+</ol>
+</li>
+</ol>
+<ol class="loweralpha simple" start="16">
+<li><ol class="first arabic" start="204">
+<li>In the last full paragraph, &#8220;rest field&#8221; should be &#8220;next field&#8221;. Caught by Adam Langley.</li>
+</ol>
+</li>
+</ol>
+<ol class="loweralpha simple" start="16">
+<li><ol class="first arabic" start="317">
+<li>The template for cond has an extra set of parentheses. It should be (cond (test expression*)*). Caught by Adam Jacobs.</li>
+</ol>
+</li>
+</ol>
+<ol class="loweralpha simple" start="16">
+<li>338 The :read-only-p defstruct slot option should be :read-only. Caught by Laurent Peron.</li>
+</ol>
+</div>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'acl-chinese';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+                  </div></div>
+              </article><div class="clearer"></div>
+          </div><div class="span3">
+                <div class="sphinxsidebar">
+      <div id="sidenav" class="box sphinxsidebarwrapper">
+
+
+
+  
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      
+      
+        <li><a href="https://github.com/acl-translation/acl-chinese/blob/redirect-to-new-domain/errata.rst">
+          Show on GitHub</a></li>
+        <li><a href="https://github.com/acl-translation/acl-chinese/edit/redirect-to-new-domain/errata.rst">
+          Edit on GitHub</a></li>
+      
+    </ul>
+  
+</div>
+    </div>
+              </div></div>
+      </div>
+<footer class="container-fluid">
+        <hr />&copy; 版权所有 2012, Juanito Fatas Huang.最后更新日期是 Apr 22, 2013.使用 <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.</footer>
+ <!-- End original user content -->
+
+
+<br>
+<br>
+<br>
+
+
+<style type="text/css">
+  .rtd-badge {
+    position: fixed;
+    display: block;
+    bottom: 5px;
+    height: 40px;
+    text-indent: -9999em;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -moz-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  }
+  #version_menu {
+    position: fixed;
+    display: none;
+    bottom: 11px;
+    right: 166px;
+    list-style-type: none;
+    margin: 0;
+  }
+  .footer_popout:hover #version_menu {
+    display: block;
+  }
+  #version_menu li {
+    display: block;
+    float: right;
+  }
+  #version_menu li a {
+    display: block;
+    padding: 6px 10px 4px 10px;
+    margin: 7px 7px 0 0;
+    font-weight: bold;
+    font-size: 14px;
+    height: 20px;
+    line-height: 17px;
+    text-decoration: none;
+    color: #fff;
+    background: #8ca1af url(../images/gradient-light.png) bottom left repeat-x;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 1px #465158;
+    -moz-box-shadow: 0 1px 1px #465158;
+    -webkit-box-shadow: 0 1px 1px #465158;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+  }
+  #version_menu li a:hover {
+    text-decoration: none;
+    background-color: #697983;
+    box-shadow: 0 1px 0px #465158;
+    -moz-box-shadow: 0 1px 0px #465158;
+    -webkit-box-shadow: 0 1px 0px #465158;
+  }
+  .rtd-badge.rtd {
+    background: #3b4449 url(//media.readthedocs.org//images/badge-rtd.png) scroll 0px -46px no-repeat;
+    border: 1px solid #282E32;
+    width: 41px;
+    right: 5px;
+  }
+  .footer_popout:hover .rtd-badge.rtd {
+    background-position: top left;
+    width: 160px;
+  }
+  .rtd-badge.revsys { background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline-sponsored {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys-sm.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 205px;
+    right: 173px;
+  }
+
+</style>
+<div class="rtd_doc_footer">
+  <div class="footer_popout">
+    <a href="//readthedocs.org/projects/ansi-common-lisp/?fromdocs=ansi-common-lisp" class="rtd-badge rtd"> Brought to you by Read the Docs</a>
+    <ul id="version_menu">
+      
+        <li><a href="/en/latest/">latest</a></li>
+      
+    </ul>
+  </div>
+</div>
+<!-- RTD Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-17997319-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+<!-- User Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-26995626-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+</body>
+</html>

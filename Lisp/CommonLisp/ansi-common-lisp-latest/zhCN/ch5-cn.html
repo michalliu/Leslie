@@ -1,0 +1,996 @@
+<!DOCTYPE HTML>
+
+  <html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+<title>第五章：控制流 &mdash; ANSI Common Lisp 中文版</title>
+    
+<!-- RTD <head> -->
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/underscore.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/doctools.js"></script>
+
+<script type="text/javascript">
+  // This is included here for Javascript that doesn't have access to the templates.
+  var doc_version = "latest";
+  var doc_slug = "ansi-common-lisp";
+</script>
+
+<script type="text/javascript" src="//media.readthedocs.org/javascript/rtd.js"></script>
+<!-- end RTD <head> -->
+
+    <link rel="stylesheet" href="../_static/han.min.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/rosefinch.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/main.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:       '../',
+        VERSION:        '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX:    '.html',
+        HAS_SOURCE:     true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/han.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  <script type="text/javascript" src=../_static/jquery.dimensions.js"></script>
+  <script type="text/javascript" src="../_static/main.js"></script><link rel="top" title="ANSI Common Lisp 中文版" href="../index.html" /></head>
+
+  <body><div class="navbar navbar-static-top navbar-inverse">
+        <div id="top-bar" class="navbar-inner">
+
+          <h1 id="logo">ANSI Common Lisp 中文版<a href="../index.html" class="brand">ANSI Common Lisp 中文版</a></h1>
+          <ul class="nav"></ul><a href="https://github.com/acl-translation/acl-chinese"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
+        </div>
+      </div><div class="content container-fluid">
+        <div class="row-fluid"><div class="document span9"><article >
+                <div class="documentwrapper"><div class="body"><div class="section" id="id1">
+<h1>第五章：控制流<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h1>
+<p>2.2 节介绍过 Common Lisp 的求值规则，现在你应该很熟悉了。本章的操作符都有一个共同点，就是它们都违反了求值规则。这些操作符让你决定在程序当中何时要求值。如果普通的函数调用是 Lisp 程序的树叶的话，那这些操作符就是连结树叶的树枝。</p>
+<div class="section" id="blocks">
+<h2>5.1 区块 (Blocks)<a class="headerlink" href="#blocks" title="永久链接至标题">¶</a></h2>
+<p>Common Lisp 有三个构造区块（block）的基本操作符： <tt class="docutils literal"><span class="pre">progn</span></tt> 、 <tt class="docutils literal"><span class="pre">block</span></tt> 以及 <tt class="docutils literal"><span class="pre">tagbody</span></tt> 。我们已经看过 <tt class="docutils literal"><span class="pre">progn</span></tt> 了。在 <tt class="docutils literal"><span class="pre">progn</span></tt> 主体中的表达式会依序求值，并返回最後一个表达式的值：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">progn</span>
+    <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;a&quot;</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;b&quot;</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">+</span> <span class="mi">11</span> <span class="mi">12</span><span class="p">))</span>
+<span class="nv">ab</span>
+<span class="mi">23</span>
+</pre></div>
+</td></tr></table></div>
+<p>由於只返回最後一个表达式的值，代表著使用 <tt class="docutils literal"><span class="pre">progn</span></tt> （或任何区块）涵盖了副作用。</p>
+<p>一个 <tt class="docutils literal"><span class="pre">block</span></tt> 像是带有名字及紧急出口的 <tt class="docutils literal"><span class="pre">progn</span></tt> 。第一个实参应为符号。这成为了区块的名字。在主体中的任何地方，可以停止求值，并通过使用 <tt class="docutils literal"><span class="pre">return-from</span></tt> 指定区块的名字，来立即返回数值：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">block</span> <span class="nv">head</span>
+    <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;Here we go.&quot;</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">return-from</span> <span class="nv">head</span> <span class="ss">&#39;idea</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;We&#39;ll never see this.&quot;</span><span class="p">))</span>
+<span class="nv">Here</span> <span class="nv">we</span> <span class="nv">go.</span>
+<span class="nv">IDEA</span>
+</pre></div>
+</td></tr></table></div>
+<p>调用 <tt class="docutils literal"><span class="pre">return-from</span></tt> 允许你的程序，从代码的任何地方，突然但优雅地退出。第二个传给 <tt class="docutils literal"><span class="pre">return-from</span></tt> 的实参，用来作为以第一个实参为名的区块的返回值。在 <tt class="docutils literal"><span class="pre">return-from</span></tt> 之後的表达式不会被求值。</p>
+<p>也有一个 <tt class="docutils literal"><span class="pre">return</span></tt> 宏，它把传入的参数当做封闭区块 <tt class="docutils literal"><span class="pre">nil</span></tt> 的返回值：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">block</span> <span class="no">nil</span>
+    <span class="p">(</span><span class="nb">return</span> <span class="mi">27</span><span class="p">))</span>
+<span class="mi">27</span>
+</pre></div>
+</td></tr></table></div>
+<p>许多接受一个表达式主体的 Common Lisp 操作符，皆隐含在一个叫做 <tt class="docutils literal"><span class="pre">nil</span></tt> 的区块里。比如，所有由 <tt class="docutils literal"><span class="pre">do</span></tt> 构造的迭代函数：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">dolist</span> <span class="p">(</span><span class="nv">x</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span> <span class="nv">d</span> <span class="nv">e</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;~A &quot;</span> <span class="nv">x</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">eql</span> <span class="nv">x</span> <span class="ss">&#39;c</span><span class="p">)</span>
+        <span class="p">(</span><span class="nb">return</span> <span class="ss">&#39;done</span><span class="p">)))</span>
+<span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span>
+<span class="nv">DONE</span>
+</pre></div>
+</td></tr></table></div>
+<p>使用 <tt class="docutils literal"><span class="pre">defun</span></tt> 定义的函数主体，都隐含在一个与函数同名的区块，所以你可以：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">foo</span> <span class="p">()</span>
+  <span class="p">(</span><span class="k">return-from</span> <span class="nv">foo</span> <span class="mi">27</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>在一个显式或隐式的 <tt class="docutils literal"><span class="pre">block</span></tt> 外，不论是 <tt class="docutils literal"><span class="pre">return-from</span></tt> 或 <tt class="docutils literal"><span class="pre">return</span></tt> 都不会工作。</p>
+<p>使用 <tt class="docutils literal"><span class="pre">return-from</span></tt> ，我们可以写出一个更好的 <tt class="docutils literal"><span class="pre">read-integer</span></tt> 版本：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">read-integer</span> <span class="p">(</span><span class="nv">str</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">accum</span> <span class="mi">0</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">dotimes</span> <span class="p">(</span><span class="nv">pos</span> <span class="p">(</span><span class="nb">length</span> <span class="nv">str</span><span class="p">))</span>
+      <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">i</span> <span class="p">(</span><span class="nb">digit-char-p</span> <span class="p">(</span><span class="nb">char</span> <span class="nv">str</span> <span class="nv">pos</span><span class="p">))))</span>
+        <span class="p">(</span><span class="k">if</span> <span class="nv">i</span>
+            <span class="p">(</span><span class="nb">setf</span> <span class="nv">accum</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nb">*</span> <span class="nv">accum</span> <span class="mi">10</span><span class="p">)</span> <span class="nv">i</span><span class="p">))</span>
+            <span class="p">(</span><span class="k">return-from</span> <span class="nv">read-integer</span> <span class="no">nil</span><span class="p">))))</span>
+    <span class="nv">accum</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>68 页的版本在构造整数之前，需检查所有的字符。现在两个步骤可以结合，因为如果遇到非数字的字符时，我们可以舍弃计算结果。出现在主体的原子（atom）被解读为标签（labels)；把这样的标签传给 <tt class="docutils literal"><span class="pre">go</span></tt> ，会把控制权交给标签後的表达式。以下是一个非常丑的程序片段，用来印出一至十的数字：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">tagbody</span>
+    <span class="p">(</span><span class="nb">setf</span> <span class="nv">x</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="nv">top</span>
+      <span class="p">(</span><span class="nb">setf</span> <span class="nv">x</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="mi">1</span><span class="p">))</span>
+      <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;~A &quot;</span> <span class="nv">x</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">&lt;</span> <span class="nv">x</span> <span class="mi">10</span><span class="p">)</span> <span class="p">(</span><span class="k">go</span> <span class="nv">top</span><span class="p">)))</span>
+<span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mi">9</span> <span class="mi">10</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>这个操作符主要用来实现其它的操作符，不是一般会用到的操作符。大多数迭代操作符都隐含在一个 <tt class="docutils literal"><span class="pre">tagbody</span></tt> ，所以是可能可以在主体里（虽然很少想要）使用标签及 <tt class="docutils literal"><span class="pre">go</span></tt> 。</p>
+<p>如何决定要使用哪一种区块建构子呢（block construct）？几乎任何时候，你会使用 <tt class="docutils literal"><span class="pre">progn</span></tt> 。如果你想要突然退出的话，使用 <tt class="docutils literal"><span class="pre">block</span></tt> 来取代。多数程序员永远不会显式地使用 <tt class="docutils literal"><span class="pre">tagbody</span></tt> 。</p>
+</div>
+<div class="section" id="context">
+<h2>5.2 语境 (Context)<a class="headerlink" href="#context" title="永久链接至标题">¶</a></h2>
+<p>另一个我们用来区分表达式的操作符是 <tt class="docutils literal"><span class="pre">let</span></tt> 。它接受一个代码主体，但允许我们在主体内设置新变量：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">x</span> <span class="mi">7</span><span class="p">)</span>
+        <span class="p">(</span><span class="nv">y</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;Number&quot;</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>一个像是 <tt class="docutils literal"><span class="pre">let</span></tt> 的操作符，创造出一个新的词法语境（lexical context）。在这个语境里有两个新变量，然而在外部语境的变量也因此变得不可视了。</p>
+<p>概念上说，一个 <tt class="docutils literal"><span class="pre">let</span></tt> 表达式等同于函数调用。在 2.14 节证明过，函数可以用名字来引用，也可以通过使用一个 lambda 表达式从字面上来引用。由於 lambda 表达式是函数的名字，我们可以像使用函数名那样，把 lambda 表达式作为函数调用的第一个实参：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">((</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="mi">1</span><span class="p">))</span> <span class="mi">3</span><span class="p">)</span>
+<span class="mi">4</span>
+</pre></div>
+</td></tr></table></div>
+<p>前述的 <tt class="docutils literal"><span class="pre">let</span></tt> 表达式，实际上等同於：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">((</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">y</span><span class="p">)</span>
+   <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;Number&quot;</span><span class="p">)</span>
+   <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">))</span>
+ <span class="mi">7</span>
+ <span class="mi">20</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果有关于 <tt class="docutils literal"><span class="pre">let</span></tt> 的任何问题，应该是如何把责任交给 <tt class="docutils literal"><span class="pre">lambda</span></tt> ，因为进入一个 <tt class="docutils literal"><span class="pre">let</span></tt> 等同于执行一个函数调用。</p>
+<p>这个模型清楚的告诉我们，由 <tt class="docutils literal"><span class="pre">let</span></tt> 创造的变量的值，不能依赖其它由同一个 <tt class="docutils literal"><span class="pre">let</span></tt> 所创造的变量。举例来说，如果我们试着：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">x</span> <span class="mi">2</span><span class="p">)</span>
+      <span class="p">(</span><span class="nv">y</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="mi">1</span><span class="p">)))</span>
+  <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>在 <tt class="docutils literal"><span class="pre">(+</span> <span class="pre">x</span> <span class="pre">1)</span></tt> 中的 <tt class="docutils literal"><span class="pre">x</span></tt> 不是前一行所设置的值，因为整个表达式等同於：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">((</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">y</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">))</span> <span class="mi">2</span>
+                        <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>这里明显看到 <tt class="docutils literal"><span class="pre">(+</span> <span class="pre">x</span> <span class="pre">1)</span></tt> 作为实参传给函数，不能引用函数内的形参 <tt class="docutils literal"><span class="pre">x</span></tt> 。</p>
+<p>所以如果你真的想要新变量的值，依赖同一个表达式所设立的另一个变量？在这个情况下，使用一个变形版本 <tt class="docutils literal"><span class="pre">let*</span></tt> ：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">let*</span> <span class="p">((</span><span class="nv">x</span> <span class="mi">1</span><span class="p">)</span>
+         <span class="p">(</span><span class="nv">y</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="mi">1</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">))</span>
+<span class="mi">3</span>
+</pre></div>
+</td></tr></table></div>
+<p>一个 <tt class="docutils literal"><span class="pre">let*</span></tt> 功能上等同於一系列嵌套的 <tt class="docutils literal"><span class="pre">let</span></tt> 。这个特别的例子等同於：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">x</span> <span class="mi">1</span><span class="p">))</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">y</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="mi">1</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p><tt class="docutils literal"><span class="pre">let</span></tt> 与 <tt class="docutils literal"><span class="pre">let*</span></tt> 将变量初始值都设为 <tt class="docutils literal"><span class="pre">nil</span></tt> 。``nil`` 为初始值的变量，不需要依附在列表内:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">y</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">list</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">))</span>
+<span class="p">(</span><span class="no">NIL</span> <span class="no">NIL</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p><tt class="docutils literal"><span class="pre">destructuring-bind</span></tt> 宏是通用化的 <tt class="docutils literal"><span class="pre">let</span></tt> 。与其接受单一变量，一个模式 (pattern) –– 一个或多个变量所构成的树 –– 并将它们与某个实际的树所对应的部份做绑定。举例来说：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">destructuring-bind</span> <span class="p">(</span><span class="nv">w</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">y</span><span class="p">)</span> <span class="o">.</span> <span class="nv">z</span><span class="p">)</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="p">(</span><span class="nv">b</span> <span class="nv">c</span><span class="p">)</span> <span class="nv">d</span> <span class="nv">e</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">list</span> <span class="nv">w</span> <span class="nv">x</span> <span class="nv">y</span> <span class="nv">z</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span> <span class="p">(</span><span class="nv">D</span> <span class="nv">E</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>若给定的树（第二个实参）没有与模式匹配（第一个参数）时，会产生错误。</p>
+</div>
+<div class="section" id="conditionals">
+<h2>5.3 条件 (Conditionals)<a class="headerlink" href="#conditionals" title="永久链接至标题">¶</a></h2>
+<p>最简单的条件式是 <tt class="docutils literal"><span class="pre">if</span></tt> ；其馀的条件式都是基於 <tt class="docutils literal"><span class="pre">if</span></tt> 所构造的。第二简单的条件式是 <tt class="docutils literal"><span class="pre">when</span></tt> ，它接受一个测试表达式（test expression）与一个代码主体。若测试表达式求值返回真时，则对主体求值。所以</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">when</span> <span class="p">(</span><span class="nb">oddp</span> <span class="nv">that</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;Hmm, that&#39;s odd.&quot;</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">+</span> <span class="nv">that</span> <span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>等同于</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">oddp</span> <span class="nv">that</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">progn</span>
+      <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;Hmm, that&#39;s odd.&quot;</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">+</span> <span class="nv">that</span> <span class="mi">1</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p><tt class="docutils literal"><span class="pre">when</span></tt> 的相反是 <tt class="docutils literal"><span class="pre">unless</span></tt> ；它接受相同的实参，但仅在测试表达式返回假时，才对主体求值。</p>
+<p>所有条件式的母体 (从正反两面看) 是 <tt class="docutils literal"><span class="pre">cond</span></tt> ， <tt class="docutils literal"><span class="pre">cond</span></tt> 有两个新的优点：允许多个条件判断，与每个条件相关的代码隐含在 <tt class="docutils literal"><span class="pre">progn</span></tt> 里。 <tt class="docutils literal"><span class="pre">cond</span></tt> 预期在我们需要使用嵌套 <tt class="docutils literal"><span class="pre">if</span></tt> 的情况下使用。 举例来说，这个伪 member 函数</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">our-member</span> <span class="p">(</span><span class="nv">obj</span> <span class="nv">lst</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">atom</span> <span class="nv">lst</span><span class="p">)</span>
+      <span class="no">nil</span>
+      <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">eql</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">lst</span><span class="p">)</span> <span class="nv">obj</span><span class="p">)</span>
+          <span class="nv">lst</span>
+          <span class="p">(</span><span class="nv">our-member</span> <span class="nv">obj</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">)))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>也可以定义成：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">our-member</span> <span class="p">(</span><span class="nv">obj</span> <span class="nv">lst</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">cond</span> <span class="p">((</span><span class="nb">atom</span> <span class="nv">lst</span><span class="p">)</span> <span class="no">nil</span><span class="p">)</span>
+        <span class="p">((</span><span class="nb">eql</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">lst</span><span class="p">)</span> <span class="nv">obj</span><span class="p">)</span> <span class="nv">lst</span><span class="p">)</span>
+        <span class="p">(</span><span class="no">t</span> <span class="p">(</span><span class="nv">our-member</span> <span class="nv">obj</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">)))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>事实上，Common Lisp 实现大概会把 <tt class="docutils literal"><span class="pre">cond</span></tt> 翻译成 <tt class="docutils literal"><span class="pre">if</span></tt> 的形式。</p>
+<p>总得来说呢， <tt class="docutils literal"><span class="pre">cond</span></tt> 接受零个或多个实参。每一个实参必须是一个具有条件式，伴随着零个或多个表达式的列表。当 <tt class="docutils literal"><span class="pre">cond</span></tt> 表达式被求值时，测试条件式依序求值，直到某个测试条件式返回真才停止。当返回真时，与其相关联的表达式会被依序求值，而最後一个返回的数值，会作为 <tt class="docutils literal"><span class="pre">cond</span></tt> 的返回值。如果符合的条件式之後没有表达式的话：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">cond</span> <span class="p">(</span><span class="mi">99</span><span class="p">))</span>
+<span class="mi">99</span>
+</pre></div>
+</td></tr></table></div>
+<p>则会返回条件式的值。</p>
+<p>由於 <tt class="docutils literal"><span class="pre">cond</span></tt> 子句的 <tt class="docutils literal"><span class="pre">t</span></tt> 条件永远成立，通常我们把它放在最後，作为缺省的条件式。如果没有子句符合时，则 <tt class="docutils literal"><span class="pre">cond</span></tt> 返回 <tt class="docutils literal"><span class="pre">nil</span></tt> ，但利用 <tt class="docutils literal"><span class="pre">nil</span></tt> 作为返回值是一种很差的风格 (这种问题可能发生的例子，请看 292 页)。译注: <strong>Appendix A, unexpected nil</strong> 小节。</p>
+<p>当你想要把一个数值与一系列的常量比较时，有 <tt class="docutils literal"><span class="pre">case</span></tt> 可以用。我们可以使用 <tt class="docutils literal"><span class="pre">case</span></tt> 来定义一个函数，返回每个月份中的天数：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">month-length</span> <span class="p">(</span><span class="nv">mon</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">case</span> <span class="nv">mon</span>
+    <span class="p">((</span><span class="nv">jan</span> <span class="nv">mar</span> <span class="nv">may</span> <span class="nv">jul</span> <span class="nv">aug</span> <span class="nv">oct</span> <span class="nv">dec</span><span class="p">)</span> <span class="mi">31</span><span class="p">)</span>
+    <span class="p">((</span><span class="nv">apr</span> <span class="nv">jun</span> <span class="nv">sept</span> <span class="nv">nov</span><span class="p">)</span> <span class="mi">30</span><span class="p">)</span>
+    <span class="p">(</span><span class="nv">feb</span> <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nv">leap-year</span><span class="p">)</span> <span class="mi">29</span> <span class="mi">28</span><span class="p">))</span>
+    <span class="p">(</span><span class="nv">otherwise</span> <span class="s">&quot;unknown month&quot;</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>一个 <tt class="docutils literal"><span class="pre">case</span></tt> 表达式由一个实参开始，此实参会被拿来与每个子句的键值做比较。接着是零个或多个子句，每个子句由一个或一串键值开始，跟随着零个或多个表达式。键值被视为常量；它们不会被求值。第一个参数的值被拿来与子句中的键值做比较 (使用 <tt class="docutils literal"><span class="pre">eql</span></tt> )。如果匹配时，子句剩馀的表达式会被求值，并将最後一个求值作为 <tt class="docutils literal"><span class="pre">case</span></tt> 的返回值。</p>
+<p>缺省子句的键值可以是 <tt class="docutils literal"><span class="pre">t</span></tt> 或 <tt class="docutils literal"><span class="pre">otherwise</span></tt> 。如果没有子句符合时，或是子句只包含键值时，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">case</span> <span class="mi">99</span> <span class="p">(</span><span class="mi">99</span><span class="p">))</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>则 <tt class="docutils literal"><span class="pre">case</span></tt> 返回 <tt class="docutils literal"><span class="pre">nil</span></tt> 。</p>
+<p><tt class="docutils literal"><span class="pre">typecase</span></tt> 宏与 <tt class="docutils literal"><span class="pre">case</span></tt> 相似，除了每个子句中的键值应为类型修饰符 (type specifiers)，以及第一个实参与键值比较的函数使用 <tt class="docutils literal"><span class="pre">typep</span></tt> 而不是 <tt class="docutils literal"><span class="pre">eql</span></tt> (一个 <tt class="docutils literal"><span class="pre">typecase</span></tt> 的例子在 107 页)。 <strong>译注: 6.5 小节。</strong></p>
+</div>
+<div class="section" id="iteration">
+<h2>5.4 迭代 (Iteration)<a class="headerlink" href="#iteration" title="永久链接至标题">¶</a></h2>
+<p>最基本的迭代操作符是 <tt class="docutils literal"><span class="pre">do</span></tt> ，在 2.13 小节介绍过。由於 <tt class="docutils literal"><span class="pre">do</span></tt> 包含了隐式的 <tt class="docutils literal"><span class="pre">block</span></tt> 及 <tt class="docutils literal"><span class="pre">tagbody</span></tt> ，我们现在知道是可以在 <tt class="docutils literal"><span class="pre">do</span></tt> 主体内使用 <tt class="docutils literal"><span class="pre">return</span></tt> 、 <tt class="docutils literal"><span class="pre">return-from</span></tt> 以及 <tt class="docutils literal"><span class="pre">go</span></tt> 。</p>
+<p>2.13 节提到 <tt class="docutils literal"><span class="pre">do</span></tt> 的第一个参数必须是说明变量规格的列表，列表可以是如下形式：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">variable</span>  <span class="nv">initial</span>  <span class="nv">update</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p><tt class="docutils literal"><span class="pre">initial</span></tt> 与 <tt class="docutils literal"><span class="pre">update</span></tt> 形式是选择性的。若 <tt class="docutils literal"><span class="pre">update</span></tt> 形式忽略时，每次迭代时不会更新变量。若 <tt class="docutils literal"><span class="pre">initial</span></tt> 形式也忽略时，变量会使用 <tt class="docutils literal"><span class="pre">nil</span></tt> 来初始化。</p>
+<p>在 23 页的例子中（译注: 2.13 节），</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">show-squares</span> <span class="p">(</span><span class="nv">start</span> <span class="nv">end</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">do</span> <span class="p">((</span><span class="nv">i</span> <span class="nv">start</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">i</span> <span class="mi">1</span><span class="p">)))</span>
+      <span class="p">((</span><span class="nb">&gt;</span> <span class="nv">i</span> <span class="nv">end</span><span class="p">)</span> <span class="ss">&#39;done</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;~A ~A~%&quot;</span> <span class="nv">i</span> <span class="p">(</span><span class="nb">*</span> <span class="nv">i</span> <span class="nv">i</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p><tt class="docutils literal"><span class="pre">update</span></tt> 形式引用到由 <tt class="docutils literal"><span class="pre">do</span></tt> 所创造的变量。一般都是这么用。如果一个 <tt class="docutils literal"><span class="pre">do</span></tt> 的 <tt class="docutils literal"><span class="pre">update</span></tt> 形式，没有至少引用到一个 <tt class="docutils literal"><span class="pre">do</span></tt> 创建的变量时，反而很奇怪。</p>
+<p>当同时更新超过一个变量时，问题来了，如果一个 <tt class="docutils literal"><span class="pre">update</span></tt> 形式，引用到一个拥有自己的 <tt class="docutils literal"><span class="pre">update</span></tt> 形式的变量时，它会被更新呢？或是获得前一次迭代的值？使用 <tt class="docutils literal"><span class="pre">do</span></tt> 的话，它获得後者的值：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">x</span> <span class="ss">&#39;a</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">do</span> <span class="p">((</span><span class="nv">x</span> <span class="mi">1</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="mi">1</span><span class="p">))</span>
+         <span class="p">(</span><span class="nv">y</span> <span class="nv">x</span> <span class="nv">x</span><span class="p">))</span>
+        <span class="p">((</span><span class="nb">&gt;</span> <span class="nv">x</span> <span class="mi">5</span><span class="p">))</span>
+      <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;(~A ~A)  &quot;</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">)))</span>
+<span class="p">(</span><span class="mi">1</span> <span class="nv">A</span><span class="p">)</span>  <span class="p">(</span><span class="mi">2</span> <span class="mi">1</span><span class="p">)</span>  <span class="p">(</span><span class="mi">3</span> <span class="mi">2</span><span class="p">)</span>  <span class="p">(</span><span class="mi">4</span> <span class="mi">3</span><span class="p">)</span>  <span class="p">(</span><span class="mi">5</span> <span class="mi">4</span><span class="p">)</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>每一次迭代时， <tt class="docutils literal"><span class="pre">x</span></tt> 获得先前的值，加上一； <tt class="docutils literal"><span class="pre">y</span></tt> 也获得 <tt class="docutils literal"><span class="pre">x</span></tt> 的前一次数值。</p>
+<p>但也有一个 <tt class="docutils literal"><span class="pre">do*</span></tt> ，它有着和 <tt class="docutils literal"><span class="pre">let</span></tt> 与 <tt class="docutils literal"><span class="pre">let*</span></tt> 一样的关系。任何 <tt class="docutils literal"><span class="pre">initial</span></tt> 或 <tt class="docutils literal"><span class="pre">update</span></tt> 形式可以参照到前一个子句的变量，并会获得当下的值：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">do*</span> <span class="p">((</span><span class="nv">x</span> <span class="mi">1</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="mi">1</span><span class="p">))</span>
+      <span class="p">(</span><span class="nv">y</span> <span class="nv">x</span> <span class="nv">x</span><span class="p">))</span>
+     <span class="p">((</span><span class="nb">&gt;</span> <span class="nv">x</span> <span class="mi">5</span><span class="p">))</span>
+  <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;(~A ~A) &quot;</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">))</span>
+<span class="p">(</span><span class="mi">1</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="mi">2</span> <span class="mi">2</span><span class="p">)</span> <span class="p">(</span><span class="mi">3</span> <span class="mi">3</span><span class="p">)</span> <span class="p">(</span><span class="mi">4</span> <span class="mi">4</span><span class="p">)</span> <span class="p">(</span><span class="mi">5</span> <span class="mi">5</span><span class="p">)</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>除了 <tt class="docutils literal"><span class="pre">do</span></tt> 与 <tt class="docutils literal"><span class="pre">do*</span></tt> 之外，也有几个特别用途的迭代操作符。要迭代一个列表的元素，我们可以使用 <tt class="docutils literal"><span class="pre">dolist</span></tt> :</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">dolist</span> <span class="p">(</span><span class="nv">x</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span> <span class="nv">d</span><span class="p">)</span> <span class="ss">&#39;done</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;~A &quot;</span> <span class="nv">x</span><span class="p">))</span>
+<span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span> <span class="nv">D</span>
+<span class="nv">DONE</span>
+</pre></div>
+</td></tr></table></div>
+<p>当迭代结束时，初始列表内的第三个元素 (译注: <tt class="docutils literal"><span class="pre">done</span></tt> ) ，会被求值并作为 <tt class="docutils literal"><span class="pre">dolist</span></tt> 的返回值。缺省是 <tt class="docutils literal"><span class="pre">nil</span></tt> 。</p>
+<p>有着同样的精神的是 <tt class="docutils literal"><span class="pre">dotimes</span></tt> ，给定某个 <tt class="docutils literal"><span class="pre">n</span></tt> ，将会从整数 <tt class="docutils literal"><span class="pre">0</span></tt> ，迭代至 <tt class="docutils literal"><span class="pre">n-1</span></tt> :</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">dotimes</span> <span class="p">(</span><span class="nv">x</span> <span class="mi">5</span> <span class="nv">x</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;~A &quot;</span> <span class="nv">x</span><span class="p">))</span>
+<span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span>
+<span class="mi">5</span>
+</pre></div>
+</td></tr></table></div>
+<p>使用 <tt class="docutils literal"><span class="pre">dolist</span></tt> ，初始列表内的第三个元素是选择性的，缺省是 <tt class="docutils literal"><span class="pre">nil</span></tt> 。注意可以引用到迭代里的变量。</p>
+<div class="admonition note">
+<p class="first admonition-title">注解</p>
+<p>do 的重点 (THE POINT OF do)</p>
+<p>在 “The Evolution of Lisp” 里，Steele 与 Garbriel 陈述了 do 的重点，
+表达的实在太好了，值得整个在这里引用过来：</p>
+<p>撇开争论语法不谈，有件事要说明的是，在任何一个编程语言中，一个循环若一次只能更新一个变量是毫无用处的。
+几乎在任何情况下，会有一个变量用来产生下个值，而另一个变量用来累积结果。如果循环语法只能产生变量，
+那么累积结果就得藉由赋值语句来“手动”实现…或有其他的副作用。具有多变量的 do 循环，体现了产生与累积的本质对称性，允许可以无副作用地表达迭代过程：</p>
+<div class="highlight-cl"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">factorial</span> <span class="p">(</span><span class="nv">n</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">do</span> <span class="p">((</span><span class="nv">j</span> <span class="nv">n</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">j</span> <span class="mi">1</span><span class="p">))</span>
+       <span class="p">(</span><span class="nv">f</span> <span class="mi">1</span> <span class="p">(</span><span class="nb">*</span> <span class="nv">j</span> <span class="nv">f</span><span class="p">)))</span>
+    <span class="p">((</span><span class="nb">=</span> <span class="nv">j</span> <span class="mi">0</span><span class="p">)</span> <span class="nv">f</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p class="last">当然在 step 形式里实现所有的实际工作，一个没有主体的 do 循环形式是较不寻常的。</p>
+</div>
+<p>函数 <tt class="docutils literal"><span class="pre">mapc</span></tt> 和 <tt class="docutils literal"><span class="pre">mapcar</span></tt> 很像，但不会 <tt class="docutils literal"><span class="pre">cons</span></tt> 一个新列表作为返回值，所以使用的唯一理由是为了副作用。它们比 <tt class="docutils literal"><span class="pre">dolist</span></tt> 来得灵活，因为可以同时遍历多个列表：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">mapc</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">y</span><span class="p">)</span>
+          <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;~A ~A  &quot;</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">))</span>
+      <span class="o">&#39;</span><span class="p">(</span><span class="nv">hip</span> <span class="nv">flip</span> <span class="nv">slip</span><span class="p">)</span>
+      <span class="o">&#39;</span><span class="p">(</span><span class="nv">hop</span> <span class="nv">flop</span> <span class="nv">slop</span><span class="p">))</span>
+<span class="nv">HIP</span> <span class="nv">HOP</span>  <span class="nv">FLIP</span> <span class="nv">FLOP</span>  <span class="nv">SLIP</span> <span class="nv">SLOP</span>
+<span class="p">(</span><span class="nv">HIP</span> <span class="nv">FLIP</span> <span class="nv">SLIP</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>总是返回第二个参数。</p>
+</div>
+<div class="section" id="multiple-values">
+<h2>5.5 多值 (Multiple Values)<a class="headerlink" href="#multiple-values" title="永久链接至标题">¶</a></h2>
+<p>曾有人这么说，为了要强调函数式编程的重要性，每个 Lisp 表达式都返回一个值。现在事情不是这么简单了；在 Common Lisp 里，一个表达式可以返回零个或多个数值。最多可以返回几个值取决於各家实现，但至少可以返回 19 个值。</p>
+<p>多值允许一个函数返回多件事情的计算结果，而不用构造一个特定的结构。举例来说，内建的 <tt class="docutils literal"><span class="pre">get-decoded-time</span></tt> 返回 9 个数值来表示现在的时间：秒，分，时，日期，月，年，天，以及另外两个数值。</p>
+<p>多值也使得查询函数可以分辨出 <tt class="docutils literal"><span class="pre">nil</span></tt> 与查询失败的情况。这也是为什么 <tt class="docutils literal"><span class="pre">gethash</span></tt> 返回两个值。因为它使用第二个数值来指出成功还是失败，我们可以在哈希表里储存 <tt class="docutils literal"><span class="pre">nil</span></tt> ，就像我们可以储存别的数值那样。</p>
+<p><tt class="docutils literal"><span class="pre">values</span></tt> 函数返回多个数值。它一个不少地返回你作为数值所传入的实参：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">values</span> <span class="ss">&#39;a</span> <span class="no">nil</span> <span class="p">(</span><span class="nb">+</span> <span class="mi">2</span> <span class="mi">4</span><span class="p">))</span>
+<span class="nv">A</span>
+<span class="no">NIL</span>
+<span class="mi">6</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果一个 <tt class="docutils literal"><span class="pre">values</span></tt> 表达式，是函数主体最後求值的表达式，它所返回的数值变成函数的返回值。多值可以原封不地通过任何数量的返回来传递：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">((</span><span class="k">lambda</span> <span class="p">()</span> <span class="p">((</span><span class="k">lambda</span> <span class="p">()</span> <span class="p">(</span><span class="nb">values</span> <span class="mi">1</span> <span class="mi">2</span><span class="p">)))))</span>
+<span class="mi">1</span>
+<span class="mi">2</span>
+</pre></div>
+</td></tr></table></div>
+<p>然而若只预期一个返回值时，第一个之外的值会被舍弃：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">x</span> <span class="p">(</span><span class="nb">values</span> <span class="mi">1</span> <span class="mi">2</span><span class="p">)))</span>
+    <span class="nv">x</span><span class="p">)</span>
+<span class="mi">1</span>
+</pre></div>
+</td></tr></table></div>
+<p>通过不带实参使用 <tt class="docutils literal"><span class="pre">values</span></tt> ，是可能不返回值的。在这个情况下，预期一个返回值的话，会获得 <tt class="docutils literal"><span class="pre">nil</span></tt> :</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">values</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">x</span> <span class="p">(</span><span class="nb">values</span><span class="p">)))</span>
+    <span class="nv">x</span><span class="p">)</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>要接收多个数值，我们使用 <tt class="docutils literal"><span class="pre">multiple-value-bind</span></tt> :</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">multiple-value-bind</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">y</span> <span class="nv">z</span><span class="p">)</span> <span class="p">(</span><span class="nb">values</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">list</span> <span class="nv">x</span> <span class="nv">y</span> <span class="nv">z</span><span class="p">))</span>
+<span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">)</span>
+
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">multiple-value-bind</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">y</span> <span class="nv">z</span><span class="p">)</span> <span class="p">(</span><span class="nb">values</span> <span class="mi">1</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">list</span> <span class="nv">x</span> <span class="nv">y</span> <span class="nv">z</span><span class="p">))</span>
+<span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="no">NIL</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果变量的数量大於数值的数量，剩馀的变量会是 <tt class="docutils literal"><span class="pre">nil</span></tt> 。如果数值的数量大於变量的数量，多馀的值会被舍弃。所以只想印出时间我们可以这么写:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">multiple-value-bind</span> <span class="p">(</span><span class="nv">s</span> <span class="nv">m</span> <span class="nv">h</span><span class="p">)</span> <span class="p">(</span><span class="nb">get-decoded-time</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;~A:~A:~A&quot;</span> <span class="nv">h</span> <span class="nv">m</span> <span class="nv">s</span><span class="p">))</span>
+<span class="s">&quot;4:32:13&quot;</span>
+</pre></div>
+</td></tr></table></div>
+<p>你可以藉由 <tt class="docutils literal"><span class="pre">multiple-value-call</span></tt> 将多值作为实参传给第二个函数：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">multiple-value-call</span> <span class="nf">#&#39;</span><span class="nb">+</span> <span class="p">(</span><span class="nb">values</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">))</span>
+<span class="mi">6</span>
+</pre></div>
+</td></tr></table></div>
+<p>还有一个函数是 <tt class="docutils literal"><span class="pre">multiple-value-list</span></tt> :</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">multiple-value-list</span> <span class="p">(</span><span class="nb">values</span> <span class="ss">&#39;a</span> <span class="ss">&#39;b</span> <span class="ss">&#39;c</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>看起来像是使用 <tt class="docutils literal"><span class="pre">#'list</span></tt> 作为第一个参数的来调用 <tt class="docutils literal"><span class="pre">multiple-value-call</span></tt> 。</p>
+</div>
+<div class="section" id="aborts">
+<h2>5.6 中止 (Aborts)<a class="headerlink" href="#aborts" title="永久链接至标题">¶</a></h2>
+<p>你可以使用 <tt class="docutils literal"><span class="pre">return</span></tt> 在任何时候离开一个 <tt class="docutils literal"><span class="pre">block</span></tt> 。有时候我们想要做更极端的事，在数个函数调用里将控制权转移回来。要达成这件事，我们使用 <tt class="docutils literal"><span class="pre">catch</span></tt> 与 <tt class="docutils literal"><span class="pre">throw</span></tt> 。一个 <tt class="docutils literal"><span class="pre">catch</span></tt> 表达式接受一个标签（tag），标签可以是任何类型的对象，伴随着一个表达式主体：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">super</span> <span class="p">()</span>
+  <span class="p">(</span><span class="k">catch</span> <span class="ss">&#39;abort</span>
+    <span class="p">(</span><span class="nv">sub</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;We&#39;ll never see this.&quot;</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">sub</span> <span class="p">()</span>
+  <span class="p">(</span><span class="k">throw</span> <span class="ss">&#39;abort</span> <span class="mi">99</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>表达式依序求值，就像它们是在 <tt class="docutils literal"><span class="pre">progn</span></tt> 里一样。在这段代码里的任何地方，一个带有特定标签的 <tt class="docutils literal"><span class="pre">throw</span></tt> 会导致 <tt class="docutils literal"><span class="pre">catch</span></tt> 表达式直接返回：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">super</span><span class="p">)</span>
+<span class="mi">99</span>
+</pre></div>
+</td></tr></table></div>
+<p>一个带有给定标签的 <tt class="docutils literal"><span class="pre">throw</span></tt> ，为了要到达匹配标签的 <tt class="docutils literal"><span class="pre">catch</span></tt> ，会将控制权转移 (因此杀掉进程)给任何有标签的 <tt class="docutils literal"><span class="pre">catch</span></tt> 。如果没有一个 <tt class="docutils literal"><span class="pre">catch</span></tt> 符合欲匹配的标签时， <tt class="docutils literal"><span class="pre">throw</span></tt> 会产生一个错误。</p>
+<p>调用 <tt class="docutils literal"><span class="pre">error</span></tt> 同时中断了执行，本来会将控制权转移到调用树（calling tree）的更高点，取而代之的是，它将控制权转移给 Lisp 错误处理器（error handler）。通常会导致调用一个中断循环（break loop）。以下是一个假定的 Common Lisp 实现可能会发生的事情：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">progn</span>
+    <span class="p">(</span><span class="nb">error</span> <span class="s">&quot;Oops!&quot;</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;After the error.&quot;</span><span class="p">))</span>
+<span class="nv">Error:</span> <span class="nv">Oops!</span>
+       <span class="nv">Options:</span> <span class="ss">:abort,</span> <span class="ss">:backtrace</span>
+<span class="nv">&gt;&gt;</span>
+</pre></div>
+</td></tr></table></div>
+<p>译注：2 个 <tt class="docutils literal"><span class="pre">&gt;&gt;</span></tt> 显示进入中断循环了。</p>
+<p>关於错误与状态的更多讯息，参见 14.6 小节以及附录 A。</p>
+<p>有时候你想要防止代码被 <tt class="docutils literal"><span class="pre">throw</span></tt> 与 <tt class="docutils literal"><span class="pre">error</span></tt> 打断。藉由使用 <tt class="docutils literal"><span class="pre">unwind-protect</span></tt> ，可以确保像是前述的中断，不会让你的程序停在不一致的状态。一个 <tt class="docutils literal"><span class="pre">unwind-protect</span></tt> 接受任何数量的实参，并返回第一个实参的值。然而即便是第一个实参的求值被打断时，剩下的表达式仍会被求值：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">x</span> <span class="mi">1</span><span class="p">)</span>
+<span class="mi">1</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="k">catch</span> <span class="ss">&#39;abort</span>
+    <span class="p">(</span><span class="k">unwind-protect</span>
+      <span class="p">(</span><span class="k">throw</span> <span class="ss">&#39;abort</span> <span class="mi">99</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">setf</span> <span class="nv">x</span> <span class="mi">2</span><span class="p">)))</span>
+<span class="mi">99</span>
+<span class="nb">&gt;</span> <span class="nv">x</span>
+<span class="mi">2</span>
+</pre></div>
+</td></tr></table></div>
+<p>在这里，即便 <tt class="docutils literal"><span class="pre">throw</span></tt> 将控制权交回监测的 <tt class="docutils literal"><span class="pre">catch</span></tt> ， <tt class="docutils literal"><span class="pre">unwind-protect</span></tt> 确保控制权移交时，第二个表达式有被求值。无论何时，一个确切的动作要伴随着某种清理或重置时， <tt class="docutils literal"><span class="pre">unwind-protect</span></tt> 可能会派上用场。在 121 页提到了一个例子。</p>
+</div>
+<div class="section" id="example-date-arithmetic">
+<h2>5.7 示例：日期运算 (Example: Date Arithmetic)<a class="headerlink" href="#example-date-arithmetic" title="永久链接至标题">¶</a></h2>
+<p>在某些应用里，能够做日期的加减是很有用的 –– 举例来说，能够算出从 1997 年 12 月 17 日，六十天之後是 1998 年 2 月 15 日。在这个小节里，我们会编写一个实用的工具来做日期运算。我们会将日期转成整数，起始点设置在 2000 年 1 月 1 日。我们会使用内置的 <tt class="docutils literal"><span class="pre">+</span></tt> 与 <tt class="docutils literal"><span class="pre">-</span></tt> 函数来处理这些数字，而当我们转换完毕时，再将结果转回日期。</p>
+<p>要将日期转成数字，我们需要从日期的单位中，算出总天数有多少。举例来说，2004 年 11 月 13 日的天数总和，是从起始点至 2004 年有多少天，加上从 2004 年到 2004 年 11 月有多少天，再加上 13 天。</p>
+<p>有一个我们会需要的东西是，一张列出非润年每月份有多少天的表格。我们可以使用 Lisp 来推敲出这个表格的内容。我们从列出每月份的长度开始：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">mon</span> <span class="o">&#39;</span><span class="p">(</span><span class="mi">31</span> <span class="mi">28</span> <span class="mi">31</span> <span class="mi">30</span> <span class="mi">31</span> <span class="mi">30</span> <span class="mi">31</span> <span class="mi">31</span> <span class="mi">30</span> <span class="mi">31</span> <span class="mi">30</span> <span class="mi">31</span><span class="p">))</span>
+<span class="p">(</span><span class="mi">31</span> <span class="mi">28</span> <span class="mi">31</span> <span class="mi">30</span> <span class="mi">31</span> <span class="mi">30</span> <span class="mi">31</span> <span class="mi">31</span> <span class="mi">30</span> <span class="mi">31</span> <span class="mi">30</span> <span class="mi">31</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>我们可以通过应用 <tt class="docutils literal"><span class="pre">+</span></tt> 函数至这个列表来测试总长度：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">apply</span> <span class="nf">#&#39;</span><span class="nb">+</span> <span class="nv">mon</span><span class="p">)</span>
+<span class="mi">365</span>
+</pre></div>
+</td></tr></table></div>
+<p>现在如果我们反转这个列表并使用 <tt class="docutils literal"><span class="pre">maplist</span></tt> 来应用 <tt class="docutils literal"><span class="pre">+</span></tt> 函数至每下一个 <tt class="docutils literal"><span class="pre">cdr</span></tt> 上，我们可以获得从每个月份开始所累积的天数：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">nom</span> <span class="p">(</span><span class="nb">reverse</span> <span class="nv">mon</span><span class="p">))</span>
+<span class="p">(</span><span class="mi">31</span> <span class="mi">30</span> <span class="mi">31</span> <span class="mi">30</span> <span class="mi">31</span> <span class="mi">31</span> <span class="mi">30</span> <span class="mi">31</span> <span class="mi">30</span> <span class="mi">31</span> <span class="mi">28</span> <span class="mi">31</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">sums</span> <span class="p">(</span><span class="nb">maplist</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+                          <span class="p">(</span><span class="nb">apply</span> <span class="nf">#&#39;</span><span class="nb">+</span> <span class="nv">x</span><span class="p">))</span>
+                      <span class="nv">nom</span><span class="p">))</span>
+<span class="p">(</span><span class="mi">365</span> <span class="mi">334</span> <span class="mi">304</span> <span class="mi">273</span> <span class="mi">243</span> <span class="mi">212</span> <span class="mi">181</span> <span class="mi">151</span> <span class="mi">120</span> <span class="mi">90</span> <span class="mi">59</span> <span class="mi">31</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>这些数字体现了从二月一号开始已经过了 31 天，从三月一号开始已经过了 59 天……等等。</p>
+<p>我们刚刚建立的这个列表，可以转换成一个向量，见图 5.1，转换日期至整数的代码。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defconstant</span> <span class="nv">month</span>
+  <span class="o">#(</span><span class="mi">0</span> <span class="mi">31</span> <span class="mi">59</span> <span class="mi">90</span> <span class="mi">120</span> <span class="mi">151</span> <span class="mi">181</span> <span class="mi">212</span> <span class="mi">243</span> <span class="mi">273</span> <span class="mi">304</span> <span class="mi">334</span> <span class="mi">365</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defconstant</span> <span class="nv">yzero</span> <span class="mi">2000</span><span class="p">)</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">leap?</span> <span class="p">(</span><span class="nv">y</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nb">zerop</span> <span class="p">(</span><span class="nb">mod</span> <span class="nv">y</span> <span class="mi">4</span><span class="p">))</span>
+       <span class="p">(</span><span class="nb">or</span> <span class="p">(</span><span class="nb">zerop</span> <span class="p">(</span><span class="nb">mod</span> <span class="nv">y</span> <span class="mi">400</span><span class="p">))</span>
+           <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="nb">zerop</span> <span class="p">(</span><span class="nb">mod</span> <span class="nv">y</span> <span class="mi">100</span><span class="p">))))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">date-&gt;num</span> <span class="p">(</span><span class="nv">d</span> <span class="nv">m</span> <span class="nv">y</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">d</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nv">month-num</span> <span class="nv">m</span> <span class="nv">y</span><span class="p">)</span> <span class="p">(</span><span class="nv">year-num</span> <span class="nv">y</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">month-num</span> <span class="p">(</span><span class="nv">m</span> <span class="nv">y</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nb">svref</span> <span class="nv">month</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">m</span> <span class="mi">1</span><span class="p">))</span>
+     <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nb">&gt;</span> <span class="nv">m</span> <span class="mi">2</span><span class="p">)</span> <span class="p">(</span><span class="nv">leap?</span> <span class="nv">y</span><span class="p">))</span> <span class="mi">1</span> <span class="mi">0</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">year-num</span> <span class="p">(</span><span class="nv">y</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">d</span> <span class="mi">0</span><span class="p">))</span>
+    <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">&gt;=</span> <span class="nv">y</span> <span class="nv">yzero</span><span class="p">)</span>
+        <span class="p">(</span><span class="nb">dotimes</span> <span class="p">(</span><span class="nv">i</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">y</span> <span class="nv">yzero</span><span class="p">)</span> <span class="nv">d</span><span class="p">)</span>
+          <span class="p">(</span><span class="nb">incf</span> <span class="nv">d</span> <span class="p">(</span><span class="nv">year-days</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">yzero</span> <span class="nv">i</span><span class="p">))))</span>
+        <span class="p">(</span><span class="nb">dotimes</span> <span class="p">(</span><span class="nv">i</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">yzero</span> <span class="nv">y</span><span class="p">)</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">d</span><span class="p">))</span>
+          <span class="p">(</span><span class="nb">incf</span> <span class="nv">d</span> <span class="p">(</span><span class="nv">year-days</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">y</span> <span class="nv">i</span><span class="p">)))))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">year-days</span> <span class="p">(</span><span class="nv">y</span><span class="p">)</span> <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nv">leap?</span> <span class="nv">y</span><span class="p">)</span> <span class="mi">366</span> <span class="mi">365</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 5.1 日期运算：转换日期至数字</strong></p>
+<p>典型 Lisp 程序的生命周期有四个阶段：先写好，然後读入，接着编译，最後执行。有件 Lisp 非常独特的事情之一是，在这四个阶段时， Lisp 一直都在那里。可以在你的程序编译 (参见 10.2 小节)或读入时 (参见 14.3 小节) 来调用 Lisp。我们推导出 <tt class="docutils literal"><span class="pre">month</span></tt> 的过程演示了，如何在撰写一个程序时使用 Lisp。</p>
+<p>效率通常只跟第四个阶段有关系，运行期（run-time）。在前三个阶段，你可以随意的使用列表拥有的威力与灵活性，而不需要担心效率。</p>
+<p>若你使用图 5.1 的代码来造一个时光机器（time machine），当你抵达时，人们大概会不同意你的日期。即使是相对近的现在，欧洲的日期也曾有过偏移，因为人们会获得更精准的每年有多长的概念。在说英语的国家，最後一次的不连续性出现在 1752 年，日期从 9 月 2 日跳到 9 月 14 日。</p>
+<p>每年有几天取决於该年是否是润年。如果该年可以被四整除，我们说该年是润年，除非该年可以被 100 整除，则该年非润年 –– 而要是它可以被 400 整除，则又是润年。所以 1904 年是润年，1900 年不是，而 1600 年是。</p>
+<p>要决定某个数是否可以被另个数整除，我们使用函数 <tt class="docutils literal"><span class="pre">mod</span></tt> ，返回相除後的馀数：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">mod</span> <span class="mi">23</span> <span class="mi">5</span><span class="p">)</span>
+<span class="mi">3</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">mod</span> <span class="mi">25</span> <span class="mi">5</span><span class="p">)</span>
+<span class="mi">0</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果第一个实参除以第二个实参的馀数为 0，则第一个实参是可以被第二个实参整除的。函数 <tt class="docutils literal"><span class="pre">leap?</span></tt> 使用了这个方法，来决定它的实参是否是一个润年：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">mapcar</span> <span class="nf">#&#39;</span><span class="nv">leap?</span> <span class="o">&#39;</span><span class="p">(</span><span class="mi">1904</span> <span class="mi">1900</span> <span class="mi">1600</span><span class="p">))</span>
+<span class="p">(</span><span class="no">T</span> <span class="no">NIL</span> <span class="no">T</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>我们用来转换日期至整数的函数是 <tt class="docutils literal"><span class="pre">date-&gt;num</span></tt> 。它返回日期中每个单位的天数总和。要找到从某月份开始的天数和，我们调用 <tt class="docutils literal"><span class="pre">month-num</span></tt> ，它在 <tt class="docutils literal"><span class="pre">month</span></tt> 中查询天数，如果是在润年的二月之後，则加一。</p>
+<p>要找到从某年开始的天数和， <tt class="docutils literal"><span class="pre">date-&gt;num</span></tt> 调用 <tt class="docutils literal"><span class="pre">year-num</span></tt> ，它返回某年一月一日相对於起始点（2000.01.01）所代表的天数。这个函数的工作方式是从传入的实参 <tt class="docutils literal"><span class="pre">y</span></tt> 年开始，朝着起始年（2000）往上或往下数。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">num-&gt;date</span> <span class="p">(</span><span class="nv">n</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">multiple-value-bind</span> <span class="p">(</span><span class="nv">y</span> <span class="nv">left</span><span class="p">)</span> <span class="p">(</span><span class="nv">num-year</span> <span class="nv">n</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">multiple-value-bind</span> <span class="p">(</span><span class="nv">m</span> <span class="nv">d</span><span class="p">)</span> <span class="p">(</span><span class="nv">num-month</span> <span class="nv">left</span> <span class="nv">y</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">values</span> <span class="nv">d</span> <span class="nv">m</span> <span class="nv">y</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">num-year</span> <span class="p">(</span><span class="nv">n</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">&lt;</span> <span class="nv">n</span> <span class="mi">0</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">do*</span> <span class="p">((</span><span class="nv">y</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">yzero</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">y</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="p">(</span><span class="nv">d</span> <span class="p">(</span><span class="nb">-</span> <span class="p">(</span><span class="nv">year-days</span> <span class="nv">y</span><span class="p">))</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">d</span> <span class="p">(</span><span class="nv">year-days</span> <span class="nv">y</span><span class="p">))))</span>
+           <span class="p">((</span><span class="nb">&lt;=</span> <span class="nv">d</span> <span class="nv">n</span><span class="p">)</span> <span class="p">(</span><span class="nb">values</span> <span class="nv">y</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">n</span> <span class="nv">d</span><span class="p">))))</span>
+      <span class="p">(</span><span class="nb">do*</span> <span class="p">((</span><span class="nv">y</span> <span class="nv">yzero</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">y</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="p">(</span><span class="nv">prev</span> <span class="mi">0</span> <span class="nv">d</span><span class="p">)</span>
+            <span class="p">(</span><span class="nv">d</span> <span class="p">(</span><span class="nv">year-days</span> <span class="nv">y</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">d</span> <span class="p">(</span><span class="nv">year-days</span> <span class="nv">y</span><span class="p">))))</span>
+           <span class="p">((</span><span class="nb">&gt;</span> <span class="nv">d</span> <span class="nv">n</span><span class="p">)</span> <span class="p">(</span><span class="nb">values</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">n</span> <span class="nv">prev</span><span class="p">))))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">num-month</span> <span class="p">(</span><span class="nv">n</span> <span class="nv">y</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nv">leap?</span> <span class="nv">y</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">cond</span> <span class="p">((</span><span class="nb">=</span> <span class="nv">n</span> <span class="mi">59</span><span class="p">)</span> <span class="p">(</span><span class="nb">values</span> <span class="mi">2</span> <span class="mi">29</span><span class="p">))</span>
+            <span class="p">((</span><span class="nb">&gt;</span> <span class="nv">n</span> <span class="mi">59</span><span class="p">)</span> <span class="p">(</span><span class="nv">nmon</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">n</span> <span class="mi">1</span><span class="p">)))</span>
+            <span class="p">(</span><span class="no">t</span>        <span class="p">(</span><span class="nv">nmon</span> <span class="nv">n</span><span class="p">)))</span>
+      <span class="p">(</span><span class="nv">nmon</span> <span class="nv">n</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">nmon</span> <span class="p">(</span><span class="nv">n</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">m</span> <span class="p">(</span><span class="nb">position</span> <span class="nv">n</span> <span class="nv">month</span> <span class="ss">:test</span> <span class="nf">#&#39;</span><span class="nb">&lt;</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nb">values</span> <span class="nv">m</span> <span class="p">(</span><span class="nb">+</span> <span class="mi">1</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">n</span> <span class="p">(</span><span class="nb">svref</span> <span class="nv">month</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">m</span> <span class="mi">1</span><span class="p">)))))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">date+</span> <span class="p">(</span><span class="nv">d</span> <span class="nv">m</span> <span class="nv">y</span> <span class="nv">n</span><span class="p">)</span>
+  <span class="p">(</span><span class="nv">num-&gt;date</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nv">date-&gt;num</span> <span class="nv">d</span> <span class="nv">m</span> <span class="nv">y</span><span class="p">)</span> <span class="nv">n</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 5.2 日期运算：转换数字至日期</strong></p>
+<p>图 5.2 展示了代码的下半部份。函数 <tt class="docutils literal"><span class="pre">num-&gt;date</span></tt> 将整数转换回日期。它调用了 <tt class="docutils literal"><span class="pre">num-year</span></tt> 函数，以日期的格式返回年，以及剩馀的天数。再将剩馀的天数传给 <tt class="docutils literal"><span class="pre">num-month</span></tt> ，分解出月与日。</p>
+<p>和 <tt class="docutils literal"><span class="pre">year-num</span></tt> 相同， <tt class="docutils literal"><span class="pre">num-year</span></tt> 从起始年往上或下数，一次数一年。并持续累积天数，直到它获得一个绝对值大於或等於 <tt class="docutils literal"><span class="pre">n</span></tt>  的数。如果它往下数，那麽它可以返回当前迭代中的数值。不然它会超过年份，然後必须返回前次迭代的数值。这也是为什麽要使用 <tt class="docutils literal"><span class="pre">prev</span></tt> ， <tt class="docutils literal"><span class="pre">prev</span></tt> 在每次迭代时会存入 <tt class="docutils literal"><span class="pre">days</span></tt> 前次迭代的数值。</p>
+<p>函数 <tt class="docutils literal"><span class="pre">num-month</span></tt> 以及它的子程序（subroutine） <tt class="docutils literal"><span class="pre">nmon</span></tt> 的行为像是相反地 <tt class="docutils literal"><span class="pre">month-num</span></tt> 。他们从常数向量 <tt class="docutils literal"><span class="pre">month</span></tt> 的数值到位置，然而 <tt class="docutils literal"><span class="pre">month-num</span></tt> 从位置到数值。</p>
+<p>图 5.2 的前两个函数可以合而为一。与其返回数值给另一个函数， <tt class="docutils literal"><span class="pre">num-year</span></tt> 可以直接调用 <tt class="docutils literal"><span class="pre">num-month</span></tt> 。现在分成两部分的代码，比较容易做交互测试，但是现在它可以工作了，下一步或许是把它合而为一。</p>
+<p>有了 <tt class="docutils literal"><span class="pre">date-&gt;num</span></tt> 与 <tt class="docutils literal"><span class="pre">num-&gt;date</span></tt> ，日期运算是很简单的。我们在 <tt class="docutils literal"><span class="pre">date+</span></tt> 里使用它们，可以从特定的日期做加减。如果我们想透过 <tt class="docutils literal"><span class="pre">date+</span></tt> 来知道 1997 年 12 月 17 日六十天之後的日期:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">multiple-value-list</span> <span class="p">(</span><span class="nv">date+</span> <span class="mi">17</span> <span class="mi">12</span> <span class="mi">1997</span> <span class="mi">60</span><span class="p">))</span>
+<span class="p">(</span><span class="mi">15</span> <span class="mi">2</span> <span class="mi">1988</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>我们得到，1988 年 2 月 15 日。</p>
+</div>
+<div class="section" id="chapter-5-summary">
+<h2>Chapter 5 总结 (Summary)<a class="headerlink" href="#chapter-5-summary" title="永久链接至标题">¶</a></h2>
+<ol class="arabic simple">
+<li>Common Lisp 有三个基本的区块建构子： <tt class="docutils literal"><span class="pre">progn</span></tt> ；允许返回的 <tt class="docutils literal"><span class="pre">block</span></tt> ；以及允许 <tt class="docutils literal"><span class="pre">goto</span></tt> 的 <tt class="docutils literal"><span class="pre">tagbody</span></tt> 。很多内建的操作符隐含在区块里。</li>
+<li>进入一个新的词法语境，概念上等同於函数调用。</li>
+<li>Common Lisp 提供了适合不同情况的条件式。每个都可以使用 <tt class="docutils literal"><span class="pre">if</span></tt> 来定义。</li>
+<li>有数个相似迭代操作符的变种。</li>
+<li>表达式可以返回多个数值。</li>
+<li>计算过程可以被中断以及保护，保护可使其免於中断所造成的後果。</li>
+</ol>
+</div>
+<div class="section" id="chapter-5-exercises">
+<h2>Chapter 5 练习 (Exercises)<a class="headerlink" href="#chapter-5-exercises" title="永久链接至标题">¶</a></h2>
+<ol class="arabic simple">
+<li>将下列表达式翻译成没有使用 <tt class="docutils literal"><span class="pre">let</span></tt> 与 <tt class="docutils literal"><span class="pre">let*</span></tt> ，并使同样的表达式不被求值 2 次。</li>
+</ol>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">a</span><span class="p">)</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">x</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">y</span><span class="p">)))</span>
+      <span class="p">(</span><span class="nb">cons</span> <span class="nv">x</span> <span class="nv">x</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">b</span><span class="p">)</span> <span class="p">(</span><span class="k">let*</span> <span class="p">((</span><span class="nv">w</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">x</span><span class="p">))</span>
+           <span class="p">(</span><span class="nv">y</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">w</span> <span class="nv">z</span><span class="p">)))</span>
+      <span class="p">(</span><span class="nb">cons</span> <span class="nv">w</span> <span class="nv">y</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<ol class="arabic simple" start="2">
+<li>使用 <tt class="docutils literal"><span class="pre">cond</span></tt> 重写 29 页的 <tt class="docutils literal"><span class="pre">mystery</span></tt> 函数。（译注: 第二章的练习第 5 题的 (b) 部分)</li>
+<li>定义一个返回其实参平方的函数，而当实参是一个正整数且小於等於 5 时，不要计算其平方。</li>
+<li>使用 <tt class="docutils literal"><span class="pre">case</span></tt> 与 <tt class="docutils literal"><span class="pre">svref</span></tt> 重写 <tt class="docutils literal"><span class="pre">month-num</span></tt> (图 5.1)。</li>
+<li>定义一个迭代与递归版本的函数，接受一个对象 x 与向量 v ，并返回一个列表，包含了向量 v 当中，所有直接在 <tt class="docutils literal"><span class="pre">x</span></tt> 之前的对象：</li>
+</ol>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">precedes</span> <span class="sc">#\a</span> <span class="s">&quot;abracadabra&quot;</span><span class="p">)</span>
+<span class="p">(</span><span class="sc">#\c</span> <span class="sc">#\d</span> <span class="sc">#\r</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<ol class="arabic simple" start="6">
+<li>定义一个迭代与递归版本的函数，接受一个对象与列表，并返回一个新的列表，在原本列表的对象之间加上传入的对象：</li>
+</ol>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">intersperse</span> <span class="ss">&#39;-</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span> <span class="nv">d</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nb">-</span> <span class="nv">B</span> <span class="nb">-</span> <span class="nv">C</span> <span class="nb">-</span> <span class="nv">D</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<ol class="arabic simple" start="7">
+<li>定义一个接受一系列数字的函数，并在若且唯若每一对（pair）数字的差为一时，返回真，使用</li>
+</ol>
+<div class="highlight-cl"><pre>(a) 递归
+(b) do
+(c) mapc 与 return</pre>
+</div>
+<ol class="arabic simple" start="8">
+<li>定义一个单递归函数，返回两个值，分别是向量的最大与最小值。</li>
+<li>图 3.12 的程序在找到一个完整的路径时，仍持续遍历伫列。在搜索范围大时，这可能会产生问题。</li>
+</ol>
+<div class="highlight-cl"><pre>(a) 使用 catch 与 throw 来变更程序，使其找到第一个完整路径时，直接返回它。
+(b) 重写一个做到同样事情的程序，但不使用 catch 与 throw。</pre>
+</div>
+</div>
+</div>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'acl-chinese';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+                  </div></div>
+              </article><div class="clearer"></div>
+          </div><div class="span3">
+                <div class="sphinxsidebar">
+      <div id="sidenav" class="box sphinxsidebarwrapper">
+
+
+<h4><a href="../index.html">內容目录</a></h4>
+  <ul>
+<li><a class="reference internal" href="#">第五章：控制流</a><ul>
+<li><a class="reference internal" href="#blocks">5.1 区块 (Blocks)</a></li>
+<li><a class="reference internal" href="#context">5.2 语境 (Context)</a></li>
+<li><a class="reference internal" href="#conditionals">5.3 条件 (Conditionals)</a></li>
+<li><a class="reference internal" href="#iteration">5.4 迭代 (Iteration)</a></li>
+<li><a class="reference internal" href="#multiple-values">5.5 多值 (Multiple Values)</a></li>
+<li><a class="reference internal" href="#aborts">5.6 中止 (Aborts)</a></li>
+<li><a class="reference internal" href="#example-date-arithmetic">5.7 示例：日期运算 (Example: Date Arithmetic)</a></li>
+<li><a class="reference internal" href="#chapter-5-summary">Chapter 5 总结 (Summary)</a></li>
+<li><a class="reference internal" href="#chapter-5-exercises">Chapter 5 练习 (Exercises)</a></li>
+</ul>
+</li>
+</ul>
+
+  
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      
+      
+        <li><a href="https://github.com/acl-translation/acl-chinese/blob/redirect-to-new-domain/zhCN/ch5-cn.rst">
+          Show on GitHub</a></li>
+        <li><a href="https://github.com/acl-translation/acl-chinese/edit/redirect-to-new-domain/zhCN/ch5-cn.rst">
+          Edit on GitHub</a></li>
+      
+    </ul>
+  
+</div>
+    </div>
+              </div></div>
+      </div>
+<footer class="container-fluid">
+        <hr />&copy; 版权所有 2012, Juanito Fatas Huang.最后更新日期是 Apr 22, 2013.使用 <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.</footer>
+ <!-- End original user content -->
+
+
+<br>
+<br>
+<br>
+
+
+<style type="text/css">
+  .rtd-badge {
+    position: fixed;
+    display: block;
+    bottom: 5px;
+    height: 40px;
+    text-indent: -9999em;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -moz-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  }
+  #version_menu {
+    position: fixed;
+    display: none;
+    bottom: 11px;
+    right: 166px;
+    list-style-type: none;
+    margin: 0;
+  }
+  .footer_popout:hover #version_menu {
+    display: block;
+  }
+  #version_menu li {
+    display: block;
+    float: right;
+  }
+  #version_menu li a {
+    display: block;
+    padding: 6px 10px 4px 10px;
+    margin: 7px 7px 0 0;
+    font-weight: bold;
+    font-size: 14px;
+    height: 20px;
+    line-height: 17px;
+    text-decoration: none;
+    color: #fff;
+    background: #8ca1af url(../images/gradient-light.png) bottom left repeat-x;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 1px #465158;
+    -moz-box-shadow: 0 1px 1px #465158;
+    -webkit-box-shadow: 0 1px 1px #465158;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+  }
+  #version_menu li a:hover {
+    text-decoration: none;
+    background-color: #697983;
+    box-shadow: 0 1px 0px #465158;
+    -moz-box-shadow: 0 1px 0px #465158;
+    -webkit-box-shadow: 0 1px 0px #465158;
+  }
+  .rtd-badge.rtd {
+    background: #3b4449 url(//media.readthedocs.org//images/badge-rtd.png) scroll 0px -46px no-repeat;
+    border: 1px solid #282E32;
+    width: 41px;
+    right: 5px;
+  }
+  .footer_popout:hover .rtd-badge.rtd {
+    background-position: top left;
+    width: 160px;
+  }
+  .rtd-badge.revsys { background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline-sponsored {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys-sm.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 205px;
+    right: 173px;
+  }
+
+</style>
+<div class="rtd_doc_footer">
+  <div class="footer_popout">
+    <a href="//readthedocs.org/projects/ansi-common-lisp/?fromdocs=ansi-common-lisp" class="rtd-badge rtd"> Brought to you by Read the Docs</a>
+    <ul id="version_menu">
+      
+        <li><a href="/en/latest/">latest</a></li>
+      
+    </ul>
+  </div>
+</div>
+<!-- RTD Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-17997319-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+<!-- User Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-26995626-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+</body>
+</html>

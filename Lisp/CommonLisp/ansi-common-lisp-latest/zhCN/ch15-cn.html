@@ -1,0 +1,657 @@
+<!DOCTYPE HTML>
+
+  <html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+<title>第十五章：示例：推论 &mdash; ANSI Common Lisp 中文版</title>
+    
+<!-- RTD <head> -->
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/underscore.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/doctools.js"></script>
+
+<script type="text/javascript">
+  // This is included here for Javascript that doesn't have access to the templates.
+  var doc_version = "latest";
+  var doc_slug = "ansi-common-lisp";
+</script>
+
+<script type="text/javascript" src="//media.readthedocs.org/javascript/rtd.js"></script>
+<!-- end RTD <head> -->
+
+    <link rel="stylesheet" href="../_static/han.min.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/rosefinch.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/main.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:       '../',
+        VERSION:        '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX:    '.html',
+        HAS_SOURCE:     true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/han.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  <script type="text/javascript" src=../_static/jquery.dimensions.js"></script>
+  <script type="text/javascript" src="../_static/main.js"></script><link rel="top" title="ANSI Common Lisp 中文版" href="../index.html" /></head>
+
+  <body><div class="navbar navbar-static-top navbar-inverse">
+        <div id="top-bar" class="navbar-inner">
+
+          <h1 id="logo">ANSI Common Lisp 中文版<a href="../index.html" class="brand">ANSI Common Lisp 中文版</a></h1>
+          <ul class="nav"></ul><a href="https://github.com/acl-translation/acl-chinese"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
+        </div>
+      </div><div class="content container-fluid">
+        <div class="row-fluid"><div class="document span9"><article >
+                <div class="documentwrapper"><div class="body"><div class="section" id="id1">
+<h1>第十五章：示例：推论<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h1>
+<p>接下来三章提供了大量的 Lisp 程序例子。选择这些例子来说明那些较长的程序所采取的形式，和 Lisp 所擅长解决的问题类型。</p>
+<p>在这一章中我们将要写一个基于一组 <tt class="docutils literal"><span class="pre">if-then</span></tt> 规则的推论程序。这是一个经典的例子 —— 不仅在于其经常出现在教科书上，还因为它反映了 Lisp 作为一个“符号计算”语言的本意。这个例子散发着很多早期 Lisp 程序的气息。</p>
+<div class="section" id="the-aim">
+<h2>15.1 目标 (The Aim)<a class="headerlink" href="#the-aim" title="永久链接至标题">¶</a></h2>
+<p>在这个程序中，我们将用一种熟悉的形式来表示信息：包含单个判断式，以及跟在之后的零个或多个参数所组成的列表。要表示 Donald 是 Nancy 的家长，我们可以这样写：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">parent</span> <span class="nv">donald</span> <span class="nv">nancy</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>事实上，我们的程序是要表示一些从已有的事实作出推断的规则。我们可以这样来表示规则：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">&lt;-</span> <span class="nv">head</span> <span class="nv">body</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>其中， <tt class="docutils literal"><span class="pre">head</span></tt> 是 <strong>那么...部分</strong> (then-part)， <tt class="docutils literal"><span class="pre">body</span></tt> 是 <strong>如果...部分</strong> (if-part)。在 <tt class="docutils literal"><span class="pre">head</span></tt> 和 <tt class="docutils literal"><span class="pre">body</span></tt> 中我们使用以问号为前缀的符号来表示变量。所以下面这个规则：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">&lt;-</span> <span class="p">(</span><span class="nv">child</span> <span class="nv">?x</span> <span class="nv">?y</span><span class="p">)</span> <span class="p">(</span><span class="nv">parent</span> <span class="nv">?y</span> <span class="nv">?x</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>表示：如果 y 是 x 的家长，那么 x 是 y 的孩子；更恰当地说，我们可以通过证明 <tt class="docutils literal"><span class="pre">(parent</span> <span class="pre">y</span> <span class="pre">x)</span></tt> 来证明 <tt class="docutils literal"><span class="pre">(child</span> <span class="pre">x</span> <span class="pre">y)</span></tt> 的所表示的事实。</p>
+<p>可以把规则中的 <em>body</em> 部分(if-part) 写成一个复杂的表达式，其中包含 <tt class="docutils literal"><span class="pre">and</span></tt> , <tt class="docutils literal"><span class="pre">or</span></tt> 和 <tt class="docutils literal"><span class="pre">not</span></tt> 等逻辑操作。所以当我们想要表达 “如果 x 是 y 的家长，并且 x 是男性，那么 x 是 y 的父亲” 这样的规则，我们可以写：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">&lt;-</span> <span class="p">(</span><span class="nv">father</span> <span class="nv">?x</span> <span class="nv">?y</span><span class="p">)</span> <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nv">parent</span> <span class="nv">?x</span> <span class="nv">?y</span><span class="p">)</span> <span class="p">(</span><span class="nv">male</span> <span class="nv">?x</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>一些规则可能依赖另一些规则所产生的事实。比如，我们写的第一个规则是为了证明 <tt class="docutils literal"><span class="pre">(child</span> <span class="pre">x</span> <span class="pre">y)</span></tt> 的事实。如果我们定义如下规则：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">&lt;-</span> <span class="p">(</span><span class="nv">daughter</span> <span class="nv">?x</span> <span class="nv">?y</span><span class="p">)</span> <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nv">child</span> <span class="nv">?x</span> <span class="nv">?y</span><span class="p">)</span> <span class="p">(</span><span class="nv">female</span> <span class="nv">?x</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>然后使用它来证明 <tt class="docutils literal"><span class="pre">(daughter</span> <span class="pre">x</span> <span class="pre">y)</span></tt> 可能导致程序使用第一个规则去证明 <tt class="docutils literal"><span class="pre">(child</span> <span class="pre">x</span> <span class="pre">y)</span></tt> 。</p>
+<p>表达式的证明可以回溯任意数量的规则，只要它最终结束于给出的已知事实。这个过程有时候被称为反向链接 (backward-chaining)。之所以说 <em>反向</em> (backward) 是因为这一类推论先考虑 <em>head</em> 部分，这是为了在继续证明 <em>body</em> 部分之前检查规则是否有效。*链接* (chaining) 来源于规则之间的依赖关系，从我们想要证明的内容到我们的已知条件组成一个链接 (尽管事实上它更像一棵树)。 <a class="reference external" href="http://ansi-common-lisp.readthedocs.org/en/latest/zhCN/notes-cn.html#notes-248">λ</a></p>
+</div>
+<div class="section" id="matching">
+<h2>15.2 匹配 (Matching)<a class="headerlink" href="#matching" title="永久链接至标题">¶</a></h2>
+<p>我们需要有一个函数来做模式匹配以完成我们的反向链接 (back-chaining) 程序，这个函数能够比较两个包含变量的列表，它会检查在给变量赋值后是否可以使两个列表相等。举例，如果 <tt class="docutils literal"><span class="pre">?x</span></tt> 和 <tt class="docutils literal"><span class="pre">?y</span></tt> 是变量，那么下面两个列表：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">p</span> <span class="nv">?x</span> <span class="nv">?y</span> <span class="nv">c</span> <span class="nv">?x</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">p</span>  <span class="nv">a</span>  <span class="nv">b</span> <span class="nv">c</span>  <span class="nv">a</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>当 <tt class="docutils literal"><span class="pre">?x</span> <span class="pre">=</span> <span class="pre">a</span></tt> 且 <tt class="docutils literal"><span class="pre">?y</span> <span class="pre">=</span> <span class="pre">b</span></tt> 时匹配，而下面两个列表：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">p</span> <span class="nv">?x</span> <span class="nv">b</span> <span class="nv">?y</span> <span class="nv">a</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">p</span> <span class="nv">?y</span> <span class="nv">b</span>  <span class="nv">c</span> <span class="nv">a</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>当 <tt class="docutils literal"><span class="pre">?x</span> <span class="pre">=</span> <span class="pre">?y</span> <span class="pre">=</span> <span class="pre">c</span></tt> 时匹配。</p>
+<p>我们有一个 <tt class="docutils literal"><span class="pre">match</span></tt> 函数，它接受两棵树，如果这两棵树能匹配，则返回一个关联列表（assoc-list）来显示他们是如何匹配的：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">match</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">y</span> <span class="k">&amp;optional</span> <span class="nv">binds</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">cond</span>
+   <span class="p">((</span><span class="nb">eql</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">)</span> <span class="p">(</span><span class="nb">values</span> <span class="nv">binds</span> <span class="no">t</span><span class="p">))</span>
+   <span class="p">((</span><span class="nb">assoc</span> <span class="nv">x</span> <span class="nv">binds</span><span class="p">)</span> <span class="p">(</span><span class="nv">match</span> <span class="p">(</span><span class="nv">binding</span> <span class="nv">x</span> <span class="nv">binds</span><span class="p">)</span> <span class="nv">y</span> <span class="nv">binds</span><span class="p">))</span>
+   <span class="p">((</span><span class="nb">assoc</span> <span class="nv">y</span> <span class="nv">binds</span><span class="p">)</span> <span class="p">(</span><span class="nv">match</span> <span class="nv">x</span> <span class="p">(</span><span class="nv">binding</span> <span class="nv">y</span> <span class="nv">binds</span><span class="p">)</span> <span class="nv">binds</span><span class="p">))</span>
+   <span class="p">((</span><span class="nv">var?</span> <span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">values</span> <span class="p">(</span><span class="nb">cons</span> <span class="p">(</span><span class="nb">cons</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">)</span> <span class="nv">binds</span><span class="p">)</span> <span class="no">t</span><span class="p">))</span>
+   <span class="p">((</span><span class="nv">var?</span> <span class="nv">y</span><span class="p">)</span> <span class="p">(</span><span class="nb">values</span> <span class="p">(</span><span class="nb">cons</span> <span class="p">(</span><span class="nb">cons</span> <span class="nv">y</span> <span class="nv">x</span><span class="p">)</span> <span class="nv">binds</span><span class="p">)</span> <span class="no">t</span><span class="p">))</span>
+   <span class="p">(</span><span class="no">t</span>
+    <span class="p">(</span><span class="nb">when</span> <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nb">consp</span> <span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">consp</span> <span class="nv">y</span><span class="p">))</span>
+      <span class="p">(</span><span class="nb">multiple-value-bind</span> <span class="p">(</span><span class="nv">b2</span> <span class="nv">yes</span><span class="p">)</span>
+                           <span class="p">(</span><span class="nv">match</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">y</span><span class="p">)</span> <span class="nv">binds</span><span class="p">)</span>
+        <span class="p">(</span><span class="nb">and</span> <span class="nv">yes</span> <span class="p">(</span><span class="nv">match</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">y</span><span class="p">)</span> <span class="nv">b2</span><span class="p">)))))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">var?</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nb">symbolp</span> <span class="nv">x</span><span class="p">)</span>
+       <span class="p">(</span><span class="nb">eql</span> <span class="p">(</span><span class="nb">char</span> <span class="p">(</span><span class="nb">symbol-name</span> <span class="nv">x</span><span class="p">)</span> <span class="mi">0</span><span class="p">)</span> <span class="sc">#\?</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">binding</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">binds</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">b</span> <span class="p">(</span><span class="nb">assoc</span> <span class="nv">x</span> <span class="nv">binds</span><span class="p">)))</span>
+    <span class="p">(</span><span class="k">if</span> <span class="nv">b</span>
+        <span class="p">(</span><span class="nb">or</span> <span class="p">(</span><span class="nv">binding</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">b</span><span class="p">)</span> <span class="nv">binds</span><span class="p">)</span>
+            <span class="p">(</span><span class="nb">cdr</span> <span class="nv">b</span><span class="p">)))))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 15.1: 匹配函数。</strong></p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">match</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">p</span> <span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span> <span class="nv">a</span><span class="p">)</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">p</span> <span class="nv">?x</span> <span class="nv">?y</span> <span class="nv">c</span> <span class="nv">?x</span><span class="p">))</span>
+<span class="p">((</span><span class="nv">?Y</span> <span class="o">.</span> <span class="nv">B</span><span class="p">)</span> <span class="p">(</span><span class="nv">?X</span> <span class="o">.</span> <span class="nv">A</span><span class="p">))</span>
+<span class="no">T</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nv">match</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">p</span> <span class="nv">?x</span> <span class="nv">b</span> <span class="nv">?y</span> <span class="nv">a</span><span class="p">)</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">p</span> <span class="nv">?y</span> <span class="nv">b</span> <span class="nv">c</span> <span class="nv">a</span><span class="p">))</span>
+<span class="p">((</span><span class="nv">?Y</span> <span class="o">.</span> <span class="nv">C</span><span class="p">)</span> <span class="p">(</span><span class="nv">?X</span> <span class="o">.</span> <span class="nv">?Y</span><span class="p">))</span>
+<span class="no">T</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nv">match</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">)</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">a</span> <span class="nv">a</span><span class="p">))</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>当 <tt class="docutils literal"><span class="pre">match</span></tt> 函数逐个元素地比较它的参数时候，它把 <tt class="docutils literal"><span class="pre">binds</span></tt> 参数中的值分配给变量，这被称为绑定 (bindings)。如果成功匹配， <tt class="docutils literal"><span class="pre">match</span></tt> 函数返回生成的绑定；否则，返回 <tt class="docutils literal"><span class="pre">nil</span></tt> 。当然并不是所有成功的匹配都会产生绑定，我们的 <tt class="docutils literal"><span class="pre">match</span></tt> 函数就像 <tt class="docutils literal"><span class="pre">gethash</span></tt> 函数那样返回第二个值来表明匹配成功：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">match</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">p</span> <span class="nv">?x</span><span class="p">)</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">p</span> <span class="nv">?x</span><span class="p">))</span>
+<span class="no">NIL</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果 <tt class="docutils literal"><span class="pre">match</span></tt> 函数像上面那样返回 <tt class="docutils literal"><span class="pre">nil</span></tt> 和 <tt class="docutils literal"><span class="pre">t</span></tt> ，表明这是一个没有产生绑定的成功匹配。下面用中文来描述 <tt class="docutils literal"><span class="pre">match</span></tt> 算法是如何工作的：</p>
+<ol class="arabic simple">
+<li>如果 x 和 y 在 <tt class="docutils literal"><span class="pre">eql</span></tt> 上相等那么它们匹配；否则，</li>
+<li>如果 x 是一个已绑定的变量，并且绑定匹配 y ，那么它们匹配；否则，</li>
+<li>如果 y 是一个已绑定的变量，并且绑定匹配 x ，那么它们匹配；否则，</li>
+<li>如果 x 是一个未绑定的变量，那么它们匹配，并且为 x 建立一个绑定；否则，</li>
+<li>如果 y 是一个未绑定的变量，那么它们匹配，并且为 y 建立一个绑定；否则，</li>
+<li>如果 x 和 y 都是 <tt class="docutils literal"><span class="pre">cons</span></tt> ，并且它们的 <tt class="docutils literal"><span class="pre">car</span></tt> 匹配，由此产生的绑定又让 <tt class="docutils literal"><span class="pre">cdr</span></tt> 匹配，那么它们匹配。</li>
+</ol>
+<p>下面是一个例子，按顺序来说明以上六种情况：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">match</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">p</span> <span class="nv">?v</span>  <span class="nv">b</span> <span class="nv">?x</span>  <span class="nv">d</span> <span class="p">(</span><span class="nv">?z</span> <span class="nv">?z</span><span class="p">))</span>
+         <span class="o">&#39;</span><span class="p">(</span><span class="nv">p</span>  <span class="nv">a</span> <span class="nv">?w</span>  <span class="nv">c</span> <span class="nv">?y</span> <span class="p">(</span> <span class="nv">e</span>  <span class="nv">e</span><span class="p">))</span>
+         <span class="o">&#39;</span><span class="p">((</span><span class="nv">?v</span> <span class="o">.</span> <span class="nv">a</span><span class="p">)</span> <span class="p">(</span><span class="nv">?w</span> <span class="o">.</span> <span class="nv">b</span><span class="p">)))</span>
+<span class="p">((</span><span class="nv">?Z</span> <span class="o">.</span> <span class="nv">E</span><span class="p">)</span> <span class="p">(</span><span class="nv">?Y</span> <span class="o">.</span> <span class="nv">D</span><span class="p">)</span> <span class="p">(</span><span class="nv">?X</span> <span class="o">.</span> <span class="nv">C</span><span class="p">)</span> <span class="p">(</span><span class="nv">?V</span> <span class="o">.</span> <span class="nv">A</span><span class="p">)</span> <span class="p">(</span><span class="nv">?W</span> <span class="o">.</span> <span class="nv">B</span><span class="p">))</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+<p><tt class="docutils literal"><span class="pre">match</span></tt> 函数通过调用 <tt class="docutils literal"><span class="pre">binding</span></tt> 函数在一个绑定列表中寻找变量（如果有的话）所关联的值。这个函数必须是递归的，因为有这样的情况 “匹配建立一个绑定列表，而列表中变量只是间接关联到它的值： <tt class="docutils literal"><span class="pre">?x</span></tt> 可能被绑定到一个包含 <tt class="docutils literal"><span class="pre">(?x</span> <span class="pre">.</span> <span class="pre">?y)</span></tt> 和 <tt class="docutils literal"><span class="pre">(?y</span> <span class="pre">.</span> <span class="pre">a)</span></tt> 的列表”：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">match</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">?x</span> <span class="nv">a</span><span class="p">)</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">?y</span> <span class="nv">?y</span><span class="p">))</span>
+<span class="p">((</span><span class="nv">?Y</span> <span class="o">.</span> <span class="nv">A</span><span class="p">)</span> <span class="p">(</span><span class="nv">?X</span> <span class="o">.</span> <span class="nv">?Y</span><span class="p">))</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+<p>先匹配 <tt class="docutils literal"><span class="pre">?x</span></tt> 和 <tt class="docutils literal"><span class="pre">?y</span></tt> ，然后匹配 <tt class="docutils literal"><span class="pre">?y</span></tt> 和 <tt class="docutils literal"><span class="pre">a</span></tt> ，我们间接确定 <tt class="docutils literal"><span class="pre">?x</span></tt> 是 <tt class="docutils literal"><span class="pre">a</span></tt> 。</p>
+</div>
+<div class="section" id="answering-queries">
+<h2>15.3 回答查询 (Answering Queries)<a class="headerlink" href="#answering-queries" title="永久链接至标题">¶</a></h2>
+<p>在介绍了绑定的概念之后，我们可以更准确的说一下我们的程序将要做什么：它得到一个可能包含变量的表达式，根据我们给定的事实和规则返回使它正确的所有绑定。比如，我们只有下面这个事实：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">parent</span> <span class="nv">donald</span> <span class="nv">nancy</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>然后我们想让程序证明：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">parent</span> <span class="nv">?x</span> <span class="nv">?y</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>它会返回像下面这样的表达：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(((</span><span class="nv">?x</span> <span class="o">.</span> <span class="nv">donald</span><span class="p">)</span> <span class="p">(</span><span class="nv">?y</span> <span class="o">.</span> <span class="nv">nancy</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>它告诉我们只有一个可以让这个表达式为真的方法： <tt class="docutils literal"><span class="pre">?x</span></tt> 是 <tt class="docutils literal"><span class="pre">donald</span></tt> 并且 <tt class="docutils literal"><span class="pre">?y</span></tt> 是 <tt class="docutils literal"><span class="pre">nancy</span></tt> 。</p>
+<p>在通往目标的路上，我们已经有了一个的重要部分：一个匹配函数。
+下面是用来定义规则的一段代码：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defvar</span> <span class="vg">*rules*</span> <span class="p">(</span><span class="nb">make-hash-table</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defmacro</span> <span class="nv">&lt;-</span> <span class="p">(</span><span class="nv">con</span> <span class="k">&amp;optional</span> <span class="nv">ant</span><span class="p">)</span>
+  <span class="o">`</span><span class="p">(</span><span class="nb">length</span> <span class="p">(</span><span class="nb">push</span> <span class="p">(</span><span class="nb">cons</span> <span class="p">(</span><span class="nb">cdr</span> <span class="ss">&#39;,con</span><span class="p">)</span> <span class="ss">&#39;,ant</span><span class="p">)</span>
+                 <span class="p">(</span><span class="nb">gethash</span> <span class="p">(</span><span class="nb">car</span> <span class="ss">&#39;,con</span><span class="p">)</span> <span class="vg">*rules*</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 15.2 定义规则</strong></p>
+<p>规则将被包含于一个叫做 <tt class="docutils literal"><span class="pre">*rules*</span></tt> 的哈希表，通过头部 (head) 的判断式构建这个哈系表。这样做加强了我们无法使用判断式中的变量的限制。虽然我们可以通过把所有这样的规则放在分离的列表中来消除限制，但是如果这样做，当我们需要证明某件事的时侯不得不和每一个列表进行匹配。</p>
+<p>我们将要使用同一个宏 <tt class="docutils literal"><span class="pre">&lt;-</span></tt> 去定义事实 (facts)和规则 (rules)。一个事实将被表示成一个没有 <em>body</em> 部分的规则。这和我们对规则的定义保持一致。一个规则告诉我们你可以通过证明 <em>body</em> 部分来证明 <em>head</em> 部分，所以没有 <em>body</em> 部分的规则意味着你不需要通过证明任何东西来证明 <em>head</em> 部分。这里有两个对应的例子：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">&lt;-</span> <span class="p">(</span><span class="nv">parent</span> <span class="nv">donald</span> <span class="nv">nancy</span><span class="p">))</span>
+<span class="mi">1</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nv">&lt;-</span> <span class="p">(</span><span class="nv">child</span> <span class="nv">?x</span> <span class="nv">?y</span><span class="p">)</span> <span class="p">(</span><span class="nv">parent</span> <span class="nv">?y</span> <span class="nv">?x</span><span class="p">))</span>
+<span class="mi">1</span>
+</pre></div>
+</td></tr></table></div>
+<p>调用 <tt class="docutils literal"><span class="pre">&lt;-</span></tt> 返回的是给定判断式下存储的规则数量；用 <tt class="docutils literal"><span class="pre">length</span></tt> 函数来包装 <tt class="docutils literal"><span class="pre">push</span></tt> 能使我们免于看到顶层中的一大堆返回值。</p>
+<p>下面是我们的推论程序所需的大多数代码：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">prove</span> <span class="p">(</span><span class="nv">expr</span> <span class="k">&amp;optional</span> <span class="nv">binds</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">case</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">expr</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nv">prove-and</span> <span class="p">(</span><span class="nb">reverse</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">expr</span><span class="p">))</span> <span class="nv">binds</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">or</span>  <span class="p">(</span><span class="nv">prove-or</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">expr</span><span class="p">)</span> <span class="nv">binds</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="nv">prove-not</span> <span class="p">(</span><span class="nb">cadr</span> <span class="nv">expr</span><span class="p">)</span> <span class="nv">binds</span><span class="p">))</span>
+    <span class="p">(</span><span class="no">t</span>   <span class="p">(</span><span class="nv">prove-simple</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">expr</span><span class="p">)</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">expr</span><span class="p">)</span> <span class="nv">binds</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">prove-simple</span> <span class="p">(</span><span class="nv">pred</span> <span class="nv">args</span> <span class="nv">binds</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">mapcan</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">r</span><span class="p">)</span>
+              <span class="p">(</span><span class="nb">multiple-value-bind</span> <span class="p">(</span><span class="nv">b2</span> <span class="nv">yes</span><span class="p">)</span>
+                                   <span class="p">(</span><span class="nv">match</span> <span class="nv">args</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">r</span><span class="p">)</span>
+                                          <span class="nv">binds</span><span class="p">)</span>
+                <span class="p">(</span><span class="nb">when</span> <span class="nv">yes</span>
+                  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">r</span><span class="p">)</span>
+                      <span class="p">(</span><span class="nv">prove</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">r</span><span class="p">)</span> <span class="nv">b2</span><span class="p">)</span>
+                      <span class="p">(</span><span class="nb">list</span> <span class="nv">b2</span><span class="p">)))))</span>
+          <span class="p">(</span><span class="nb">mapcar</span> <span class="nf">#&#39;</span><span class="nv">change-vars</span>
+                  <span class="p">(</span><span class="nb">gethash</span> <span class="nv">pred</span> <span class="vg">*rules*</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">change-vars</span> <span class="p">(</span><span class="nv">r</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">sublis</span> <span class="p">(</span><span class="nb">mapcar</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">v</span><span class="p">)</span> <span class="p">(</span><span class="nb">cons</span> <span class="nv">v</span> <span class="p">(</span><span class="nb">gensym</span> <span class="s">&quot;?&quot;</span><span class="p">)))</span>
+                  <span class="p">(</span><span class="nv">vars-in</span> <span class="nv">r</span><span class="p">))</span>
+          <span class="nv">r</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">vars-in</span> <span class="p">(</span><span class="nv">expr</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">atom</span> <span class="nv">expr</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nv">var?</span> <span class="nv">expr</span><span class="p">)</span> <span class="p">(</span><span class="nb">list</span> <span class="nv">expr</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">union</span> <span class="p">(</span><span class="nv">vars-in</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">expr</span><span class="p">))</span>
+           <span class="p">(</span><span class="nv">vars-in</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">expr</span><span class="p">)))))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 15.3: 推论。</strong></p>
+<p>上面代码中的 <tt class="docutils literal"><span class="pre">prove</span></tt> 函数是推论进行的枢纽。它接受一个表达式和一个可选的绑定列表作为参数。如果表达式不包含逻辑操作，它调用 <tt class="docutils literal"><span class="pre">prove-simple</span></tt> 函数，前面所说的链接 (chaining)正是在这个函数里产生的。这个函数查看所有拥有正确判断式的规则，并尝试对每一个规则的 <em>head</em> 部分和它想要证明的事实做匹配。对于每一个匹配的 <em>head</em> ，使用匹配所产生的新的绑定在 <em>body</em> 上调用 <tt class="docutils literal"><span class="pre">prove</span></tt> 。对 <tt class="docutils literal"><span class="pre">prove</span></tt> 的调用所产生的绑定列表被 <tt class="docutils literal"><span class="pre">mapcan</span></tt> 收集并返回：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">prove-simple</span> <span class="ss">&#39;parent</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">donald</span> <span class="nv">nancy</span><span class="p">)</span> <span class="no">nil</span><span class="p">)</span>
+<span class="p">(</span><span class="no">NIL</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nv">prove-simple</span> <span class="ss">&#39;child</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">?x</span> <span class="nv">?y</span><span class="p">)</span> <span class="no">nil</span><span class="p">)</span>
+<span class="p">(((</span><span class="ss">#:?6</span> <span class="o">.</span> <span class="nv">NANCY</span><span class="p">)</span> <span class="p">(</span><span class="ss">#:?5</span> <span class="o">.</span> <span class="nv">DONALD</span><span class="p">)</span> <span class="p">(</span><span class="nv">?Y</span> <span class="o">.</span> <span class="ss">#:?5</span><span class="p">)</span> <span class="p">(</span><span class="nv">?X</span> <span class="o">.</span> <span class="ss">#:?6</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>以上两个返回值指出有一种方法可以证明我们的问题。（一个失败的证明将返回 nil。）第一个例子产生了一组空的绑定，第二个例子产生了这样的绑定： <tt class="docutils literal"><span class="pre">?x</span></tt> 和 <tt class="docutils literal"><span class="pre">?y</span></tt> 被（间接）绑定到 <tt class="docutils literal"><span class="pre">nancy</span></tt> 和 <tt class="docutils literal"><span class="pre">donald</span></tt> 。</p>
+<p>顺便说一句，这是一个很好的例子来实践 2.13 节提出的观点。因为我们用函数式的风格来写这个程序，所以可以交互式地测试每一个函数。</p>
+<p>第二个例子返回的值里那些 <em>gensyms</em> 是怎么回事？如果我们打算使用含有变量的规则，我们需要避免两个规则恰好包含相同的变量。如果我们定义如下两条规则：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">&lt;-</span> <span class="p">(</span><span class="nv">child</span> <span class="nv">?x</span> <span class="nv">?y</span><span class="p">)</span> <span class="p">(</span><span class="nv">parent</span> <span class="nv">?y</span> <span class="nv">?x</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nv">&lt;-</span> <span class="p">(</span><span class="nv">daughter</span> <span class="nv">?y</span> <span class="nv">?x</span><span class="p">)</span> <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nv">child</span> <span class="nv">?y</span> <span class="nv">?x</span><span class="p">)</span> <span class="p">(</span><span class="nv">female</span> <span class="nv">?y</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>第一条规则要表达的意思是：对于任何的 <tt class="docutils literal"><span class="pre">x</span></tt> 和 <tt class="docutils literal"><span class="pre">y</span></tt> ， 如果 <tt class="docutils literal"><span class="pre">y</span></tt> 是 <tt class="docutils literal"><span class="pre">x</span></tt> 的家长，则 <tt class="docutils literal"><span class="pre">x</span></tt> 是 <tt class="docutils literal"><span class="pre">y</span></tt> 的孩子。第二条则是：对于任何的 <tt class="docutils literal"><span class="pre">x</span></tt> 和 <tt class="docutils literal"><span class="pre">y</span></tt> ， 如果 <tt class="docutils literal"><span class="pre">y</span></tt> 是 <tt class="docutils literal"><span class="pre">x</span></tt> 的孩子并且 <tt class="docutils literal"><span class="pre">y</span></tt> 是女性，则 <tt class="docutils literal"><span class="pre">y</span></tt> 是 <tt class="docutils literal"><span class="pre">x</span></tt> 的女儿。在每一条规则内部，变量之间的关系是显著的，但是两条规则使用了相同的变量并非我们刻意为之。</p>
+<p>如果我们使用上面所写的规则，它们将不会按预期的方式工作。如果我们尝试证明“ a 是 b 的女儿”，匹配到第二条规则的 <em>head</em> 部分时会将 <tt class="docutils literal"><span class="pre">a</span></tt> 绑定到 <tt class="docutils literal"><span class="pre">?y</span></tt> ，将 <tt class="docutils literal"><span class="pre">b</span></tt> 绑定到 ?x。我们无法用这样的绑定匹配第一条规则的 <em>head</em> 部分：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">match</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">child</span> <span class="nv">?y</span> <span class="nv">?x</span><span class="p">)</span>
+         <span class="o">&#39;</span><span class="p">(</span><span class="nv">child</span> <span class="nv">?x</span> <span class="nv">?y</span><span class="p">)</span>
+         <span class="o">&#39;</span><span class="p">((</span><span class="nv">?y</span> <span class="o">.</span> <span class="nv">a</span><span class="p">)</span> <span class="p">(</span><span class="nv">?x</span> <span class="o">.</span> <span class="nv">b</span><span class="p">)))</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>为了保证一条规则中的变量只表示规则中各参数之间的关系，我们用 <em>gensyms</em> 来代替规则中的所有变量。这就是 <tt class="docutils literal"><span class="pre">change-vars</span></tt> 函数的目的。一个 <em>gensym</em> 不可能在另一个规则中作为变量出现。但是因为规则可以是递归的，我们必须防止出现一个规则和自身冲突的可能性，所以在定义和使用一个规则时都要调用 <tt class="docutils literal"><span class="pre">chabge-vars</span></tt> 函数。</p>
+<p>现在只剩下定义用以证明复杂表达式的函数了。下面就是需要的函数：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">prove-and</span> <span class="p">(</span><span class="nv">clauses</span> <span class="nv">binds</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">clauses</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">list</span> <span class="nv">binds</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">mapcan</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">b</span><span class="p">)</span>
+                  <span class="p">(</span><span class="nv">prove</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">clauses</span><span class="p">)</span> <span class="nv">b</span><span class="p">))</span>
+              <span class="p">(</span><span class="nv">prove-and</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">clauses</span><span class="p">)</span> <span class="nv">binds</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">prove-or</span> <span class="p">(</span><span class="nv">clauses</span> <span class="nv">binds</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">mapcan</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">c</span><span class="p">)</span> <span class="p">(</span><span class="nv">prove</span> <span class="nv">c</span> <span class="nv">binds</span><span class="p">))</span>
+          <span class="nv">clauses</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">prove-not</span> <span class="p">(</span><span class="nv">clause</span> <span class="nv">binds</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">unless</span> <span class="p">(</span><span class="nv">prove</span> <span class="nv">clause</span> <span class="nv">binds</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">list</span> <span class="nv">binds</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 15.4 逻辑操作符 (Logical operators)</strong></p>
+<p>操作一个 <tt class="docutils literal"><span class="pre">or</span></tt> 或者 <tt class="docutils literal"><span class="pre">not</span></tt> 表达式是非常简单的。操作 <tt class="docutils literal"><span class="pre">or</span></tt> 时，我们提取在 <tt class="docutils literal"><span class="pre">or</span></tt> 之间的每一个表达式返回的绑定。操作 <tt class="docutils literal"><span class="pre">not</span></tt> 时，当且仅当在 <tt class="docutils literal"><span class="pre">not</span></tt> 里的表达式产生 <tt class="docutils literal"><span class="pre">none</span></tt> 时，返回当前的绑定。</p>
+<p><tt class="docutils literal"><span class="pre">prove-and</span></tt> 函数稍微复杂一点。它像一个过滤器，它用之后的表达式所建立的每一个绑定来证明第一个表达式。这将导致 <tt class="docutils literal"><span class="pre">and</span></tt> 里的表达式以相反的顺序被求值。除非调用 <tt class="docutils literal"><span class="pre">prove</span></tt> 中的 <tt class="docutils literal"><span class="pre">prove-and</span></tt> 函数则会先逆转它们。</p>
+<p>现在我们有了一个可以工作的程序，但它不是很友好。必须要解析 <tt class="docutils literal"><span class="pre">prove-and</span></tt> 返回的绑定列表是令人厌烦的，它们会变得更长随着规则变得更加复杂。下面有一个宏来帮助我们更愉快地使用这个程序：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defmacro</span> <span class="nv">with-answer</span> <span class="p">(</span><span class="nv">query</span> <span class="k">&amp;body</span> <span class="nv">body</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">binds</span> <span class="p">(</span><span class="nb">gensym</span><span class="p">)))</span>
+    <span class="o">`</span><span class="p">(</span><span class="nb">dolist</span> <span class="p">(</span><span class="o">,</span><span class="nv">binds</span> <span class="p">(</span><span class="nv">prove</span> <span class="ss">&#39;,query</span><span class="p">))</span>
+       <span class="p">(</span><span class="k">let</span> <span class="o">,</span><span class="p">(</span><span class="nb">mapcar</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">v</span><span class="p">)</span>
+                         <span class="o">`</span><span class="p">(</span><span class="o">,</span><span class="nv">v</span> <span class="p">(</span><span class="nv">binding</span> <span class="ss">&#39;,v</span> <span class="o">,</span><span class="nv">binds</span><span class="p">)))</span>
+                     <span class="p">(</span><span class="nv">vars-in</span> <span class="nv">query</span><span class="p">))</span>
+         <span class="o">,@</span><span class="nv">body</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 15.5 介面宏 (Interface macro)</strong></p>
+<p>它接受一个 <tt class="docutils literal"><span class="pre">query</span></tt> （不被求值）和若干表达式构成的 <tt class="docutils literal"><span class="pre">body</span></tt> 作为参数，把 <tt class="docutils literal"><span class="pre">query</span></tt> 所生成的每一组绑定的值赋给 <tt class="docutils literal"><span class="pre">query</span></tt> 中对应的模式变量，并计算 <tt class="docutils literal"><span class="pre">body</span></tt> 。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">with-answer</span> <span class="p">(</span><span class="nv">parent</span> <span class="nv">?x</span> <span class="nv">?y</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;~A is the parent of ~A.~%&quot;</span> <span class="nv">?x</span> <span class="nv">?y</span><span class="p">))</span>
+<span class="nv">DONALD</span> <span class="nv">is</span> <span class="k">the</span> <span class="nv">parent</span> <span class="nv">of</span> <span class="nv">NANCY.</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>这个宏帮我们做了解析绑定的工作，同时为我们在程序中使用 <tt class="docutils literal"><span class="pre">prove</span></tt> 提供了一个便捷的方法。下面是这个宏展开的情况：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">with-answer</span> <span class="p">(</span><span class="nv">p</span> <span class="nv">?x</span> <span class="nv">?y</span><span class="p">)</span>
+  <span class="p">(</span><span class="nv">f</span> <span class="nv">?x</span> <span class="nv">?y</span><span class="p">))</span>
+
+<span class="c1">;;将被展开成下面的代码</span>
+
+<span class="p">(</span><span class="nb">dolist</span> <span class="p">(</span><span class="ss">#:g1</span> <span class="p">(</span><span class="nv">prove</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">p</span> <span class="nv">?x</span> <span class="nv">?y</span><span class="p">)))</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">?x</span> <span class="p">(</span><span class="nv">binding</span> <span class="ss">&#39;?x</span> <span class="ss">#:g1</span><span class="p">))</span>
+        <span class="p">(</span><span class="nv">?y</span> <span class="p">(</span><span class="nv">binding</span> <span class="ss">&#39;?y</span> <span class="ss">#:g1</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nv">f</span> <span class="nv">?x</span> <span class="nv">?y</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 15.6: with-answer 调用的展开式</strong></p>
+<p>下面是使用它的一个例子：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">&lt;-</span> <span class="p">(</span><span class="nv">parent</span> <span class="nv">donald</span> <span class="nv">nancy</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">&lt;-</span> <span class="p">(</span><span class="nv">parent</span> <span class="nv">donald</span> <span class="nv">debbie</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">&lt;-</span> <span class="p">(</span><span class="nv">male</span> <span class="nv">donald</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">&lt;-</span> <span class="p">(</span><span class="nv">father</span> <span class="nv">?x</span> <span class="nv">?y</span><span class="p">)</span> <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nv">parent</span> <span class="nv">?x</span> <span class="nv">?y</span><span class="p">)</span> <span class="p">(</span><span class="nv">male</span> <span class="nv">?x</span><span class="p">)))</span>
+<span class="p">(</span><span class="nv">&lt;-</span> <span class="p">(</span><span class="nb">=</span> <span class="nv">?x</span> <span class="nv">?y</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">&lt;-</span> <span class="p">(</span><span class="nv">sibling</span> <span class="nv">?x</span> <span class="nv">?y</span><span class="p">)</span> <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nv">parent</span> <span class="nv">?z</span> <span class="nv">?x</span><span class="p">)</span>
+                         <span class="p">(</span><span class="nv">parent</span> <span class="nv">?z</span> <span class="nv">?y</span><span class="p">)</span>
+                         <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="nb">=</span> <span class="nv">?x</span> <span class="nv">?y</span><span class="p">))))</span>
+
+<span class="c1">;;我们可以像下面这样做出推论</span>
+
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nv">with-answer</span> <span class="p">(</span><span class="nv">father</span> <span class="nv">?x</span> <span class="nv">?y</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;~A is the father of ~A.~%&quot;</span> <span class="nv">?x</span> <span class="nv">?y</span><span class="p">))</span>
+<span class="nv">DONALD</span> <span class="nv">is</span> <span class="k">the</span> <span class="nv">father</span> <span class="nv">of</span> <span class="nv">DEBBIE.</span>
+<span class="nv">DONALD</span> <span class="nv">is</span> <span class="k">the</span> <span class="nv">father</span> <span class="nv">of</span> <span class="nv">NANCY.</span>
+<span class="no">NIL</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nv">with-answer</span> <span class="p">(</span><span class="nv">sibling</span> <span class="nv">?x</span> <span class="nv">?y</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;~A is the sibling of ~A.~%&quot;</span> <span class="nv">?x</span> <span class="nv">?y</span><span class="p">))</span>
+<span class="nv">DEBBLE</span> <span class="nv">is</span> <span class="k">the</span> <span class="nv">sibling</span> <span class="nv">of</span> <span class="nv">NANCY.</span>
+<span class="nv">NANCY</span> <span class="nv">is</span> <span class="k">the</span>  <span class="nv">sibling</span> <span class="nv">of</span> <span class="nv">DEBBIE.</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 15.7: 使用中的程序</strong></p>
+</div>
+<div class="section" id="analysis">
+<h2>15.4 分析 (Analysis)<a class="headerlink" href="#analysis" title="永久链接至标题">¶</a></h2>
+<p>看上去，我们在这一章中写的代码，是用简单自然的方式去实现这样一个程序。事实上，它的效率非常差。我们在这里是其实是做了一个解释器。我们能够把这个程序做得像一个编译器。</p>
+<p>这里做一个简单的描述。基本的思想是把整个程序打包到两个宏 <tt class="docutils literal"><span class="pre">&lt;-</span></tt> 和 <tt class="docutils literal"><span class="pre">with-answer</span></tt> ，把已有程序中在<em>运行期</em>做的多数工作搬到<em>宏展开期</em>（在 10.7 节的 <tt class="docutils literal"><span class="pre">avg</span></tt> 可以看到这种构思的雏形) 用函数取代列表来表示规则，我们不在运行时用 <tt class="docutils literal"><span class="pre">prove</span></tt> 和 <tt class="docutils literal"><span class="pre">prove-and</span></tt> 这样的函数来解释表达式，而是用相应的函数把表达式转化成代码。当一个规则被定义的时候就有表达式可用。为什么要等到使用的时候才去分析它呢？这同样适用于和 <tt class="docutils literal"><span class="pre">&lt;-</span></tt> 调用了相同的函数来进行宏展开的 <tt class="docutils literal"><span class="pre">with-answer</span></tt> 。</p>
+<p>听上去好像比我们已经写的这个程序复杂很多，但其实可能只是长了两三倍。想要学习这种技术的读者可以看 <em>On Lisp</em> 或者 <em>Paradigms of Artificial Intelligence Programming</em> ，这两本书有一些使用这种风格写的示例程序。</p>
+</div>
+</div>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'acl-chinese';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+                  </div></div>
+              </article><div class="clearer"></div>
+          </div><div class="span3">
+                <div class="sphinxsidebar">
+      <div id="sidenav" class="box sphinxsidebarwrapper">
+
+
+<h4><a href="../index.html">內容目录</a></h4>
+  <ul>
+<li><a class="reference internal" href="#">第十五章：示例：推论</a><ul>
+<li><a class="reference internal" href="#the-aim">15.1 目标 (The Aim)</a></li>
+<li><a class="reference internal" href="#matching">15.2 匹配 (Matching)</a></li>
+<li><a class="reference internal" href="#answering-queries">15.3 回答查询 (Answering Queries)</a></li>
+<li><a class="reference internal" href="#analysis">15.4 分析 (Analysis)</a></li>
+</ul>
+</li>
+</ul>
+
+  
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      
+      
+        <li><a href="https://github.com/acl-translation/acl-chinese/blob/redirect-to-new-domain/zhCN/ch15-cn.rst">
+          Show on GitHub</a></li>
+        <li><a href="https://github.com/acl-translation/acl-chinese/edit/redirect-to-new-domain/zhCN/ch15-cn.rst">
+          Edit on GitHub</a></li>
+      
+    </ul>
+  
+</div>
+    </div>
+              </div></div>
+      </div>
+<footer class="container-fluid">
+        <hr />&copy; 版权所有 2012, Juanito Fatas Huang.最后更新日期是 Apr 22, 2013.使用 <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.</footer>
+ <!-- End original user content -->
+
+
+<br>
+<br>
+<br>
+
+
+<style type="text/css">
+  .rtd-badge {
+    position: fixed;
+    display: block;
+    bottom: 5px;
+    height: 40px;
+    text-indent: -9999em;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -moz-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  }
+  #version_menu {
+    position: fixed;
+    display: none;
+    bottom: 11px;
+    right: 166px;
+    list-style-type: none;
+    margin: 0;
+  }
+  .footer_popout:hover #version_menu {
+    display: block;
+  }
+  #version_menu li {
+    display: block;
+    float: right;
+  }
+  #version_menu li a {
+    display: block;
+    padding: 6px 10px 4px 10px;
+    margin: 7px 7px 0 0;
+    font-weight: bold;
+    font-size: 14px;
+    height: 20px;
+    line-height: 17px;
+    text-decoration: none;
+    color: #fff;
+    background: #8ca1af url(../images/gradient-light.png) bottom left repeat-x;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 1px #465158;
+    -moz-box-shadow: 0 1px 1px #465158;
+    -webkit-box-shadow: 0 1px 1px #465158;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+  }
+  #version_menu li a:hover {
+    text-decoration: none;
+    background-color: #697983;
+    box-shadow: 0 1px 0px #465158;
+    -moz-box-shadow: 0 1px 0px #465158;
+    -webkit-box-shadow: 0 1px 0px #465158;
+  }
+  .rtd-badge.rtd {
+    background: #3b4449 url(//media.readthedocs.org//images/badge-rtd.png) scroll 0px -46px no-repeat;
+    border: 1px solid #282E32;
+    width: 41px;
+    right: 5px;
+  }
+  .footer_popout:hover .rtd-badge.rtd {
+    background-position: top left;
+    width: 160px;
+  }
+  .rtd-badge.revsys { background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline-sponsored {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys-sm.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 205px;
+    right: 173px;
+  }
+
+</style>
+<div class="rtd_doc_footer">
+  <div class="footer_popout">
+    <a href="//readthedocs.org/projects/ansi-common-lisp/?fromdocs=ansi-common-lisp" class="rtd-badge rtd"> Brought to you by Read the Docs</a>
+    <ul id="version_menu">
+      
+        <li><a href="/en/latest/">latest</a></li>
+      
+    </ul>
+  </div>
+</div>
+<!-- RTD Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-17997319-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+<!-- User Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-26995626-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+</body>
+</html>

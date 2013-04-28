@@ -1,0 +1,1171 @@
+<!DOCTYPE HTML>
+
+  <html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+<title>第四章：特殊資料結構 &mdash; ANSI Common Lisp 中文版</title>
+    
+<!-- RTD <head> -->
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/underscore.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/doctools.js"></script>
+
+<script type="text/javascript">
+  // This is included here for Javascript that doesn't have access to the templates.
+  var doc_version = "latest";
+  var doc_slug = "ansi-common-lisp";
+</script>
+
+<script type="text/javascript" src="//media.readthedocs.org/javascript/rtd.js"></script>
+<!-- end RTD <head> -->
+
+    <link rel="stylesheet" href="../_static/han.min.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/rosefinch.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/main.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:       '../',
+        VERSION:        '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX:    '.html',
+        HAS_SOURCE:     true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/han.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  <script type="text/javascript" src=../_static/jquery.dimensions.js"></script>
+  <script type="text/javascript" src="../_static/main.js"></script><link rel="top" title="ANSI Common Lisp 中文版" href="../index.html" /></head>
+
+  <body><div class="navbar navbar-static-top navbar-inverse">
+        <div id="top-bar" class="navbar-inner">
+
+          <h1 id="logo">ANSI Common Lisp 中文版<a href="../index.html" class="brand">ANSI Common Lisp 中文版</a></h1>
+          <ul class="nav"></ul><a href="https://github.com/acl-translation/acl-chinese"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
+        </div>
+      </div><div class="content container-fluid">
+        <div class="row-fluid"><div class="document span9"><article >
+                <div class="documentwrapper"><div class="body"><div class="section" id="id1">
+<h1>第四章：特殊資料結構<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h1>
+<p>在之前的章節裡，我們討論了列表，Lisp 最多功能的資料結構。本章展示如何使用 Lisp 其它的資料結構：陣列（包含向量與字串），結構以及雜湊表。他們或許不像列表這麼彈性，但他們可以更快地存取並使用更少空間。</p>
+<p>Common Lisp 有另一個資料結構：實體（instance）。實體在 11 章討論，講述 CLOS。</p>
+<div class="section" id="array">
+<h2>4.1 陣列 (Array)<a class="headerlink" href="#array" title="永久链接至标题">¶</a></h2>
+<p>在 Common Lisp 裡，你可以呼叫 <tt class="docutils literal"><span class="pre">make-array</span></tt> 創建一個陣列，第一個參數為一個列表，指定陣列的維度。要創建一個 <tt class="docutils literal"><span class="pre">2</span> <span class="pre">x</span> <span class="pre">3</span></tt> 的陣列我們可以：</p>
+<div class="highlight-cl"><pre>&gt; (setf arr (make-array '(2 3) :initial-element nil))
+#&lt;Simple-Array T (2 3) BFC4FE&gt;</pre>
+</div>
+<p>陣列在 Common Lisp 裡至少可以有七個維度，每個維度至少可以有 1023 個元素。</p>
+<p><tt class="docutils literal"><span class="pre">:initial-element</span></tt> 參數是選擇性的。如果提供了這個參數，整個陣列會用指定的值作初始化。嘗試從一個未初始化的陣列內取出元素的行為，其結果為未定義（undefined）。</p>
+<p>取出陣列內的元素我們呼叫 <tt class="docutils literal"><span class="pre">aref</span></tt> 。跟 Common Lisp 的存取函數相同， <tt class="docutils literal"><span class="pre">aref</span></tt> 是零索引的（zero-indexed）：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">aref</span> <span class="nv">arr</span> <span class="mi">0</span> <span class="mi">0</span><span class="p">)</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>要替換陣列的某個元素，我們使用 <tt class="docutils literal"><span class="pre">setf</span></tt> 和 <tt class="docutils literal"><span class="pre">aref</span></tt> ：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">aref</span> <span class="nv">arr</span> <span class="mi">0</span> <span class="mi">0</span><span class="p">)</span> <span class="ss">&#39;b</span><span class="p">)</span>
+<span class="nv">B</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">aref</span> <span class="nv">arr</span> <span class="mi">0</span> <span class="mi">0</span><span class="p">)</span>
+<span class="nv">B</span>
+</pre></div>
+</td></tr></table></div>
+<p>要表示一個字面陣列（literal array），我們使用 <tt class="docutils literal"><span class="pre">#na</span></tt> 語法，其中 n 是陣列的維度。舉例來說，我們可以這樣表示一個跟 <tt class="docutils literal"><span class="pre">arr</span></tt> 一樣的陣列：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="l-Other">#2a</span><span class="p">((</span><span class="nv">b</span> <span class="no">nil</span> <span class="no">nil</span><span class="p">)</span> <span class="p">(</span><span class="no">nil</span> <span class="no">nil</span> <span class="no">nil</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果全域變數 <tt class="docutils literal"><span class="pre">*print-array*</span></tt> 為真，陣列會用這種形式顯示：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="vg">*print-array*</span> <span class="no">t</span><span class="p">)</span>
+<span class="no">T</span>
+<span class="nb">&gt;</span> <span class="nv">arr</span>
+<span class="l-Other">#2A</span><span class="p">((</span><span class="nv">B</span> <span class="no">NIL</span> <span class="no">NIL</span><span class="p">)</span> <span class="p">(</span><span class="no">NIL</span> <span class="no">NIL</span> <span class="no">NIL</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果我們只想要一個一維的陣列，你可以給 <tt class="docutils literal"><span class="pre">make-array</span></tt> 第一個參數一個整數，而不是一個列表：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">vec</span> <span class="p">(</span><span class="nb">make-array</span> <span class="mi">4</span> <span class="ss">:initial-elment</span> <span class="no">nil</span><span class="p">))</span>
+<span class="o">#(</span><span class="no">NIL</span> <span class="no">NIL</span> <span class="no">NIL</span> <span class="no">NIL</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>一個一維陣列又稱為向量( <em>vector</em> )。你可以用一個步驟來創建及填滿向量，藉由呼叫 <tt class="docutils literal"><span class="pre">vector</span></tt> ，它會回傳一個無論你給入什麼參數的向量：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">vector</span> <span class="s">&quot;a&quot;</span> <span class="ss">&#39;b</span> <span class="mi">3</span><span class="p">)</span>
+<span class="o">#(</span><span class="s">&quot;a&quot;</span> <span class="nv">b</span> <span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>一個字面向量(literal vector)可以用這種語法表達，如同字面陣列可以表示成 <tt class="docutils literal"><span class="pre">#na</span></tt> 。</p>
+<p>你可以用 <tt class="docutils literal"><span class="pre">aref</span></tt> 來存取向量，但有一個更快的函數叫做 <tt class="docutils literal"><span class="pre">svref</span></tt> 給存取向量使用。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">svref</span> <span class="nv">vec</span> <span class="mi">0</span><span class="p">)</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>在 <tt class="docutils literal"><span class="pre">svref</span></tt> 內的 &#8220;sv&#8221; 代表 &#8220;簡單向量&#8221; (&#8220;simple vector&#8221;) ，它是所有向量的預設值。 <a class="footnote-reference" href="#id5" id="id2">[1]</a></p>
+</div>
+<div class="section" id="example-binary-search">
+<h2>4.2 範例：二分搜索 (Example: Binary Search)<a class="headerlink" href="#example-binary-search" title="永久链接至标题">¶</a></h2>
+<p>做為一個範例，這小節展示如何寫一個在排序好的向量裡搜索一個物件的函數。如果我們知道一個向量是排序好的，我們可以比 <tt class="docutils literal"><span class="pre">find</span></tt> （65頁）做的更好， <tt class="docutils literal"><span class="pre">find</span></tt> 必須依序檢視每一個元素。取而代之的，我們跳到向量中間開始。如果中間的元素是我們要找的物件，搜索完畢。不然，我們持續往左半部或往右半部搜索，取決於物件是小於或大於中間的元素。</p>
+<p>圖 4.1 包含了一個這樣工作的函數。其實這兩個函數： <tt class="docutils literal"><span class="pre">bin-search</span></tt> 設置初始範圍及發送控制信號給 <tt class="docutils literal"><span class="pre">finder</span></tt> ，它尋找向量 <tt class="docutils literal"><span class="pre">vec</span></tt> 內 <tt class="docutils literal"><span class="pre">obj</span></tt> 是否介於 <tt class="docutils literal"><span class="pre">start</span></tt> 及 <tt class="docutils literal"><span class="pre">end</span></tt> 之間。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">bin-search</span> <span class="p">(</span><span class="nv">obj</span> <span class="nv">vec</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">len</span> <span class="p">(</span><span class="nb">length</span> <span class="nv">vec</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="nb">zerop</span> <span class="nv">len</span><span class="p">))</span>
+         <span class="p">(</span><span class="nv">finder</span> <span class="nv">obj</span> <span class="nv">vec</span> <span class="mi">0</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">len</span> <span class="mi">1</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">finder</span> <span class="p">(</span><span class="nv">obj</span> <span class="nv">vec</span> <span class="nv">start</span> <span class="nv">end</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">range</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">end</span> <span class="nv">start</span><span class="p">)))</span>
+    <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">zerop</span> <span class="nv">range</span><span class="p">)</span>
+        <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">eql</span> <span class="nv">obj</span> <span class="p">(</span><span class="nb">aref</span> <span class="nv">vec</span> <span class="nv">start</span><span class="p">))</span>
+            <span class="nv">obj</span>
+            <span class="no">nil</span><span class="p">)</span>
+        <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">mid</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">start</span> <span class="p">(</span><span class="nb">round</span> <span class="p">(</span><span class="nb">/</span> <span class="nv">range</span> <span class="mi">2</span><span class="p">)))))</span>
+          <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">obj2</span> <span class="p">(</span><span class="nb">aref</span> <span class="nv">vec</span> <span class="nv">mid</span><span class="p">)))</span>
+            <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">&lt;</span> <span class="nv">obj</span> <span class="nv">obj2</span><span class="p">)</span>
+                <span class="p">(</span><span class="nv">finder</span> <span class="nv">obj</span> <span class="nv">vec</span> <span class="nv">start</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">mid</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">&gt;</span> <span class="nv">obj</span> <span class="nv">obj2</span><span class="p">)</span>
+                    <span class="p">(</span><span class="nv">finder</span> <span class="nv">obj</span> <span class="nv">vec</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">mid</span> <span class="mi">1</span><span class="p">)</span> <span class="nv">end</span><span class="p">)</span>
+                    <span class="nv">obj</span><span class="p">)))))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>圖 4.1: 搜索一個排序好的向量</p>
+<p><strong>勘誤:</strong> 圖 4.1 的 <tt class="docutils literal"><span class="pre">bin-search</span></tt> 函數，如果你給一個比向量 <tt class="docutils literal"><span class="pre">vec</span></tt> 中最小元素還小的元素，會出錯。</p>
+<p>如果要找的 <tt class="docutils literal"><span class="pre">range</span></tt> 縮小至一個元素，而如果這個元素是 <tt class="docutils literal"><span class="pre">obj</span></tt> 的話，則 <tt class="docutils literal"><span class="pre">finder</span></tt> 回傳這個元素，反之回傳 <tt class="docutils literal"><span class="pre">nil</span></tt> 。如果 <tt class="docutils literal"><span class="pre">range</span></tt> 包含了數個元素，我們比對 <tt class="docutils literal"><span class="pre">middle</span></tt> ( <tt class="docutils literal"><span class="pre">round</span></tt> 回傳離參數最近的整數) 與 <tt class="docutils literal"><span class="pre">obj2</span></tt> 。如果 <tt class="docutils literal"><span class="pre">obj</span></tt> 小於 <tt class="docutils literal"><span class="pre">obj2</span></tt> ，則繼續遞迴地往向量的左半部尋找。如果 <tt class="docutils literal"><span class="pre">obj</span></tt> 大於 <tt class="docutils literal"><span class="pre">obj2</span></tt> ，則繼續遞迴地往向量的右半部尋找。剩下的一個選擇是 <tt class="docutils literal"><span class="pre">obj=obj2</span></tt> ，這個情況我們找到要找的元素，直接回傳這個元素。</p>
+<p>如果我們插入下面這行至 <tt class="docutils literal"><span class="pre">finder</span></tt> 的起始處：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;~A~%&quot;</span> <span class="p">(</span><span class="nb">subseq</span> <span class="nv">vec</span> <span class="nv">start</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">end</span> <span class="mi">1</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>我們可以觀察被搜索的元素的數量是每一步往左減半的：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">bin-search</span> <span class="mi">3</span> <span class="o">#(</span><span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mi">9</span><span class="p">))</span>
+<span class="o">#(</span><span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mi">9</span><span class="p">)</span>
+<span class="o">#(</span><span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">)</span>
+<span class="o">#(</span><span class="mi">3</span><span class="p">)</span>
+<span class="mi">3</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<div class="section" id="strings-and-characters">
+<h2>4.3 字元與字串 (Strings and Characters)<a class="headerlink" href="#strings-and-characters" title="永久链接至标题">¶</a></h2>
+<p>字串是字元向量。我們用一系列由雙引號包住的字元來表示一個字串常數，一個字元 <tt class="docutils literal"><span class="pre">c</span></tt> 用 <tt class="docutils literal"><span class="pre">#\c</span></tt> 表示。</p>
+<p>每個字元都有一個相關的整數 ― 通常是用ASCII碼，但不一定是。在多數的 Lisp 實現裡，函數 <tt class="docutils literal"><span class="pre">char-code</span></tt> 回傳與字元相關的數字，而 <tt class="docutils literal"><span class="pre">code-char</span></tt> 回傳與數字相關的字元。</p>
+<p>字元比較函數 <tt class="docutils literal"><span class="pre">char&lt;</span></tt> (小於)， <tt class="docutils literal"><span class="pre">char&lt;=</span></tt> (小於等於)， <tt class="docutils literal"><span class="pre">char=</span></tt> (等於)， <tt class="docutils literal"><span class="pre">char&gt;=</span></tt> (大於等於)， <tt class="docutils literal"><span class="pre">char&gt;</span></tt> (大於)，以及 <tt class="docutils literal"><span class="pre">char/=</span></tt> (不同)。他們的工作方式和 146 頁(譯註 9.3 節)的數字比較運算元一樣。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">sort</span> <span class="s">&quot;elbow&quot;</span> <span class="nf">#&#39;</span><span class="nb">char&lt;</span><span class="p">)</span>
+<span class="s">&quot;below&quot;</span>
+</pre></div>
+</td></tr></table></div>
+<p>因為字串是向量，序列與陣列的函數都可以給字串使用。你可以使用 <tt class="docutils literal"><span class="pre">aref</span></tt> 來取出元素，舉例來說，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">aref</span> <span class="s">&quot;abc&quot;</span> <span class="mi">1</span><span class="p">)</span>
+<span class="sc">#\b</span>
+</pre></div>
+</td></tr></table></div>
+<p>但對一個字串，你可以使用更快的 <tt class="docutils literal"><span class="pre">char</span></tt> 函數：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">char</span> <span class="s">&quot;abc&quot;</span> <span class="mi">1</span><span class="p">)</span>
+<span class="sc">#\b</span>
+</pre></div>
+</td></tr></table></div>
+<p>你可以使用 <tt class="docutils literal"><span class="pre">setf</span></tt> 搭配 <tt class="docutils literal"><span class="pre">char</span></tt> (或 <tt class="docutils literal"><span class="pre">aref</span></tt> )來替換元素：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">str</span> <span class="p">(</span><span class="nb">copy-seq</span> <span class="s">&quot;Merlin&quot;</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">char</span> <span class="nv">str</span> <span class="mi">3</span><span class="p">)</span> <span class="sc">#\k</span><span class="p">)</span>
+    <span class="nv">str</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果你想要比較兩個字串，你可以使用通用的 <tt class="docutils literal"><span class="pre">equal</span></tt> 函數，但還有一個忽略大小寫的比較函數 <tt class="docutils literal"><span class="pre">string-equal</span></tt> ：</p>
+<div class="highlight-cl"><pre>&gt; (equal "fred "fred")
+T
+&gt; (equal "fred" "Fred")
+NIL
+&gt;(string-equal "fred" "Fred")
+T</pre>
+</div>
+<p>Common Lisp 提供大量的操控及比較字串的函數。他們收錄在附錄D，從 364 頁開始。</p>
+<p>有很多種方式可以創造一個字串。最普遍的方式是使用 <tt class="docutils literal"><span class="pre">format</span></tt> 。將第一個參數設為 <tt class="docutils literal"><span class="pre">nil</span></tt> 來呼叫 <tt class="docutils literal"><span class="pre">format</span></tt> ，使它回傳一個它本來會印出來的字串：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">format</span> <span class="no">nil</span> <span class="s">&quot;~A or ~A&quot;</span> <span class="s">&quot;truth&quot;</span> <span class="s">&quot;dare&quot;</span><span class="p">)</span>
+<span class="s">&quot;truth or dare&quot;</span>
+</pre></div>
+</td></tr></table></div>
+<p>但若你只想把數個字串連結起來，你可以使用 <tt class="docutils literal"><span class="pre">concatenate</span></tt> ，它接受一個指定型別的符號，加上一個或多個序列：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">concatenate</span> <span class="ss">&#39;string</span> <span class="s">&quot;not &quot;</span> <span class="s">&quot;to worry&quot;</span><span class="p">)</span>
+<span class="s">&quot;not to worry&quot;</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<div class="section" id="sequences">
+<h2>4.4 序列 (Sequences)<a class="headerlink" href="#sequences" title="永久链接至标题">¶</a></h2>
+<p>在 Common Lisp 裡，序列型別包含了列表與向量（因此也包含了字串）。有些我們在列表上使用的函數，其實是序列函數，包括 <tt class="docutils literal"><span class="pre">remove</span></tt> , <tt class="docutils literal"><span class="pre">length</span></tt> , <tt class="docutils literal"><span class="pre">subseq</span></tt> , <tt class="docutils literal"><span class="pre">reverse</span></tt> , <tt class="docutils literal"><span class="pre">sort</span></tt> , <tt class="docutils literal"><span class="pre">every</span></tt> 以及 <tt class="docutils literal"><span class="pre">some</span></tt> 。所以 46 頁 （譯註 3.11 的 <tt class="docutils literal"><span class="pre">mirror?</span></tt> 函數）我們所寫的函數，也可以用在別種序列上：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">mirror?</span> <span class="s">&quot;abba&quot;</span><span class="p">)</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+<p>我們已經看過四個用來取出序列元素的函數： 給列表使用的 <tt class="docutils literal"><span class="pre">nth</span></tt> ， 給向量使用的 <tt class="docutils literal"><span class="pre">aref</span></tt> 及 <tt class="docutils literal"><span class="pre">svref</span></tt> ，以及給字串使用的 <tt class="docutils literal"><span class="pre">char</span></tt> 。 Common Lisp 也提供了函數 <tt class="docutils literal"><span class="pre">elt</span></tt> ，對任何種類的序列都有效：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">elt</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">)</span> <span class="mi">1</span><span class="p">)</span>
+<span class="nv">B</span>
+</pre></div>
+</td></tr></table></div>
+<p>針對特定型別的序列，我們已經見過的存取函數應當比較快，所以使用 <tt class="docutils literal"><span class="pre">elt</span></tt> 是沒有意義的，除非在程式碼中，有要通用地支援序列的地方。</p>
+<p>使用 <tt class="docutils literal"><span class="pre">elt</span></tt> ，我們可以寫一個對向量來說更有效率的 <tt class="docutils literal"><span class="pre">mirror?</span></tt> 版本：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">mirror?</span> <span class="p">(</span><span class="nv">s</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">len</span> <span class="p">(</span><span class="nb">length</span> <span class="nv">s</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nb">evenp</span> <span class="nv">len</span><span class="p">)</span>
+         <span class="p">(</span><span class="nb">do</span> <span class="p">((</span><span class="nv">forward</span> <span class="mi">0</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">forward</span> <span class="mi">1</span><span class="p">))</span>
+              <span class="p">(</span><span class="nv">back</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">len</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">back</span> <span class="mi">1</span><span class="p">)))</span>
+             <span class="p">((</span><span class="nb">or</span> <span class="p">(</span><span class="nb">&gt;</span> <span class="nv">forward</span> <span class="nv">back</span><span class="p">)</span>
+                  <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="nb">eql</span> <span class="p">(</span><span class="nb">elt</span> <span class="nv">s</span> <span class="nv">forward</span><span class="p">)</span>
+                            <span class="p">(</span><span class="nb">elt</span> <span class="nv">s</span> <span class="nv">back</span><span class="p">))))</span>
+              <span class="p">(</span><span class="nb">&gt;</span> <span class="nv">forward</span> <span class="nv">back</span><span class="p">))))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>這個版本也可以給列表使用，但這個實現更適合給向量使用。頻繁的對列表呼叫 <tt class="docutils literal"><span class="pre">elt</span></tt> 的代價是昂貴的，因為列表僅允許循序存取。而向量允許隨機存取，從任何元素來存取每一個元素都是廉價的 (cheap)。</p>
+<p>許多序列函數接受一個或多個，從這個表格所列出的標準關鍵字參數：</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="25%" />
+<col width="50%" />
+<col width="25%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">參數</th>
+<th class="head">用途</th>
+<th class="head">預設值</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>:key</td>
+<td>應用至每個元素的函數</td>
+<td>identity</td>
+</tr>
+<tr class="row-odd"><td>:test</td>
+<td>做為比較的函數</td>
+<td>eql</td>
+</tr>
+<tr class="row-even"><td>:from-end</td>
+<td>若為真，反向工作</td>
+<td>nil</td>
+</tr>
+<tr class="row-odd"><td>:start</td>
+<td>起始位置</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td>:end</td>
+<td>若有給定，結束位置。</td>
+<td>nil</td>
+</tr>
+</tbody>
+</table>
+<p>一個接受全部關鍵字參數的函數是 <tt class="docutils literal"><span class="pre">position</span></tt> ，它回傳序列中一個元素的位置，而未找到時，回傳 <tt class="docutils literal"><span class="pre">nil</span></tt> 。我們使用 <tt class="docutils literal"><span class="pre">position</span></tt> 來演示關鍵字參數所扮演的角色。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">position</span> <span class="sc">#\a</span> <span class="s">&quot;fantasia&quot;</span><span class="p">)</span>
+<span class="mi">1</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">position</span> <span class="sc">#\a</span> <span class="s">&quot;fantasia&quot;</span> <span class="ss">:start</span> <span class="mi">3</span> <span class="ss">:end</span> <span class="mi">5</span><span class="p">)</span>
+<span class="mi">4</span>
+</pre></div>
+</td></tr></table></div>
+<p>第二個例子我們要找在第四個與第六個字元間，第一個 <tt class="docutils literal"><span class="pre">a</span></tt> 所出現的位置。 <tt class="docutils literal"><span class="pre">:start</span></tt> 關鍵字參數是第一個被考慮的元素位置，預設是序列的第一個元素。 <tt class="docutils literal"><span class="pre">:end</span></tt> 關鍵字參數，如果有給的話，是第一個不被考慮的元素位置。</p>
+<p>如果我們給入 <tt class="docutils literal"><span class="pre">:from-end</span></tt> 關鍵字參數，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">position</span> <span class="sc">#\a</span> <span class="s">&quot;fantasia&quot;</span> <span class="ss">:from-end</span> <span class="no">t</span><span class="p">)</span>
+<span class="mi">7</span>
+</pre></div>
+</td></tr></table></div>
+<p>我們得到最靠近結尾的 <tt class="docutils literal"><span class="pre">a</span></tt> 的位置。但位置是用平常的方式計算；它不代表從結尾算回來的距離。</p>
+<p><tt class="docutils literal"><span class="pre">:key</span></tt> 關鍵字參數是序列中每個元素在被考慮前，應用至元素的函數。如果我們詢問像是這樣的東西，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">position</span> <span class="ss">&#39;a</span> <span class="o">&#39;</span><span class="p">((</span><span class="nv">c</span> <span class="nv">d</span><span class="p">)</span> <span class="p">(</span><span class="nv">a</span> <span class="nv">b</span><span class="p">))</span> <span class="ss">:key</span> <span class="nf">#&#39;</span><span class="nb">car</span><span class="p">)</span>
+<span class="mi">1</span>
+</pre></div>
+</td></tr></table></div>
+<p>那麼我們要找的是元素的 <tt class="docutils literal"><span class="pre">car</span></tt> 部分是符號 <tt class="docutils literal"><span class="pre">a</span></tt> 的第一個元素。</p>
+<p><tt class="docutils literal"><span class="pre">:test</span></tt> 關鍵字參數是一個有兩個參數的函數，並定義了怎樣是一個成功的匹配。它的預設函數為 <tt class="docutils literal"><span class="pre">eql</span></tt> 。如果你想要匹配一個列表，你也許想使用 <tt class="docutils literal"><span class="pre">equal</span></tt> 來取代：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">position</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span><span class="p">)</span> <span class="o">&#39;</span><span class="p">((</span><span class="nv">a</span> <span class="nv">b</span><span class="p">)</span> <span class="p">(</span><span class="nv">c</span> <span class="nv">d</span><span class="p">)))</span>
+<span class="no">NIL</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">position</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span><span class="p">)</span> <span class="o">&#39;</span><span class="p">((</span><span class="nv">a</span> <span class="nv">b</span><span class="p">)</span> <span class="p">(</span><span class="nv">c</span> <span class="nv">d</span><span class="p">))</span> <span class="ss">:test</span> <span class="nf">#&#39;</span><span class="nb">equal</span><span class="p">)</span>
+<span class="mi">0</span>
+</pre></div>
+</td></tr></table></div>
+<p><tt class="docutils literal"><span class="pre">:test</span></tt> 關鍵字參數可以是任何接受兩個參數的函數。舉例來說，給定 <tt class="docutils literal"><span class="pre">&lt;</span></tt> ，我們可以詢問第一個使第一個參數比它小的元素位置：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">position</span> <span class="mi">3</span> <span class="o">&#39;</span><span class="p">(</span><span class="mi">1</span> <span class="mi">0</span> <span class="mi">7</span> <span class="mi">5</span><span class="p">)</span> <span class="ss">:test</span> <span class="nf">#&#39;</span><span class="nb">&lt;</span><span class="p">)</span>
+<span class="mi">2</span>
+</pre></div>
+</td></tr></table></div>
+<p>使用 <tt class="docutils literal"><span class="pre">subseq</span></tt> 與 <tt class="docutils literal"><span class="pre">position</span></tt> ，我們可以寫出分開序列的函數。舉例來說，這個函數</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">second-word</span> <span class="p">(</span><span class="nv">str</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">p1</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nb">position</span> <span class="sc">#\ </span> <span class="nv">str</span><span class="p">)</span> <span class="mi">1</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nb">subseq</span> <span class="nv">str</span> <span class="nv">p1</span> <span class="p">(</span><span class="nb">position</span> <span class="sc">#\ </span> <span class="nv">str</span> <span class="ss">:start</span> <span class="nv">p1</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>回傳字串中用空格隔開的第二個單字：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">second-word</span> <span class="s">&quot;Form follows function&quot;</span><span class="p">)</span>
+<span class="s">&quot;follows&quot;</span>
+</pre></div>
+</td></tr></table></div>
+<p>要找到滿足接受一個參數的判斷式的一個元素，我們使用 <tt class="docutils literal"><span class="pre">position-if</span></tt> 。它接受一個函數與一個序列，並回傳第一個滿足此函數的第一個元素：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">position-if</span> <span class="nf">#&#39;</span><span class="nb">oddp</span> <span class="o">&#39;</span><span class="p">(</span><span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span><span class="p">))</span>
+<span class="mi">1</span>
+</pre></div>
+</td></tr></table></div>
+<p>它接受除了 <tt class="docutils literal"><span class="pre">:test</span></tt> 之外的所有關鍵字參數。</p>
+<p>有許多相似的函數，如給序列使用的 <tt class="docutils literal"><span class="pre">member</span></tt> 與 <tt class="docutils literal"><span class="pre">member-if</span></tt> 。它們分別是， <tt class="docutils literal"><span class="pre">find</span></tt> （接受全部關鍵字參數）與 <tt class="docutils literal"><span class="pre">find-if</span></tt> （接受除了 <tt class="docutils literal"><span class="pre">:test</span></tt> 之外的所有關鍵字參數）：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">find</span> <span class="sc">#\a</span> <span class="s">&quot;cat&quot;</span><span class="p">)</span>
+<span class="sc">#\a</span>
+
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">find-if</span> <span class="nf">#&#39;</span><span class="nb">characterp</span> <span class="s">&quot;ham&quot;</span><span class="p">)</span>
+<span class="sc">#\h</span>
+</pre></div>
+</td></tr></table></div>
+<p>不像是 <tt class="docutils literal"><span class="pre">member</span></tt> 與 <tt class="docutils literal"><span class="pre">member-if</span></tt> ，它們僅回傳要尋找的物件。</p>
+<p>通常一個 <tt class="docutils literal"><span class="pre">find-if</span></tt> 的呼叫，如果解讀為 <tt class="docutils literal"><span class="pre">find</span></tt> 搭配一個 <tt class="docutils literal"><span class="pre">:key</span></tt> 關鍵字參數的話，會顯得更清楚。舉例來說，表達式</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">find-if</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+             <span class="p">(</span><span class="nb">eql</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">x</span><span class="p">)</span> <span class="ss">&#39;complete</span><span class="p">))</span>
+         <span class="nv">lst</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>可以更好的解讀為</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">find</span> <span class="ss">&#39;complete</span> <span class="nv">lst</span> <span class="ss">:key</span> <span class="nf">#&#39;</span><span class="nb">car</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>函數 <tt class="docutils literal"><span class="pre">remove</span></tt> (22頁)以及 <tt class="docutils literal"><span class="pre">remove-if</span></tt> 通常都可以用在序列。它們跟 <tt class="docutils literal"><span class="pre">find</span></tt> 與 <tt class="docutils literal"><span class="pre">find-if</span></tt> 是一樣的關係。一個相關的函數是 <tt class="docutils literal"><span class="pre">remove-duplicates</span></tt> ，它只保留序列中每個元素的最後一次出現。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">remove-duplicates</span> <span class="s">&quot;abracadabra&quot;</span><span class="p">)</span>
+<span class="s">&quot;cdbra&quot;</span>
+</pre></div>
+</td></tr></table></div>
+<p>這個函數接受前表所列的所有關鍵字參數。</p>
+<p>函數 <tt class="docutils literal"><span class="pre">reduce</span></tt> 用來把一個序列壓縮成一個值。它接受至少兩個參數，一個函數與一個序列。這函數必須是一個接受兩個參數的函數。在最簡單的情況下，函數起初用前兩個元素做為參數來呼叫，之後接續的元素做為下次呼叫的第二個參數，而上次回傳的值做為下次呼叫的第一個參數。最後呼叫所回傳的值做為 <tt class="docutils literal"><span class="pre">reduce</span></tt> 函數的回傳值。也就是說像是這樣的表達式：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">reduce</span> <span class="nf">#&#39;</span><span class="nv">fn</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span> <span class="nv">d</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>等同於</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">fn</span> <span class="p">(</span><span class="nv">fn</span> <span class="p">(</span><span class="nv">fn</span> <span class="ss">&#39;a</span> <span class="ss">&#39;b</span><span class="p">)</span> <span class="ss">&#39;c</span><span class="p">)</span> <span class="ss">&#39;d</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>我們可以使用 <tt class="docutils literal"><span class="pre">reduce</span></tt> 來擴充只接受兩個參數的函數。舉例來說，要得到三個或多個列表的交集 (intersection)，我們可以：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">reduce</span> <span class="nf">#&#39;</span><span class="nb">intersection</span> <span class="o">&#39;</span><span class="p">((</span><span class="nv">b</span> <span class="nv">r</span> <span class="nv">a</span> <span class="nv">d</span> <span class="ss">&#39;s</span><span class="p">)</span> <span class="p">(</span><span class="nv">b</span> <span class="nv">a</span> <span class="nv">d</span><span class="p">)</span> <span class="p">(</span><span class="nv">c</span> <span class="nv">a</span> <span class="no">t</span><span class="p">)))</span>
+<span class="p">(</span><span class="nv">A</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<div class="section" id="example-parsing-dates">
+<h2>4.5 範例：解析日期 (Example: Parsing Dates)<a class="headerlink" href="#example-parsing-dates" title="永久链接至标题">¶</a></h2>
+<p>做為一個序列操作的例子，這小節演示了如何寫一個程式來解析日期。我們將編寫一個程式，可以接受一個像是 &#8220;16 Aug 1980&#8221; 的字串，然後回傳一個表示日、月、年的整數列表。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">tokens</span> <span class="p">(</span><span class="nv">str</span> <span class="nv">test</span> <span class="nv">start</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">p1</span> <span class="p">(</span><span class="nb">position-if</span> <span class="nv">test</span> <span class="nv">str</span> <span class="ss">:start</span> <span class="nv">start</span><span class="p">)))</span>
+    <span class="p">(</span><span class="k">if</span> <span class="nv">p1</span>
+        <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">p2</span> <span class="p">(</span><span class="nb">position-if</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">c</span><span class="p">)</span>
+                                   <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="nb">funcall</span> <span class="nv">test</span> <span class="nv">c</span><span class="p">)))</span>
+                               <span class="nv">str</span> <span class="ss">:start</span> <span class="nv">p1</span><span class="p">)))</span>
+          <span class="p">(</span><span class="nb">cons</span> <span class="p">(</span><span class="nb">subseq</span> <span class="nv">str</span> <span class="nv">p1</span> <span class="nv">p2</span><span class="p">)</span>
+                <span class="p">(</span><span class="k">if</span> <span class="nv">p2</span>
+                    <span class="p">(</span><span class="nv">tokens</span> <span class="nv">str</span> <span class="nv">test</span> <span class="nv">p2</span><span class="p">)</span>
+                    <span class="no">nil</span><span class="p">)))</span>
+        <span class="no">nil</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">constituent</span> <span class="p">(</span><span class="nv">c</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nb">graphic-char-p</span> <span class="nv">c</span><span class="p">)</span>
+       <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="nb">char=</span> <span class="nv">c</span> <span class="sc">#\ </span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>圖 4.2 辨別記號</p>
+<p>圖 4.2 中包含了某些我們在這應用裡所需的通用解析函數。第一個， <tt class="docutils literal"><span class="pre">tokens</span></tt> ，用來從字串中取出記號(token)。給定一個字串及一個測試函數，它回傳一個字元滿足此函數的子字串的列表。舉例來說，如果測試函數是對字母回傳真的 <tt class="docutils literal"><span class="pre">alpha-char-p</span></tt> 函數，我們得到：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">tokens</span> <span class="s">&quot;ab12 3cde.f&quot;</span> <span class="nf">#&#39;</span><span class="nb">alpha-char-p</span> <span class="mi">0</span><span class="p">)</span>
+<span class="p">(</span><span class="s">&quot;ab&quot;</span> <span class="s">&quot;cde&quot;</span> <span class="s">&quot;f&quot;</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>所有不滿足此函數的字元被視為空白 – 他們使記號分開，但永遠不是記號的一部分。</p>
+<p>函數 <tt class="docutils literal"><span class="pre">constituent</span></tt> 被定義成用來做為 <tt class="docutils literal"><span class="pre">tokens</span></tt> 的參數。</p>
+<p>在 Common Lisp 裡， <em>圖形字元</em> 是我們可見的字元，加上空白字元。所以如果我們用 <tt class="docutils literal"><span class="pre">constituent</span></tt> 做為測試函數時，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">tokens</span> <span class="s">&quot;ab12 3cde.f gh&quot;</span> <span class="nf">#&#39;</span><span class="nv">constituent</span> <span class="mi">0</span><span class="p">)</span>
+<span class="p">(</span><span class="s">&quot;ab12&quot;</span> <span class="s">&quot;3cde.f&quot;</span> <span class="s">&quot;gh&quot;</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>則記號將會有一般常見的空白概念。</p>
+<p>圖 4.3 包含了特別為解析日期用的函數。這函數 <tt class="docutils literal"><span class="pre">parse-date</span></tt> 接受一個特別形式的日期，並回傳一個代表其組成的整數列表：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">parse-date</span> <span class="s">&quot;16 Aug 1980&quot;</span><span class="p">)</span>
+<span class="p">(</span><span class="mi">16</span> <span class="mi">8</span> <span class="mi">1980</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">parse-date</span> <span class="p">(</span><span class="nv">str</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">toks</span> <span class="p">(</span><span class="nv">tokens</span> <span class="nv">str</span> <span class="nf">#&#39;</span><span class="nv">constituent</span> <span class="mi">0</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nb">list</span> <span class="p">(</span><span class="nb">parse-integer</span> <span class="p">(</span><span class="nb">first</span> <span class="nv">toks</span><span class="p">))</span>
+          <span class="p">(</span><span class="nv">parse-month</span>   <span class="p">(</span><span class="nb">second</span> <span class="nv">toks</span><span class="p">))</span>
+          <span class="p">(</span><span class="nb">parse-integer</span> <span class="p">(</span><span class="nb">third</span> <span class="nv">toks</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="nb">defconstant</span> <span class="nv">month-names</span>
+  <span class="o">#(</span><span class="s">&quot;jan&quot;</span> <span class="s">&quot;feb&quot;</span> <span class="s">&quot;mar&quot;</span> <span class="s">&quot;apr&quot;</span> <span class="s">&quot;may&quot;</span> <span class="s">&quot;jun&quot;</span>
+    <span class="s">&quot;jul&quot;</span> <span class="s">&quot;aug&quot;</span> <span class="s">&quot;sep&quot;</span> <span class="s">&quot;oct&quot;</span> <span class="s">&quot;nov&quot;</span> <span class="s">&quot;dec&quot;</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">parse-month</span> <span class="p">(</span><span class="nv">str</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">p</span> <span class="p">(</span><span class="nb">position</span> <span class="nv">str</span> <span class="nv">month-names</span>
+                         <span class="ss">:test</span> <span class="nf">#&#39;</span><span class="nb">string-equal</span><span class="p">)))</span>
+    <span class="p">(</span><span class="k">if</span> <span class="nv">p</span>
+        <span class="p">(</span><span class="nb">+</span> <span class="nv">p</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="no">nil</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>圖 4.3 解析日期的函數</p>
+<p>它使用 <tt class="docutils literal"><span class="pre">tokens</span></tt> 來解開一個日期字串，然後呼叫 <tt class="docutils literal"><span class="pre">parse-month</span></tt> 及 <tt class="docutils literal"><span class="pre">parse-integer</span></tt> 來解譯這些元素。要找到月份，它呼叫 <tt class="docutils literal"><span class="pre">parse-month</span></tt> ，由於使用的是 <tt class="docutils literal"><span class="pre">string-equal</span></tt> 來匹配月份的名字，所以輸入可以不分大小寫。要找到年和日，它呼叫內建的 <tt class="docutils literal"><span class="pre">parse-integer</span></tt> ， <tt class="docutils literal"><span class="pre">parse-integer</span></tt> 接受一個字串並回傳對應的整數。</p>
+<p>如果我們需要寫程式來解析整數，我們也許可以：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">read-integer</span> <span class="p">(</span><span class="nv">str</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">every</span> <span class="nf">#&#39;</span><span class="nb">digit-char-p</span> <span class="nv">str</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">accum</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="p">(</span><span class="nb">dotimes</span> <span class="p">(</span><span class="nv">pos</span> <span class="p">(</span><span class="nb">length</span> <span class="nv">str</span><span class="p">))</span>
+          <span class="p">(</span><span class="nb">setf</span> <span class="nv">accum</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nb">*</span> <span class="nv">accum</span> <span class="mi">10</span><span class="p">)</span>
+                         <span class="p">(</span><span class="nb">digit-char-p</span> <span class="p">(</span><span class="nb">char</span> <span class="nv">str</span> <span class="nv">pos</span><span class="p">)))))</span>
+        <span class="nv">accum</span><span class="p">)</span>
+    <span class="no">nil</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>這個定義演示了在 Common Lisp 中，字元是如何轉成數字的 – 函數 <tt class="docutils literal"><span class="pre">digit-char-p</span></tt> 不僅測試一個字元是否為數字，也回傳了對應的整數。</p>
+</div>
+<div class="section" id="structures">
+<h2>4.6 結構 (Structures)<a class="headerlink" href="#structures" title="永久链接至标题">¶</a></h2>
+<p>結構可以想成是豪華版的向量。假設你要寫一個程式來追蹤很多長方體。你可能會想用三個向量元素來表示長方體：高度、寬度及深度。你的程式會變得更容易讀，如果你與其使用原本的 <tt class="docutils literal"><span class="pre">svrefs</span></tt> ，而定義一個像是這樣</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">block-height</span> <span class="p">(</span><span class="nv">b</span><span class="p">)</span> <span class="p">(</span><span class="nb">svref</span> <span class="nv">b</span> <span class="mi">0</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>等等的函數來取代。你可以把結構想成是，這些函數都替你定義好了的向量。</p>
+<p>要定義一個結構，我們使用 <tt class="docutils literal"><span class="pre">defstruct</span></tt> 。在最簡單的情況下，我們只要給出結構及欄位的名字就可以了：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defstruct</span> <span class="nv">point</span>
+  <span class="nv">x</span>
+  <span class="nv">y</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>這定義了一個 <tt class="docutils literal"><span class="pre">point</span></tt> 具有兩個欄位 x 與 y 。它也隱性地定義了 <tt class="docutils literal"><span class="pre">make-point</span></tt> , <tt class="docutils literal"><span class="pre">point-p</span></tt> , <tt class="docutils literal"><span class="pre">copy-point</span></tt> , <tt class="docutils literal"><span class="pre">point-x</span></tt> 及 <tt class="docutils literal"><span class="pre">point-y</span></tt> 函數。</p>
+<p>2.3 節提到 Lisp 程式可以寫 Lisp 程式。這是我們目前所看過的明顯例子之一。當你呼叫 <tt class="docutils literal"><span class="pre">defstruct</span></tt> 時，它自動寫好了其它幾個函數的定義。有了巨集，你將能夠自己來辦到同樣的事情（如果你需要的話，你甚至可以自己寫 <tt class="docutils literal"><span class="pre">defstruct</span></tt> ）。</p>
+<p>每一個 <tt class="docutils literal"><span class="pre">make-point</span></tt> 的呼叫，會回傳一個新的 <tt class="docutils literal"><span class="pre">point</span></tt> 。我們可以藉由給予對應的關鍵字參數，來指定單一欄位的值：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">setf</span> <span class="nv">p</span> <span class="p">(</span><span class="nv">make-point</span> <span class="ss">:x</span> <span class="mi">0</span> <span class="ss">:y</span> <span class="mi">0</span><span class="p">))</span>
+<span class="l-Other">#S</span><span class="p">(</span><span class="nv">POINT</span> <span class="nv">X</span> <span class="mi">0</span> <span class="nv">Y</span> <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>存取 <tt class="docutils literal"><span class="pre">point</span></tt> 欄位的函數不僅被定義成可取出數值，也可以與 <tt class="docutils literal"><span class="pre">setf</span></tt> 合作使用。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">point-x</span> <span class="nv">p</span><span class="p">)</span>
+<span class="mi">0</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nv">point-y</span> <span class="nv">p</span><span class="p">)</span> <span class="mi">2</span><span class="p">)</span>
+<span class="mi">2</span>
+<span class="nb">&gt;</span> <span class="nv">p</span>
+<span class="l-Other">#S</span><span class="p">(</span><span class="nv">POINT</span> <span class="nv">X</span> <span class="mi">0</span> <span class="nv">Y</span> <span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>定義一個結構也定義了一個以此為名的型別。每個點會是型別 <tt class="docutils literal"><span class="pre">point</span></tt> ，然後是 <tt class="docutils literal"><span class="pre">structure</span></tt> ，接著是 <tt class="docutils literal"><span class="pre">atom</span></tt> ，最後是 <tt class="docutils literal"><span class="pre">t</span></tt> 。所以使用 <tt class="docutils literal"><span class="pre">point-p</span></tt> 來測試某個東西是不是一個點，也可以使用通用性的函數，像是 <tt class="docutils literal"><span class="pre">typep</span></tt> 來測試。</p>
+<p>我們可以藉由在本來的定義中，附上一個含有欄位名及一個預設表達式的列表，來指定結構欄位的預設值。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defstruct</span> <span class="nv">polemic</span>
+  <span class="p">(</span><span class="k">type</span> <span class="p">(</span><span class="k">progn</span>
+          <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;What kind of polemic was it? &quot;</span><span class="p">)</span>
+          <span class="p">(</span><span class="nb">read</span><span class="p">)))</span>
+  <span class="p">(</span><span class="nv">effect</span> <span class="no">nil</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果 <tt class="docutils literal"><span class="pre">make-polemic</span></tt> 呼叫沒有替這些欄位指定初始值，他們會被設成對應表達式的值：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">make-polemic</span><span class="p">)</span>
+<span class="nv">What</span> <span class="nv">kind</span> <span class="nv">of</span> <span class="nv">polemic</span> <span class="nv">was</span> <span class="nv">it?</span> <span class="nv">scathing</span>
+<span class="l-Other">#S</span><span class="p">(</span><span class="nv">POLEMIC</span> <span class="nv">TYPE</span> <span class="nv">SCATHING</span> <span class="nv">EFFECT</span> <span class="no">NIL</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>我們也可以控制結構顯示的方式，以及結構產生的存取函數的字首。這裡是一個更詳細的做了這兩件事的 <tt class="docutils literal"><span class="pre">point</span></tt> 定義：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defstruct</span> <span class="p">(</span><span class="nv">point</span> <span class="p">(</span><span class="ss">:conc-name</span> <span class="nv">p</span><span class="p">)</span>
+                  <span class="p">(</span><span class="ss">:print-function</span> <span class="nv">print-point</span><span class="p">))</span>
+  <span class="p">(</span><span class="nv">x</span> <span class="mi">0</span><span class="p">)</span>
+  <span class="p">(</span><span class="nv">y</span> <span class="mi">0</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">print-point</span> <span class="p">(</span><span class="nv">p</span> <span class="nc">stream</span> <span class="nv">depth</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">format</span> <span class="nc">stream</span> <span class="s">&quot;#&lt;~A, ~A&gt;&quot;</span> <span class="p">(</span><span class="nv">px</span> <span class="nv">p</span><span class="p">)</span> <span class="p">(</span><span class="nv">py</span> <span class="nv">p</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p><tt class="docutils literal"><span class="pre">:conc-name</span></tt> 參數指定了要放在欄位名前面的名字，並用這些名字來生成存取函數。預設是 <tt class="docutils literal"><span class="pre">point-</span></tt> ；現在變成只有 <tt class="docutils literal"><span class="pre">p</span></tt> 。不使用預設的方式，使你的程式碼的可讀性降低了一點，所以你只有在會常常用到這些存取函數時，你才會想做這類的事情。</p>
+<p><tt class="docutils literal"><span class="pre">:print-function</span></tt> 是在它需要被顯示時，應該要用的函數<em>名</em> – 比如，頂層要顯示時。這個函數需要接受三個參數：要被印出的結構，在哪裡被印出，第三個參數通常可以被忽略。 <a class="footnote-reference" href="#id6" id="id3">[2]</a> 我們會在 7.1 節討論這些流 (stream)。對現在來說，只要知道做為參數的流可以傳給 <tt class="docutils literal"><span class="pre">format</span></tt> 就好了。</p>
+<p>函數 <tt class="docutils literal"><span class="pre">print-point</span></tt> 會用縮寫的形式來顯示點：</p>
+<div class="highlight-cl"><pre>&gt; (make-point)
+#&lt;0,0&gt;</pre>
+</div>
+</div>
+<div class="section" id="example-binary-search-tree">
+<h2>4.7 範例：二元搜索樹 (Example: Binary Search Tree)<a class="headerlink" href="#example-binary-search-tree" title="永久链接至标题">¶</a></h2>
+<p>因為 <tt class="docutils literal"><span class="pre">sort</span></tt> 本身就內建了，你會很少，如果有的話，需要在 Common Lisp 裡寫排序程序。本節演示如何解決一個相關的問題，這個問題尚未有現成的解決方案：維護一個已排序的物件集合。本節的程式碼會把物件存在二元搜索樹裡（ <em>binary search tree</em> ）或稱作 BST。當二元搜索樹平衡時，它允許我們可以在與時間成 <tt class="docutils literal"><span class="pre">log</span> <span class="pre">n</span></tt> 比例的時間內，來尋找、新增或是刪除元素，其中 n 是集合的大小。</p>
+<div class="figure">
+<img alt="../_images/Figure-4.41.png" src="../_images/Figure-4.41.png" />
+</div>
+<p>圖 4.4: 二元搜索樹</p>
+<p>一個二元搜索樹是一種二元樹，其中給定某個排序函數 <tt class="docutils literal"><span class="pre">&lt;</span></tt> ，每個元素的左子樹都 <tt class="docutils literal"><span class="pre">&lt;</span></tt> 該元素，而該元素 <tt class="docutils literal"><span class="pre">&lt;</span></tt> 其右子樹。圖 4.4 展示一個根據 <tt class="docutils literal"><span class="pre">&lt;</span></tt> 排序的範例。</p>
+<p>圖 4.5 包含了二元搜索樹中，插入與尋找的函數。基本的資料結構會是 <tt class="docutils literal"><span class="pre">node</span></tt> （節點），它有三個欄位：一個是存在該節點的物件，以及各一個欄位，給節點的左子樹及右子樹。你可以把節點想成是有一個 <tt class="docutils literal"><span class="pre">car</span></tt> 和兩個 <tt class="docutils literal"><span class="pre">cdr</span></tt> 的一個 cons 核（cons cell）。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defstruct</span> <span class="p">(</span><span class="nv">node</span> <span class="p">(</span><span class="ss">:print-function</span>
+                  <span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">n</span> <span class="nv">s</span> <span class="nv">d</span><span class="p">)</span>
+                    <span class="p">(</span><span class="nb">format</span> <span class="nv">s</span> <span class="s">&quot;#&lt;~A&gt;&quot;</span> <span class="p">(</span><span class="nv">node-elt</span> <span class="nv">n</span><span class="p">)))))</span>
+  <span class="nb">elt</span> <span class="p">(</span><span class="nv">l</span> <span class="no">nil</span><span class="p">)</span> <span class="p">(</span><span class="nv">r</span> <span class="no">nil</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">bst-insert</span> <span class="p">(</span><span class="nv">obj</span> <span class="nv">bst</span> <span class="nb">&lt;</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">bst</span><span class="p">)</span>
+      <span class="p">(</span><span class="nv">make-node</span> <span class="ss">:elt</span> <span class="nv">obj</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nb">elt</span> <span class="p">(</span><span class="nv">node-elt</span> <span class="nv">bst</span><span class="p">)))</span>
+        <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">eql</span> <span class="nv">obj</span> <span class="nb">elt</span><span class="p">)</span>
+            <span class="nv">bst</span>
+            <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">funcall</span> <span class="nb">&lt;</span> <span class="nv">obj</span> <span class="nb">elt</span><span class="p">)</span>
+                <span class="p">(</span><span class="nv">make-node</span>
+                   <span class="ss">:elt</span> <span class="nb">elt</span>
+                   <span class="ss">:l</span> <span class="p">(</span><span class="nv">bst-insert</span> <span class="nv">obj</span> <span class="p">(</span><span class="nv">node-l</span> <span class="nv">bst</span><span class="p">)</span> <span class="nb">&lt;</span><span class="p">)</span>
+                   <span class="ss">:r</span> <span class="p">(</span><span class="nv">node-r</span> <span class="nv">bst</span><span class="p">))</span>
+                <span class="p">(</span><span class="nv">make-node</span>
+                   <span class="ss">:elt</span> <span class="nb">elt</span>
+                   <span class="ss">:r</span> <span class="p">(</span><span class="nv">bst-insert</span> <span class="nv">obj</span> <span class="p">(</span><span class="nv">node-r</span> <span class="nv">bst</span><span class="p">)</span> <span class="nb">&lt;</span><span class="p">)</span>
+                   <span class="ss">:l</span> <span class="p">(</span><span class="nv">node-l</span> <span class="nv">bst</span><span class="p">)))))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">bst-find</span> <span class="p">(</span><span class="nv">obj</span> <span class="nv">bst</span> <span class="nb">&lt;</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">bst</span><span class="p">)</span>
+      <span class="no">nil</span>
+      <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nb">elt</span> <span class="p">(</span><span class="nv">node-elt</span> <span class="nv">bst</span><span class="p">)))</span>
+        <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">eql</span> <span class="nv">obj</span> <span class="nb">elt</span><span class="p">)</span>
+            <span class="nv">bst</span>
+            <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">funcall</span> <span class="nb">&lt;</span> <span class="nv">obj</span> <span class="nb">elt</span><span class="p">)</span>
+                <span class="p">(</span><span class="nv">bst-find</span> <span class="nv">obj</span> <span class="p">(</span><span class="nv">node-l</span> <span class="nv">bst</span><span class="p">)</span> <span class="nb">&lt;</span><span class="p">)</span>
+                <span class="p">(</span><span class="nv">bst-find</span> <span class="nv">obj</span> <span class="p">(</span><span class="nv">node-r</span> <span class="nv">bst</span><span class="p">)</span> <span class="nb">&lt;</span><span class="p">))))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">bst-min</span> <span class="p">(</span><span class="nv">bst</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">and</span> <span class="nv">bst</span>
+       <span class="p">(</span><span class="nb">or</span> <span class="p">(</span><span class="nv">bst-min</span> <span class="p">(</span><span class="nv">node-l</span> <span class="nv">bst</span><span class="p">))</span> <span class="nv">bst</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">bst-max</span> <span class="p">(</span><span class="nv">bst</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">and</span> <span class="nv">bst</span>
+       <span class="p">(</span><span class="nb">or</span> <span class="p">(</span><span class="nv">bst-max</span> <span class="p">(</span><span class="nv">node-r</span> <span class="nv">bst</span><span class="p">))</span> <span class="nv">bst</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>圖 4.5 二元搜索樹：查詢與插入</p>
+<p>一個二元搜索樹可以是 <tt class="docutils literal"><span class="pre">nil</span></tt> 或是一個左子、右子樹都是二元搜索樹的節點。如同列表可由連續呼叫 <tt class="docutils literal"><span class="pre">cons</span></tt> 來創建，二元搜索樹將可以由連續呼叫 <tt class="docutils literal"><span class="pre">bst-insert</span></tt> 來創建。這個函數接受一個物件，一個二元搜索樹及一個排序函數，並回傳一個包含此物件的二元搜索樹。和 <tt class="docutils literal"><span class="pre">cons</span></tt> 函數一樣， <tt class="docutils literal"><span class="pre">bst-insert</span></tt> 不改動做為第二個參數傳入的二元搜索樹。以下是我們如何使用它，來創建一個二元搜索樹：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">nums</span> <span class="no">nil</span><span class="p">)</span>
+<span class="no">NIL</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">dolist</span> <span class="p">(</span><span class="nv">x</span> <span class="o">&#39;</span><span class="p">(</span><span class="mi">5</span> <span class="mi">8</span> <span class="mi">4</span> <span class="mi">2</span> <span class="mi">1</span> <span class="mi">9</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">setf</span> <span class="nv">nums</span> <span class="p">(</span><span class="nv">bst-insert</span> <span class="nv">x</span> <span class="nv">nums</span> <span class="nf">#&#39;</span><span class="nb">&lt;</span><span class="p">)))</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>圖 4.4 顯示了此時 <tt class="docutils literal"><span class="pre">nums</span></tt> 的結構所對應的樹。</p>
+<p>我們可以使用 <tt class="docutils literal"><span class="pre">bst-find</span></tt> ，它與 <tt class="docutils literal"><span class="pre">bst-insert</span></tt> 接受同樣的參數，來找到二元搜索樹中的物件。 先前敘述所提到的 <tt class="docutils literal"><span class="pre">node</span></tt> 結構，它像是一個具有兩個 <tt class="docutils literal"><span class="pre">cdr</span></tt> 的 cons 核。如果我們把 16 頁的 <tt class="docutils literal"><span class="pre">our-member</span></tt> 拿來與 <tt class="docutils literal"><span class="pre">bst-find</span></tt> 比較的話，這樣的類比變得更清楚。</p>
+<p>和 <tt class="docutils literal"><span class="pre">member</span></tt> 一樣， <tt class="docutils literal"><span class="pre">bst-find</span></tt> 不僅回傳要尋找的元素，也回傳了被找元素做為根節點的子樹：</p>
+<div class="highlight-cl"><pre>&gt; (bst-find 12 nums #'&lt;)
+NIL
+&gt; (bst-find 4 nums #'&lt;)
+#&lt;4&gt;</pre>
+</div>
+<p>這讓我們可以區分出無法找到某物以及成功找到 <tt class="docutils literal"><span class="pre">nil</span></tt> 的情況。</p>
+<p>要找到二元搜索樹的最小及最大的元素是很簡單的。要找到最小的，我們隨著左子的路徑走，如同 <tt class="docutils literal"><span class="pre">bst-min</span></tt> 所做的。要找到最大的，我們隨著右子的路徑走，如同 <tt class="docutils literal"><span class="pre">bst-max</span></tt> 所做的：</p>
+<div class="highlight-cl"><pre>&gt; (bst-min nums)
+#&lt;1&gt;
+&gt; (bst-max nums)
+#&lt;12&gt;</pre>
+</div>
+<p>要從二元搜索樹移除一個元素一樣很快，但需要更多程式碼。圖 4.6 演示了如何做到這件事。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">bst-remove</span> <span class="p">(</span><span class="nv">obj</span> <span class="nv">bst</span> <span class="nb">&lt;</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">bst</span><span class="p">)</span>
+      <span class="no">nil</span>
+      <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nb">elt</span> <span class="p">(</span><span class="nv">node-elt</span> <span class="nv">bst</span><span class="p">)))</span>
+        <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">eql</span> <span class="nv">obj</span> <span class="nb">elt</span><span class="p">)</span>
+            <span class="p">(</span><span class="nv">percolate</span> <span class="nv">bst</span><span class="p">)</span>
+            <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">funcall</span> <span class="nb">&lt;</span> <span class="nv">obj</span> <span class="nb">elt</span><span class="p">)</span>
+                <span class="p">(</span><span class="nv">make-node</span>
+                   <span class="ss">:elt</span> <span class="nb">elt</span>
+                   <span class="ss">:l</span> <span class="p">(</span><span class="nv">bst-remove</span> <span class="nv">obj</span> <span class="p">(</span><span class="nv">node-l</span> <span class="nv">bst</span><span class="p">)</span> <span class="nb">&lt;</span><span class="p">)</span>
+                   <span class="ss">:r</span> <span class="p">(</span><span class="nv">node-r</span> <span class="nv">bst</span><span class="p">))</span>
+                <span class="p">(</span><span class="nv">make-node</span>
+                   <span class="ss">:elt</span> <span class="nb">elt</span>
+                   <span class="ss">:r</span> <span class="p">(</span><span class="nv">bst-remove</span> <span class="nv">obj</span> <span class="p">(</span><span class="nv">node-r</span> <span class="nv">bst</span><span class="p">)</span> <span class="nb">&lt;</span><span class="p">)</span>
+                   <span class="ss">:l</span> <span class="p">(</span><span class="nv">node-l</span> <span class="nv">bst</span><span class="p">)))))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">percolate</span> <span class="p">(</span><span class="nv">bst</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">cond</span> <span class="p">((</span><span class="nb">null</span> <span class="p">(</span><span class="nv">node-l</span> <span class="nv">bst</span><span class="p">))</span>
+         <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">null</span> <span class="p">(</span><span class="nv">node-r</span> <span class="nv">bst</span><span class="p">))</span>
+             <span class="no">nil</span>
+             <span class="p">(</span><span class="nv">rperc</span> <span class="nv">bst</span><span class="p">)))</span>
+        <span class="p">((</span><span class="nb">null</span> <span class="p">(</span><span class="nv">node-r</span> <span class="nv">bst</span><span class="p">))</span> <span class="p">(</span><span class="nv">lperc</span> <span class="nv">bst</span><span class="p">))</span>
+        <span class="p">(</span><span class="no">t</span> <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">zerop</span> <span class="p">(</span><span class="nb">random</span> <span class="mi">2</span><span class="p">))</span>
+               <span class="p">(</span><span class="nv">lperc</span> <span class="nv">bst</span><span class="p">)</span>
+               <span class="p">(</span><span class="nv">rperc</span> <span class="nv">bst</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">rperc</span> <span class="p">(</span><span class="nv">bst</span><span class="p">)</span>
+  <span class="p">(</span><span class="nv">make-node</span> <span class="ss">:elt</span> <span class="p">(</span><span class="nv">node-elt</span> <span class="p">(</span><span class="nv">node-r</span> <span class="nv">bst</span><span class="p">))</span>
+             <span class="ss">:l</span> <span class="p">(</span><span class="nv">node-l</span> <span class="nv">bst</span><span class="p">)</span>
+             <span class="ss">:r</span> <span class="p">(</span><span class="nv">percolate</span> <span class="p">(</span><span class="nv">node-r</span> <span class="nv">bst</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>圖 4.6 二元搜索樹：刪除</p>
+<p><strong>勘誤:</strong> 此版 <tt class="docutils literal"><span class="pre">bst-remove</span></tt> 定義已被回報是壞掉的，請參考 <a class="reference external" href="https://gist.github.com/2868263">這裡</a> 獲得一個修補後的版本。</p>
+<p>函數 <tt class="docutils literal"><span class="pre">bst-remove</span></tt> 接受一個物件，一個二元搜索樹以及一個排序函數，並回傳一個像是本來的二元搜索樹，但不含那個要移除的物件。跟 <tt class="docutils literal"><span class="pre">remove</span></tt> 一樣，它不改動做為第二個參數傳入的二分搜索樹：</p>
+<div class="highlight-cl"><pre>&gt; (setf nums (bst-remove 2 nums #'&lt;))
+#&lt;5&gt;
+&gt; (bst-find 2 nums #'&lt;)
+NIL</pre>
+</div>
+<p>此時 <tt class="docutils literal"><span class="pre">nums</span></tt> 應有像是圖 4.7 所顯示的結構。（另一個可能性是 1 取代了 2 的位置。）</p>
+<div class="figure">
+<img alt="../_images/Figure-4.71.png" src="../_images/Figure-4.71.png" />
+</div>
+<p>圖 4.7: 二元搜索樹</p>
+<p>刪除需要更多工作因為從內部節點移除一個物件，會留下一個空缺，需要由其中一個孩子來填補。這是 <tt class="docutils literal"><span class="pre">percolate</span></tt> 函數的用途。它替換一個二元搜索樹的樹根（topmost element）時，用其中一個孩子來替換，並用此孩子的孩子來填補，如此這般一直做下去。</p>
+<p>為了要保持樹的平衡，如果有兩個孩子時， <tt class="docutils literal"><span class="pre">perlocate</span></tt> 隨機擇一替換。表達式 <tt class="docutils literal"><span class="pre">(random</span> <span class="pre">2)</span></tt> 會回傳 0 或 1，所以 <tt class="docutils literal"><span class="pre">(zerop</span> <span class="pre">(random</span> <span class="pre">2))</span></tt> 會回傳真或假。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">bst-traverse</span> <span class="p">(</span><span class="nv">fn</span> <span class="nv">bst</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">when</span> <span class="nv">bst</span>
+    <span class="p">(</span><span class="nv">bst-traverse</span> <span class="nv">fn</span> <span class="p">(</span><span class="nv">node-l</span> <span class="nv">bst</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">funcall</span> <span class="nv">fn</span> <span class="p">(</span><span class="nv">node-elt</span> <span class="nv">bst</span><span class="p">))</span>
+    <span class="p">(</span><span class="nv">bst-traverse</span> <span class="nv">fn</span> <span class="p">(</span><span class="nv">node-r</span> <span class="nv">bst</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>圖 4.8 二元搜索樹：走訪</p>
+<p>一旦我們把一個物件集合插入至二元搜索樹時，中序走訪會將它們由小至大排序。這是圖 4.8 中， <tt class="docutils literal"><span class="pre">bst-traverse</span></tt> 函數的用途：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">bst-traverse</span> <span class="nf">#&#39;</span><span class="nb">princ</span> <span class="nv">nums</span><span class="p">)</span>
+<span class="mi">13456789</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>（函數 <tt class="docutils literal"><span class="pre">princ</span></tt> 僅顯示一個單一物件）</p>
+<p>本節所給出的程式碼，提供了一個二元搜索樹實作的骨架。你可能想根據應用需求，來充實其骨架。舉例來說，這裡所給出的程式碼每個節點只有一個 <tt class="docutils literal"><span class="pre">elt</span></tt> 欄位；在許多應用裡，有兩個欄位會更有意義， <tt class="docutils literal"><span class="pre">key</span></tt> 與 <tt class="docutils literal"><span class="pre">value</span></tt> 。本章的這個版本把二元搜索樹視為集合看待，從這個角度看，重複的插入是被忽略的。但是程式碼可以很簡單地改動，來處理重複的元素。</p>
+<p>二元搜索樹不僅是維護一個已排序物件的集合的方法。他們是否是最好的方法，取決於你的應用。一般來說，二元搜索樹最適合用在插入與刪除是均勻分布的情況。有一件他們不適合的事，是用來維護優先佇列（priority queues）。在一個優先佇列裡，插入也許是均勻分布的，但刪除總是在一個末端。這會導致一個二元搜索樹變得不平衡，而我們所期望的複雜度是 <tt class="docutils literal"><span class="pre">O(log(n))</span></tt> 插入與刪除操作，會變成 <tt class="docutils literal"><span class="pre">O(n)</span></tt> 。如果你用二元搜索樹來表示一個優先佇列，你也可以使用一般的列表，因為二元搜索樹最終會作用的像個列表。</p>
+</div>
+<div class="section" id="hash-table">
+<h2>4.8 雜湊表 (Hash Table)<a class="headerlink" href="#hash-table" title="永久链接至标题">¶</a></h2>
+<p>第三章演示了列表可以用來表示集合（sets）與映射（mappings）。當列表的長度大幅上升時（或是 10 個元素），使用雜湊表會來得比較快。你透過呼叫 <tt class="docutils literal"><span class="pre">make-hash-table</span></tt> 來創建一個雜湊表，它不需要傳入參數：</p>
+<div class="highlight-cl"><pre>&gt; (setf ht (make-hash-table))
+#&lt;Hash-Table BF0A96&gt;</pre>
+</div>
+<p>和函數一樣，雜湊表總是用 <tt class="docutils literal"><span class="pre">#&lt;...&gt;</span></tt> 的形式來顯示。</p>
+<p>一個雜湊表，像是一個關聯列表，是一種表達相關物件的方式。要取出與一給定鍵值有關的數值，我們呼叫 <tt class="docutils literal"><span class="pre">gethash</span></tt> 並傳入一個鍵值與雜湊表 。預設情況下，如果沒有與這個鍵值相關的數值， <tt class="docutils literal"><span class="pre">gethash</span></tt> 會回傳 <tt class="docutils literal"><span class="pre">nil</span></tt> 。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">gethash</span> <span class="ss">&#39;color</span> <span class="nv">ht</span><span class="p">)</span>
+<span class="no">NIL</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>在這裡我們首次看到 Common Lisp 最突出的特色之一：一個表達式可以回傳多個數值。函數 <tt class="docutils literal"><span class="pre">gethash</span></tt> 回傳兩個數值。第一個值是與鍵值有關的數值，第二個值說明了雜湊表是否有任何用此鍵值來儲存的數值。因為第二個值是 <tt class="docutils literal"><span class="pre">nil</span></tt> ，我們知道第一個 <tt class="docutils literal"><span class="pre">nil</span></tt> 是預設的回傳值，而不是因為 <tt class="docutils literal"><span class="pre">nil</span></tt> 是與 <tt class="docutils literal"><span class="pre">color</span></tt> 有關的數值。</p>
+<p>大部分的實作會在頂層顯示一個函數呼叫的所有回傳值，但僅期待一個回傳值的程式碼，會只收到第一個回傳值。 5.5 節會說明程式碼是如何接收多個回傳值。</p>
+<p>要把一個數值與鍵值作關聯，我們使用 <tt class="docutils literal"><span class="pre">gethash</span></tt> 搭配 <tt class="docutils literal"><span class="pre">setf</span></tt> ：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">gethash</span> <span class="ss">&#39;color</span> <span class="nv">ht</span><span class="p">)</span> <span class="ss">&#39;red</span><span class="p">)</span>
+<span class="nv">RED</span>
+</pre></div>
+</td></tr></table></div>
+<p>現在如果我們再次呼叫 <tt class="docutils literal"><span class="pre">gethash</span></tt> ，我們會得到我們剛插入的值：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">gethash</span> <span class="ss">&#39;color</span> <span class="nv">ht</span><span class="p">)</span>
+<span class="nv">RED</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+<p>第二個回傳值證明，我們取得了一個真正儲存的物件，而不是預設值。</p>
+<p>存在雜湊表的物件或是鍵值可以是任何型別。舉例來說，如果我們要保留函數的某種訊息，我們可以使用一個雜湊表，用函數做為鍵值，字串做為詞條（entry）：</p>
+<div class="highlight-cl"><pre>&gt; (setf bugs (make-hash-table))
+#&lt;Hash-Table BF4C36&gt;
+&gt; (push "Doesn't take keyword arguments."
+        (gethash #'our-member bugs))
+("Doesn't take keyword arguments.")</pre>
+</div>
+<p>由於 <tt class="docutils literal"><span class="pre">gethash</span></tt> 預設回傳 <tt class="docutils literal"><span class="pre">nil</span></tt> ，而 <tt class="docutils literal"><span class="pre">push</span></tt> 是 <tt class="docutils literal"><span class="pre">setf</span></tt> 的縮寫，我們可以簡單地把新的字串推入一個函數的詞條。（有困擾的 <tt class="docutils literal"><span class="pre">our-member</span></tt> 定義在 16 頁。）</p>
+<p>你可以用雜湊表取代列表來表示集合。當集合變大時，雜湊表的查詢與刪除應該比較快。要新增一個成員到用雜湊表所表示的集合，把 <tt class="docutils literal"><span class="pre">gethash</span></tt> 用 <tt class="docutils literal"><span class="pre">setf</span></tt> 設成 <tt class="docutils literal"><span class="pre">t</span></tt> ：</p>
+<div class="highlight-cl"><pre>&gt; (setf fruit (make-hash-table))
+#&lt;Hash-Table BFDE76&gt;
+&gt; (setf (gethash 'apricot fruit) t)
+T</pre>
+</div>
+<p>然後要測試是否為成員，你只要呼叫：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">gethash</span> <span class="ss">&#39;apricot</span> <span class="nv">fruit</span><span class="p">)</span>
+<span class="no">T</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+<p>由於 <tt class="docutils literal"><span class="pre">gethash</span></tt> 預設回傳真，一個新創的雜湊表，很方便地是一個空集合。</p>
+<p>要從集合中移除一個物件，你可以呼叫 <tt class="docutils literal"><span class="pre">remhash</span></tt> ，它從一個雜湊表中移除一個詞條（entry）：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">remhash</span> <span class="ss">&#39;apricot</span> <span class="nv">fruit</span><span class="p">)</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+<p>回傳值說明了那裡是否有詞條被移除；在這個情況裡，有。</p>
+<p>雜湊表有一個迭代函數： <tt class="docutils literal"><span class="pre">maphash</span></tt> ，它接受一個兩個參數的函數及一個雜湊表。函數會被每個鍵值對呼叫，沒有特定的順序：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">gethash</span> <span class="ss">&#39;shape</span> <span class="nv">ht</span><span class="p">)</span> <span class="ss">&#39;spherical</span>
+        <span class="p">(</span><span class="nb">gethash</span> <span class="ss">&#39;size</span> <span class="nv">ht</span><span class="p">)</span> <span class="ss">&#39;giant</span><span class="p">)</span>
+<span class="nv">GIANT</span>
+
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">maphash</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">k</span> <span class="nv">v</span><span class="p">)</span>
+               <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;~A = ~A~%&quot;</span> <span class="nv">k</span> <span class="nv">v</span><span class="p">))</span>
+           <span class="nv">ht</span><span class="p">)</span>
+<span class="nv">SHAPE</span> <span class="nb">=</span> <span class="nv">SPHERICAL</span>
+<span class="nv">SIZE</span> <span class="nb">=</span> <span class="nv">GIANT</span>
+<span class="nv">COLOR</span> <span class="nb">=</span> <span class="nv">RED</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>它總是回傳 <tt class="docutils literal"><span class="pre">nil</span></tt> ，但你可以透過傳入一個會累積數值的函數，把它們存在一個列表裡。</p>
+<p>雜湊表可以容納任何數目的元素，因為當空間用完時，它們會被擴張。如果你想要確保一個雜湊表，從特定數目的元素空間開始時，你可以給一個選擇性的 <tt class="docutils literal"><span class="pre">:size</span></tt> 參數給 <tt class="docutils literal"><span class="pre">make-hash-table</span></tt> 。做這件事情有兩個理由：因為你知道雜湊表會變得很大，你想要避免擴張它；或是因為你知道雜湊表會是很小，你不想要浪費記憶體。 <tt class="docutils literal"><span class="pre">:size</span></tt> 參數不僅指定了雜湊表的空間，也指定了元素的數量。平均來說，在被擴張前所能夠容納的數量。所以</p>
+<p><tt class="docutils literal"><span class="pre">(make-hash-table</span> <span class="pre">:size</span> <span class="pre">5)</span></tt></p>
+<p>會回傳一個預期存放五個元素的雜湊表。</p>
+<p>和任何牽涉到查詢的結構一樣，雜湊表一定有某種比較鍵值的概念。預設是使用 <tt class="docutils literal"><span class="pre">eql</span></tt> ，但你可以提供一個額外的參數 <tt class="docutils literal"><span class="pre">:test</span></tt> 來告訴一個雜湊表要使用 <tt class="docutils literal"><span class="pre">eq</span></tt> ， <tt class="docutils literal"><span class="pre">equal</span></tt> ，還是 <tt class="docutils literal"><span class="pre">equalp</span></tt> ：</p>
+<div class="highlight-cl"><pre>&gt; (setf writers (make-hash-table :test #'equal))
+#&lt;Hash-Table C005E6&gt;
+&gt; (setf (gethash '(ralph waldo emerson) writers) t)
+T</pre>
+</div>
+<p>這是一個我們要使雜湊表有效率的取捨之一。有了列表，我們可以指定 <tt class="docutils literal"><span class="pre">member</span></tt> 來判斷相等的判斷式。有了雜湊表，我們可以預先決定，並在雜湊表創建時指定它。</p>
+<p>大多數 Lisp 程式設計的的取捨（或是生活，就此而論）都有這種特質。起初你想要事情進行得流暢，甚至賠上效率的代價。之後，當程式碼變得沈重時，你犧牲了彈性來換取速度。</p>
+</div>
+<div class="section" id="chapter-4-summary">
+<h2>Chapter 4 總結 (Summary)<a class="headerlink" href="#chapter-4-summary" title="永久链接至标题">¶</a></h2>
+<ol class="arabic simple">
+<li>Common Lisp 支援至少 7 個維度的陣列。一維陣列稱為向量。</li>
+<li>字串是字元的向量。字元本身就是物件。</li>
+<li>序列包括了向量與列表。許多序列函數都接受標準的關鍵字參數。</li>
+<li>因為有許多函數都支援字串，所以在 Lisp 裡做解析是容易的。</li>
+<li>呼叫 <tt class="docutils literal"><span class="pre">defstruct</span></tt> 定義了一個帶有命名欄位的結構。它是一個程式能寫出程式的好例子。</li>
+<li>二元搜索樹見長於維護一個已排序的物件集合。</li>
+<li>雜湊表提供了一個更有效率的方式來表示集合（sets）與映射 (mappings)。</li>
+</ol>
+</div>
+<div class="section" id="chapter-4-exercises">
+<h2>Chapter 4 練習 (Exercises)<a class="headerlink" href="#chapter-4-exercises" title="永久链接至标题">¶</a></h2>
+<ol class="arabic simple">
+<li>定義一個函數，接受一個平方陣列（square array, 一個相同維度的陣列 <tt class="docutils literal"><span class="pre">(n</span> <span class="pre">n)</span></tt> )，並將它順時針轉 90 度。</li>
+</ol>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">quarter-turn</span> <span class="l-Other">#2A</span><span class="p">((</span><span class="nv">a</span> <span class="nv">b</span><span class="p">)</span> <span class="p">(</span><span class="nv">c</span> <span class="nv">d</span><span class="p">)))</span>
+<span class="l-Other">#2A</span><span class="p">((</span><span class="nv">C</span> <span class="nv">A</span><span class="p">)</span> <span class="p">(</span><span class="nv">D</span> <span class="nv">B</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>你會需要用到 361 頁的 <tt class="docutils literal"><span class="pre">array-dimensions</span></tt> 。</p>
+<ol class="arabic simple" start="2">
+<li>閱讀 368 頁的 <tt class="docutils literal"><span class="pre">reduce</span></tt> 說明，然後用它來定義：</li>
+</ol>
+<div class="highlight-cl"><pre>(a) copy-list
+(b) reverse（針對列表）</pre>
+</div>
+<ol class="arabic simple" start="3">
+<li>定義一個結構來表示一個樹，其中每個節點包含某些資料及三個小孩。定義：</li>
+</ol>
+<div class="highlight-cl"><pre>(a) 一個函數來複製這樣的樹（複製完的節點與本來的節點是不相等(eql)的）
+(b) 一個函數，接受一個物件與這樣的樹，如果物件與樹中各節點的其中一個欄位相等時，回傳真。</pre>
+</div>
+<ol class="arabic simple" start="4">
+<li>定義一個函數，接受一個二元搜索樹，並回傳由此樹元素所組成的，一個由大至小排序的列表。</li>
+<li>定義 <tt class="docutils literal"><span class="pre">bst-adjoin</span></tt> 。這個函數應與 <tt class="docutils literal"><span class="pre">bst-insert</span></tt> 接受相同的參數，但應該只在物件不等於任何樹中物件時將其插入。</li>
+</ol>
+<p><strong>勘誤:</strong> <tt class="docutils literal"><span class="pre">bst-adjoin</span></tt> 的功能與 <tt class="docutils literal"><span class="pre">bst-insert</span></tt> 一模一樣。</p>
+<ol class="arabic simple" start="6">
+<li>任何雜湊表的內容可以由關聯列表(assoc-list)來描述，其中列表的元素是 <tt class="docutils literal"><span class="pre">(k</span> <span class="pre">.</span> <span class="pre">v)</span></tt> 的形式，對應到雜湊表中的每一個鍵值對。定義一個函數：</li>
+</ol>
+<div class="highlight-cl"><pre>(a) 接受一個關聯列表，並回傳一個對應的雜湊表。
+(b) 接受一個雜湊表，並回傳一個對應的關聯列表。</pre>
+</div>
+<p class="rubric">腳註</p>
+<table class="docutils footnote" frame="void" id="id5" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[1]</a></td><td>一個簡單的陣列是不可調整的(neither adjustable)、不可替換的 (nor displaced)，且沒有填充指標 (fill-pointer)。陣列預設是簡單的。一個簡單向量是一個一維簡單陣列，可以含有任何型別的元素。</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id6" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[2]</a></td><td>在 Ansi Common Lisp 裡，你可以給一個 <tt class="docutils literal"><span class="pre">:print-object</span></tt> 的關鍵字參數來取代，它只需要兩個參數。也有一個巨集叫做 <tt class="docutils literal"><span class="pre">print-unreadable-object</span></tt> ，在可用時，應該要使用這個，可以用 <tt class="docutils literal"><span class="pre">#&lt;...&gt;</span></tt> 的語法來顯示物件。</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'acl-chinese';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+                  </div></div>
+              </article><div class="clearer"></div>
+          </div><div class="span3">
+                <div class="sphinxsidebar">
+      <div id="sidenav" class="box sphinxsidebarwrapper">
+
+
+<h4><a href="../index.html">內容目录</a></h4>
+  <ul>
+<li><a class="reference internal" href="#">第四章：特殊資料結構</a><ul>
+<li><a class="reference internal" href="#array">4.1 陣列 (Array)</a></li>
+<li><a class="reference internal" href="#example-binary-search">4.2 範例：二分搜索 (Example: Binary Search)</a></li>
+<li><a class="reference internal" href="#strings-and-characters">4.3 字元與字串 (Strings and Characters)</a></li>
+<li><a class="reference internal" href="#sequences">4.4 序列 (Sequences)</a></li>
+<li><a class="reference internal" href="#example-parsing-dates">4.5 範例：解析日期 (Example: Parsing Dates)</a></li>
+<li><a class="reference internal" href="#structures">4.6 結構 (Structures)</a></li>
+<li><a class="reference internal" href="#example-binary-search-tree">4.7 範例：二元搜索樹 (Example: Binary Search Tree)</a></li>
+<li><a class="reference internal" href="#hash-table">4.8 雜湊表 (Hash Table)</a></li>
+<li><a class="reference internal" href="#chapter-4-summary">Chapter 4 總結 (Summary)</a></li>
+<li><a class="reference internal" href="#chapter-4-exercises">Chapter 4 練習 (Exercises)</a></li>
+</ul>
+</li>
+</ul>
+
+  
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      
+      
+        <li><a href="https://github.com/acl-translation/acl-chinese/blob/redirect-to-new-domain/zhTW/ch4.rst">
+          Show on GitHub</a></li>
+        <li><a href="https://github.com/acl-translation/acl-chinese/edit/redirect-to-new-domain/zhTW/ch4.rst">
+          Edit on GitHub</a></li>
+      
+    </ul>
+  
+</div>
+    </div>
+              </div></div>
+      </div>
+<footer class="container-fluid">
+        <hr />&copy; 版权所有 2012, Juanito Fatas Huang.最后更新日期是 Apr 22, 2013.使用 <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.</footer>
+ <!-- End original user content -->
+
+
+<br>
+<br>
+<br>
+
+
+<style type="text/css">
+  .rtd-badge {
+    position: fixed;
+    display: block;
+    bottom: 5px;
+    height: 40px;
+    text-indent: -9999em;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -moz-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  }
+  #version_menu {
+    position: fixed;
+    display: none;
+    bottom: 11px;
+    right: 166px;
+    list-style-type: none;
+    margin: 0;
+  }
+  .footer_popout:hover #version_menu {
+    display: block;
+  }
+  #version_menu li {
+    display: block;
+    float: right;
+  }
+  #version_menu li a {
+    display: block;
+    padding: 6px 10px 4px 10px;
+    margin: 7px 7px 0 0;
+    font-weight: bold;
+    font-size: 14px;
+    height: 20px;
+    line-height: 17px;
+    text-decoration: none;
+    color: #fff;
+    background: #8ca1af url(../images/gradient-light.png) bottom left repeat-x;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 1px #465158;
+    -moz-box-shadow: 0 1px 1px #465158;
+    -webkit-box-shadow: 0 1px 1px #465158;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+  }
+  #version_menu li a:hover {
+    text-decoration: none;
+    background-color: #697983;
+    box-shadow: 0 1px 0px #465158;
+    -moz-box-shadow: 0 1px 0px #465158;
+    -webkit-box-shadow: 0 1px 0px #465158;
+  }
+  .rtd-badge.rtd {
+    background: #3b4449 url(//media.readthedocs.org//images/badge-rtd.png) scroll 0px -46px no-repeat;
+    border: 1px solid #282E32;
+    width: 41px;
+    right: 5px;
+  }
+  .footer_popout:hover .rtd-badge.rtd {
+    background-position: top left;
+    width: 160px;
+  }
+  .rtd-badge.revsys { background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline-sponsored {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys-sm.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 205px;
+    right: 173px;
+  }
+
+</style>
+<div class="rtd_doc_footer">
+  <div class="footer_popout">
+    <a href="//readthedocs.org/projects/ansi-common-lisp/?fromdocs=ansi-common-lisp" class="rtd-badge rtd"> Brought to you by Read the Docs</a>
+    <ul id="version_menu">
+      
+        <li><a href="/en/latest/">latest</a></li>
+      
+    </ul>
+  </div>
+</div>
+<!-- RTD Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-17997319-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+<!-- User Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-26995626-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,880 @@
+<!DOCTYPE HTML>
+
+  <html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+<title>第十三章：速度 &mdash; ANSI Common Lisp 中文版</title>
+    
+<!-- RTD <head> -->
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/underscore.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/doctools.js"></script>
+
+<script type="text/javascript">
+  // This is included here for Javascript that doesn't have access to the templates.
+  var doc_version = "latest";
+  var doc_slug = "ansi-common-lisp";
+</script>
+
+<script type="text/javascript" src="//media.readthedocs.org/javascript/rtd.js"></script>
+<!-- end RTD <head> -->
+
+    <link rel="stylesheet" href="../_static/han.min.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/rosefinch.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/main.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:       '../',
+        VERSION:        '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX:    '.html',
+        HAS_SOURCE:     true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/han.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  <script type="text/javascript" src=../_static/jquery.dimensions.js"></script>
+  <script type="text/javascript" src="../_static/main.js"></script><link rel="top" title="ANSI Common Lisp 中文版" href="../index.html" /></head>
+
+  <body><div class="navbar navbar-static-top navbar-inverse">
+        <div id="top-bar" class="navbar-inner">
+
+          <h1 id="logo">ANSI Common Lisp 中文版<a href="../index.html" class="brand">ANSI Common Lisp 中文版</a></h1>
+          <ul class="nav"></ul><a href="https://github.com/acl-translation/acl-chinese"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
+        </div>
+      </div><div class="content container-fluid">
+        <div class="row-fluid"><div class="document span9"><article >
+                <div class="documentwrapper"><div class="body"><div class="section" id="id1">
+<h1>第十三章：速度<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h1>
+<p>Lisp 实际上是两种语言：一种能写出快速执行的程序，一种则能让你快速的写出程序。
+在程序开发的早期阶段，你可以为了开发上的便捷舍弃程序的执行速度。一旦程序的结构开始固化，你就可以精炼其中的关键部分以使得它们执行的更快。</p>
+<p>由于各个 Common Lisp 实现间的差异，很难针对优化给出通用的建议。在一个实现上使程序变快的修改也许在另一个实现上会使得程序变慢。这是难免的事儿。越强大的语言，离机器底层就越远，离机器底层越远，语言的不同实现沿着不同路径趋向它的可能性就越大。因此，即便有一些技巧几乎一定能够让程序运行的更快，本章的目的也只是建议而不是规定。</p>
+<div class="section" id="the-bottleneck-rule">
+<h2>13.1 瓶颈规则 (The Bottleneck Rule)<a class="headerlink" href="#the-bottleneck-rule" title="永久链接至标题">¶</a></h2>
+<p>不管是什么实现，关于优化都可以整理出三点规则：它应该关注瓶颈，它不应该开始的太早，它应该始于算法。</p>
+<p>也许关于优化最重要的事情就是要意识到，程序中的大部分执行时间都是被少数瓶颈所消耗掉的。
+正如<a class="reference external" href="http://en.wikipedia.org/wiki/Donald_Knuth">高德纳</a>所说，“在一个与 I/O 无关 (Non-I/O bound) 的程序中，大部分的运行时间集中在大概 3% 的源代码中。” <a class="reference external" href="http://ansi-common-lisp.readthedocs.org/en/latest/zhCN/notes-cn.html#notes-213">λ</a> 优化程序的这一部分将会使得它的运行速度明显的提升；相反，优化程序的其他部分则是在浪费时间。</p>
+<p>因此，优化程序时关键的第一步就是找到瓶颈。许多 Lisp 实现都提供性能分析器 (profiler) 来监视程序的运行并报告每一部分所花费的时间量。
+为了写出最为高效的代码，性能分析器非常重要，甚至是必不可少的。
+如果你所使用的 Lisp 实现带有性能分析器，那么请在进行优化时使用它。另一方面，如果实现没有提供性能分析器的话，那么你就不得不通过猜测来寻找瓶颈，而且这种猜测往往都是错的！</p>
+<p>瓶颈规则的一个推论是，不应该在程序的初期花费太多的精力在优化上。<a class="reference external" href="http://en.wikipedia.org/wiki/Donald_Knuth">高德纳</a>对此深信不疑：“过早的优化是一切 (至少是大多数) 问题的源头。” <a class="reference external" href="http://ansi-common-lisp.readthedocs.org/en/latest/zhCN/notes-cn.html#notes-214">λ</a>
+在刚开始写程序的时候，通常很难看清真正的瓶颈在哪，如果这个时候进行优化，你很可能是在浪费时间。优化也会使程序的修改变得更加困难，边写程序边优化就像是在用风干非常快的颜料来画画一样。</p>
+<p>在适当的时候做适当的事情，可以让你写出更优秀的程序。
+Lisp 的一个有点就是能让你用两种不同的工作方式来进行开发：很快地写出运行较慢的代码，或者，放慢写程序的速度，精雕细琢，从而得出运行得较快的代码。</p>
+<p>在程序开发的初期阶段，工作通常在第一种模式下进行，只有当性能成为问题的时候，才切换到第二种模式。
+对于非常底层的语言，比如汇编，你必须优化程序的每一行。但这么做会浪费你大部分的精力，因为瓶颈仅仅是其中很小的那部分代码。一个更加抽象的语言能够让你把主要精力集中在瓶颈上， 达到事半功倍的效果。</p>
+<p>当真正开始优化的时候，还必须从最顶端入手。
+在使用各种低层次的编码技巧 (low-level coding tricks) 之前，请先确保你已经使用了最为高效的算法。
+这么做的潜在好处相当大 –– 甚至可能大到你都不再需要玩那些奇淫技巧。
+当然本规则还是要和前一个规则保持平衡。
+有些时候，关于算法的决策必须尽早进行。</p>
+</div>
+<div class="section" id="compilation">
+<h2>13.2 编译 (Compilation)<a class="headerlink" href="#compilation" title="永久链接至标题">¶</a></h2>
+<p>有五个参数可以控制代码的编译方式： <em>speed</em> (速度)代表编译器产生代码的速度； <em>compilation-speed</em> (编译速度)代表程序被编译的速度； <em>safety</em> (安全) 代表要对目标代码进行错误检查的数量； <em>space</em> (空间)代表目标代码的大小和内存需求量；最后， <em>debug</em> (调试)代表为了调试而保留的信息量。</p>
+<div class="admonition note">
+<p class="first admonition-title">注解</p>
+<p>交互与解释 (INTERACTIVE VS. INTERPRETED)</p>
+<p>Lisp 是一种交互式语言 (Interactive Language)，但是交互式的语言不必都是解释型的。早期的 Lisp 都通过解释器实现，因此认为 Lisp 的特质都依赖于它是被解释的想法就这么产生了。但这种想法是错误的：Common Lisp 既是编译型语言，又是解释型语言。</p>
+<p class="last">至少有两种 Common Lisp 实现甚至都不包含解释器。在这些实现中，输入到顶层的表达式在求值前会被编译。因此，把顶层叫做解释器的这种说法，不仅是落伍的，甚至还是错误的。</p>
+</div>
+<p>编译参数不是真正的变量。它们在声明中被分配从 <tt class="docutils literal"><span class="pre">0</span></tt> (最不重要) 到 <tt class="docutils literal"><span class="pre">3</span></tt> (最重要) 的权值。如果一个主要的瓶颈发生在某个函数的内层循环中，我们或许可以添加如下的声明：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">bottleneck</span> <span class="p">(</span><span class="o">...</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">do</span> <span class="p">(</span><span class="o">...</span><span class="p">)</span>
+      <span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">do</span> <span class="p">(</span><span class="o">...</span><span class="p">)</span>
+        <span class="p">(</span><span class="o">...</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">declare</span> <span class="p">(</span><span class="k">optimize</span> <span class="p">(</span><span class="nv">speed</span> <span class="mi">3</span><span class="p">)</span> <span class="p">(</span><span class="nv">safety</span> <span class="mi">0</span><span class="p">)))</span>
+      <span class="o">...</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>一般情况下，应该在代码写完并且经过完善测试之后，才考虑加上那么一句声明。</p>
+<p>要让代码在任何情况下都尽可能地快，可以使用如下声明：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">declaim</span> <span class="p">(</span><span class="k">optimize</span> <span class="p">(</span><span class="nv">speed</span> <span class="mi">3</span><span class="p">)</span>
+                   <span class="p">(</span><span class="nv">compilation-speed</span> <span class="mi">0</span><span class="p">)</span>
+                   <span class="p">(</span><span class="nv">safety</span> <span class="mi">0</span><span class="p">)</span>
+                   <span class="p">(</span><span class="nv">debug</span> <span class="mi">0</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>考虑到前面提到的瓶颈规则 <a class="footnote-reference" href="#id9" id="id4">[1]</a> ，这种苛刻的做法可能并没有什么必要。</p>
+<p>另一类特别重要的优化就是由 Lisp 编译器完成的尾调用优化。当 <em>speed</em> (速度)的权值最大时，所有支持尾调用优化的编译器都将保证对代码进行这种优化。</p>
+<p>如果在一个调用返回时调用者中没有残余的计算，该调用就被称为尾调用。下面的代码返回列表的长度：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">length/r</span> <span class="p">(</span><span class="nv">lst</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">lst</span><span class="p">)</span>
+      <span class="mi">0</span>
+      <span class="p">(</span><span class="nb">1+</span> <span class="p">(</span><span class="nv">length/r</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">)))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>这个递归调用不是尾调用，因为当它返回以后，它的值必须传给 <tt class="docutils literal"><span class="pre">1+</span></tt> 。相反，这是一个尾递归的版本，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">length/rt</span> <span class="p">(</span><span class="nv">lst</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">labels</span> <span class="p">((</span><span class="nv">len</span> <span class="p">(</span><span class="nv">lst</span> <span class="nv">acc</span><span class="p">)</span>
+             <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">lst</span><span class="p">)</span>
+                 <span class="nv">acc</span>
+                 <span class="p">(</span><span class="nv">len</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">)</span> <span class="p">(</span><span class="nb">1+</span> <span class="nv">acc</span><span class="p">)))))</span>
+    <span class="p">(</span><span class="nv">len</span> <span class="nv">lst</span> <span class="mi">0</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>更准确地说，局部函数 <tt class="docutils literal"><span class="pre">len</span></tt> 是尾递归调用，因为当它返回是，调用函数已经没什么事情可做了。
+和 <tt class="docutils literal"><span class="pre">length/r</span></tt> 不同的是，它不是在递归回溯的时候构建返回值，而是在递归调用的过程中积累返回值。
+在函数的最后一次递归调用结束之后， <tt class="docutils literal"><span class="pre">acc</span></tt> 参数就可以作为函数的结果值被返回。</p>
+<p>出色的编译器能够将一个尾调用编译成一个跳转 (goto)，因此也能将一个尾递归函数编译成一个循环。在典型的机器语言代码中，当第一次执行到表示 <tt class="docutils literal"><span class="pre">len</span></tt> 的指令片段时，栈上会有信息指示在返回时要做些什么。由于在递归调用后没有残余的计算，该信息对第二层调用仍然有效：第二层调用返回后我们要做的仅仅就是从第一层调用返回。
+因此，当进行第二层调用时，我们只需给参数设置新的值，然后跳转到函数的起始处继续执行就可以了，没有必要进行真正的函数调用。</p>
+<p>另一个利用函数调用抽象而又没有开销的方法是使函数内联编译。
+对于那些调用开销比函数体的执行代价还高的小型函数来说，这种技术非常有价值。
+例如，以下代码用于判断列表是否仅有一个元素：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">declaim</span> <span class="p">(</span><span class="k">inline</span> <span class="nv">single?</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">single?</span> <span class="p">(</span><span class="nv">lst</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nb">consp</span> <span class="nv">lst</span><span class="p">)</span> <span class="p">(</span><span class="nb">null</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>因为这个函数是在全局被声明为内联的，引用了 <tt class="docutils literal"><span class="pre">single?</span></tt> 的函数在编译后将不需要真正的函数调用。 <a class="footnote-reference" href="#id10" id="id5">[2]</a> 如果我们定义一个调用它的函数，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">foo</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+  <span class="p">(</span><span class="nv">single?</span> <span class="p">(</span><span class="nv">bar</span> <span class="nv">x</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>当 <tt class="docutils literal"><span class="pre">foo</span></tt> 被编译后， <tt class="docutils literal"><span class="pre">single?</span></tt> 函数体中的代码将会被编译进 <tt class="docutils literal"><span class="pre">foo</span></tt> 的函数体，就好像我们直接写以下代码一样：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">foo</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">lst</span> <span class="p">(</span><span class="nv">bar</span> <span class="nv">x</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nb">consp</span> <span class="nv">lst</span><span class="p">)</span> <span class="p">(</span><span class="nb">null</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">)))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>内联编译有两个限制：
+首先，递归函数不能内联。
+其次，如果一个内联函数被重新定义，我们就必须重新编译调用它的任何函数，否则调用仍然使用原来的定义。</p>
+<p>在一些早期的 Lisp 方言中，有时候会使用宏（ 10.2 节）来避免函数调用。这种做法在 Common Lisp 中通常是没有必要的。</p>
+<p>不同 Lisp 编译器的优化方式千差万别。
+如果你想了解你的编译器为某个函数生成的代码，试着调用 <tt class="docutils literal"><span class="pre">disassemble</span></tt> 函数：它接受一个函数或者函数名，并显示该函数编译后的形式。
+即便你看到的东西是完全无法理解的，你仍然可以使用 <tt class="docutils literal"><span class="pre">disassemble</span></tt> 来判断声明是否起效果：编译函数的两个版本，一个使用优化声明，另一个不使用优化声明，然后观察由 <tt class="docutils literal"><span class="pre">disassemble</span></tt> 显示的两组代码之间是否有差异。
+同样的技巧也可以用于检验函数是否被内联编译。
+不论情况如何，都请优先考虑使用编译参数，而不是手动调优的方式来优化代码。</p>
+</div>
+<div class="section" id="type-declarations">
+<h2>13.3 类型声明 (Type Declarations)<a class="headerlink" href="#type-declarations" title="永久链接至标题">¶</a></h2>
+<p>如果 Lisp 不是你所学的第一门编程语言，那么你也许会感到困惑，为什么这本书还没说到类型声明这件事来？毕竟，在很多流行的编程语言中，类型声明是必须要做的。</p>
+<p>在不少编程语言里，你必须为每个变量声明类型，并且变量也只可以持有与该类型相一致的值。
+这种语言被称为<em>强类型</em>(<em>strongly typed</em>) 语言。
+除了给程序员们徒增了许多负担外，这种方式还限制了你能做的事情。
+使用这种语言，很难写出那些需要多种类型的参数一起工作的函数，也很难定义出可以包含不同种类元素的数据结构。
+当然，这种方式也有它的优势，比如无论何时当编译器碰到一个加法运算，它都能够事先知道这是一个什么类型的加法运算。如果两个参数都是整数类型，编译器可以直接在目标代码中生成一个固定 (hard-wire) 的整数加法运算。</p>
+<p>正如 2.15 节所讲，Common Lisp 使用一种更加灵活的方式：显式类型 (manifest typing) <a class="footnote-reference" href="#id11" id="id6">[3]</a> 。有类型的是值而不是变量。变量可以用于任何类型的对象。</p>
+<p>当然，这种灵活性需要付出一定的速度作为代价。
+由于 <tt class="docutils literal"><span class="pre">+</span></tt> 可以接受好几种不同类型的数，它不得不在运行时查看每个参数的类型来决定采用哪种加法运算。</p>
+<p>在某些时候，如果我们要执行的全都是整数的加法，那么每次查看参数类型的这种做法就说不上高效了。
+Common Lisp 处理这种问题的方法是：让程序员尽可能地提示编译器。
+比如说，如果我们提前就能知道某个加法运算的两个参数是定长数 (fixnums) ，那么就可以对此进行声明，这样编译器就会像 C 语言的那样为我们生成一个固定的整数加法运算。</p>
+<p>因为显式类型也可以通过声明类型来生成高效的代码，所以强类型和显式类型两种方式之间的差别并不在于运行速度。
+真正的区别是，在强类型语言中，类型声明是强制性的，而显式类型则不强加这样的要求。
+在 Common Lisp 中，类型声明完全是可选的。它们可以让程序运行的更快，但(除非错误)不会改变程序的行为。</p>
+<p>全局声明以 <tt class="docutils literal"><span class="pre">declaim</span></tt> 伴随一个或多个声明的形式来实现。
+一个类型声明是一个列表，包含了符号 <tt class="docutils literal"><span class="pre">type</span></tt> ，后跟一个类型名，以及一个或多个变量组成。</p>
+<p>举个例子，要为一个全局变量声明类型，可以这么写：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">declaim</span> <span class="p">(</span><span class="k">type</span> <span class="kt">fixnum</span> <span class="vg">*count*</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>在 ANSI Common Lisp 中，可以省略 <tt class="docutils literal"><span class="pre">type</span></tt> 符号，将声明简写为：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">declaim</span> <span class="p">(</span><span class="kt">fixnum</span> <span class="vg">*count*</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>局部声明通过 <tt class="docutils literal"><span class="pre">declare</span></tt> 完成，它接受的参数和 <tt class="docutils literal"><span class="pre">declaim</span></tt> 的一样。
+声明可以放在那些创建变量的代码体之前：如 <tt class="docutils literal"><span class="pre">defun</span></tt> 、 <tt class="docutils literal"><span class="pre">lambda</span></tt> 、 <tt class="docutils literal"><span class="pre">let</span></tt> 、 <tt class="docutils literal"><span class="pre">do</span></tt> ，诸如此类。
+比如说，要把一个函数的参数声明为定长数，可以这么写：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">poly</span> <span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">x</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">declare</span> <span class="p">(</span><span class="kt">fixnum</span> <span class="nv">a</span> <span class="nv">b</span> <span class="nv">x</span><span class="p">))</span>
+  <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nb">*</span> <span class="nv">a</span> <span class="p">(</span><span class="nb">expt</span> <span class="nv">x</span> <span class="mi">2</span><span class="p">))</span> <span class="p">(</span><span class="nb">*</span> <span class="nv">b</span> <span class="nv">x</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>在类型声明中的变量名指的就是该声明所在的上下文中的那个变量 –– 那个通过赋值可以改变它的值的变量。</p>
+<p>你也可以通过 <tt class="docutils literal"><span class="pre">the</span></tt> 为某个表达式的值声明类型。
+如果我们提前就知道 <tt class="docutils literal"><span class="pre">a</span></tt> 、 <tt class="docutils literal"><span class="pre">b</span></tt> 和 <tt class="docutils literal"><span class="pre">x</span></tt> 是足够小的定长数，并且它们的和也是定长数的话，那么可以进行以下声明：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">poly</span> <span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">x</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">declare</span> <span class="p">(</span><span class="kt">fixnum</span> <span class="nv">a</span> <span class="nv">b</span> <span class="nv">x</span><span class="p">))</span>
+  <span class="p">(</span><span class="k">the</span> <span class="kt">fixnum</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="k">the</span> <span class="kt">fixnum</span> <span class="p">(</span><span class="nb">*</span> <span class="nv">a</span> <span class="p">(</span><span class="k">the</span> <span class="kt">fixnum</span> <span class="p">(</span><span class="nb">expt</span> <span class="nv">x</span> <span class="mi">2</span><span class="p">))))</span>
+                 <span class="p">(</span><span class="k">the</span> <span class="kt">fixnum</span> <span class="p">(</span><span class="nb">*</span> <span class="nv">b</span> <span class="nv">x</span><span class="p">)))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>看起来是不是很笨拙啊？幸运的是有两个原因让你很少会这样使用 <tt class="docutils literal"><span class="pre">the</span></tt> 把你的数值运算代码变得散乱不堪。其一是很容易通过宏，来帮你插入这些声明。其二是某些实现使用了特殊的技巧，即便没有类型声明的定长数运算也能足够快。</p>
+<p>Common Lisp 中有相当多的类型 –– 恐怕有无数种类型那么多，如果考虑到你可以自己定义新的类型的话。
+类型声明只在少数情况下至关重要，可以遵照以下两条规则来进行：</p>
+<ol class="arabic simple">
+<li>当函数可以接受若干不同类型的参数(但不是所有类型)时，可以对参数的类型进行声明。如果你知道一个对 <tt class="docutils literal"><span class="pre">+</span></tt> 的调用总是接受定长数类型的参数，或者一个对 <tt class="docutils literal"><span class="pre">aref</span></tt> 的调用第一个参数总是某种特定种类的数组，那么进行类型声明是值得的。</li>
+<li>通常来说，只有对类型层级中接近底层的类型进行声明，才是值得的：将某个东西的类型声明为 <tt class="docutils literal"><span class="pre">fixnum</span></tt> 或者 <tt class="docutils literal"><span class="pre">simple-array</span></tt> 也许有用，但将某个东西的类型声明为 <tt class="docutils literal"><span class="pre">integer</span></tt> 或者 <tt class="docutils literal"><span class="pre">sequence</span></tt> 或许就没用了。</li>
+</ol>
+<p>类型声明对内容复杂的对象特别重要，这包括数组、结构和对象实例。这些声明可以在两个方面提升效率：除了可以让编译器来决定函数参数的类型以外，它们也使得这些对象可以在内存中更高效地表示。</p>
+<p>如果对数组元素的类型一无所知的话，这些元素在内存中就不得不用一块指针来表示。但假如预先就知道数组包含的元素仅仅是 –– 比方说 –– 双精度浮点数 (double-floats)，那么这个数组就可以用一组实际的双精度浮点数来表示。这样数组将占用更少的空间，因为我们不再需要额外的指针指向每一个双精度浮点数；同时，对数组元素的访问也将更快，因为我们不必沿着指针去读取和写元素。</p>
+<img alt="../_images/Figure-13.1.png" src="../_images/Figure-13.1.png" />
+<p><strong>图 13.1：指定元素类型的效果</strong></p>
+<p>你可以通过 <tt class="docutils literal"><span class="pre">make-array</span></tt> 的 <tt class="docutils literal"><span class="pre">:element-type</span></tt> 参数指定数组包含值的种类。这样的数组被称为<em>特化数组</em>(specialized array)。
+图 13.1 为我们展示了如下代码在多数实现上求值后发生的事情：</p>
+<div class="highlight-cl"><pre>(setf x (vector 1.234d0 2.345d0 3.456d0)
+      y (make-array 3 :element-type 'double-float)
+      (aref y 0) 1.234d0
+      (aref y 1) 2.345d0
+      (aref y 2）3.456d0))</pre>
+</div>
+<p>图 13.1 中的每一个矩形方格代表内存中的一个字 (a word of memory)。这两个数组都由未特别指明长度的头部 (header) 以及后续
+三个元素的某种表示构成。对于 <tt class="docutils literal"><span class="pre">x</span></tt> 来说，每个元素都由一个指针表示。此时每个指针碰巧都指向双精度浮点数，但实际上我们可以存储任何类型的对象到这个向量中。对 <tt class="docutils literal"><span class="pre">y</span></tt> 来说，每个元素实际上都是双精度浮点数。 <tt class="docutils literal"><span class="pre">y</span></tt> 更快而且占用更少空间，但意味着它的元素只能是双精度浮点数。</p>
+<p>注意我们使用 <tt class="docutils literal"><span class="pre">aref</span></tt> 来引用 <tt class="docutils literal"><span class="pre">y</span></tt> 的元素。一个特化的向量不再是一个简单向量，因此我们不再能够通过 <tt class="docutils literal"><span class="pre">svref</span></tt> 来引用它的元素。</p>
+<p>除了在创建数组时指定元素的类型，你还应该在使用数组的代码中声明数组的维度以及它的元素类型。一个完整的向量声明如下：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="k">declare</span> <span class="p">(</span><span class="k">type</span> <span class="p">(</span><span class="nb">vector</span> <span class="kt">fixnum</span> <span class="mi">20</span><span class="p">)</span> <span class="nv">v</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>以上代码声明了一个仅含有定长数，并且长度固定为 <tt class="docutils literal"><span class="pre">20</span></tt> 的向量。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">setf</span> <span class="nv">a</span> <span class="p">(</span><span class="nb">make-array</span> <span class="o">&#39;</span><span class="p">(</span><span class="mi">1000</span> <span class="mi">1000</span><span class="p">)</span>
+                    <span class="ss">:element-type</span> <span class="ss">&#39;single-float</span>
+                    <span class="ss">:initial-element</span> <span class="mf">1.0s0</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">sum-elts</span> <span class="p">(</span><span class="nv">a</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">declare</span> <span class="p">(</span><span class="k">type</span> <span class="p">(</span><span class="kt">simple-array</span> <span class="kt">single-float</span> <span class="p">(</span><span class="mi">1000</span> <span class="mi">1000</span><span class="p">))</span>
+                 <span class="nv">a</span><span class="p">))</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">sum</span> <span class="mf">0.0s0</span><span class="p">))</span>
+    <span class="p">(</span><span class="k">declare</span> <span class="p">(</span><span class="k">type</span> <span class="kt">single-float</span> <span class="nv">sum</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">dotimes</span> <span class="p">(</span><span class="nv">r</span> <span class="mi">1000</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">dotimes</span> <span class="p">(</span><span class="nv">c</span> <span class="mi">1000</span><span class="p">)</span>
+        <span class="p">(</span><span class="nb">incf</span> <span class="nv">sum</span> <span class="p">(</span><span class="nb">aref</span> <span class="nv">a</span> <span class="nv">r</span> <span class="nv">c</span><span class="p">))))</span>
+    <span class="nv">sum</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 13.2 对数组元素求和</strong></p>
+<p>最为通用的数组声明形式由数组类型以及紧接其后的元素类型和一个维度列表构成：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="k">declare</span> <span class="p">(</span><span class="k">type</span> <span class="p">(</span><span class="kt">simple-array</span> <span class="kt">fixnum</span> <span class="p">(</span><span class="mi">4</span> <span class="mi">4</span><span class="p">))</span> <span class="nv">ar</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>图 13.2 展示了如何创建一个 1000×1000 的单精度浮点数数组，以及如何编写一个将该数组元素相加的函数。数组以列主序 (row-major order)存储，遍历时也应尽可能以此序进行。</p>
+<p>我们将用 <tt class="docutils literal"><span class="pre">time</span></tt> 来比较 <tt class="docutils literal"><span class="pre">sum-elts</span></tt> 在有声明和无声明两种情况下的性能。 <tt class="docutils literal"><span class="pre">time</span></tt> 宏显示表达式求值所花费时间的某种度量(取决于实现)。对被编译的函数求取时间才是有意义的。在某个实现中，如果我们以获取最快速代码的编译参数编译 <tt class="docutils literal"><span class="pre">sum-elts</span></tt> ，它将在不到半秒的时间内返回：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">time</span> <span class="p">(</span><span class="nv">sum-elts</span> <span class="nv">a</span><span class="p">))</span>
+<span class="nv">User</span> <span class="nv">Run</span> <span class="nv">Time</span> <span class="nb">=</span> <span class="mf">0.43</span> <span class="nv">seconds</span>
+<span class="mf">1000000.0</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果我们把 <em>sum-elts</em> 中的类型声明去掉并重新编译它，同样的计算将花费超过5秒的时间：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">time</span> <span class="p">(</span><span class="nv">sum-elts</span> <span class="nv">a</span><span class="p">))</span>
+<span class="nv">User</span> <span class="nv">Run</span> <span class="nv">Time</span> <span class="nb">=</span> <span class="mf">5.17</span> <span class="nv">seconds</span>
+<span class="mf">1000000.0</span>
+</pre></div>
+</td></tr></table></div>
+<p>类型声明的重要性 –– 特别是对数组和数来说 –– 怎么强调都不过分。上面的例子中，仅仅两行代码就可以让 <tt class="docutils literal"><span class="pre">sum-elts</span></tt> 变快 12 倍。</p>
+</div>
+<div class="section" id="garbage-avoidance">
+<h2>13.4 避免垃圾 (Garbage Avoidance)<a class="headerlink" href="#garbage-avoidance" title="永久链接至标题">¶</a></h2>
+<p>Lisp 除了可以让你推迟考虑变量的类型以外，它还允许你推迟对内存分配的考虑。
+在程序的早期阶段，暂时忽略内存分配和臭虫等问题，将有助于解放你的想象力。
+等到程序基本固定下来以后，就可以开始考虑怎么减少动态分配，从而让程序运行得更快。</p>
+<p>但是，并不是构造（consing）用得少的程序就一定快。
+多数 Lisp 实现一直使用着差劲的垃圾回收器，在这些实现中，过多的内存分配容易让程序运行变得缓慢。
+因此，『高效的程序应该尽可能地减少 <tt class="docutils literal"><span class="pre">cons</span></tt> 的使用』这种观点，逐渐成为了一种传统。
+最近这种传统开始有所改变，因为一些实现已经用上了相当先进（sophisticated）的垃圾回收器，它们实行一种更为高效的策略：创建新的对象，用完之后抛弃而不是进行回收。</p>
+<p>本节介绍了几种方法，用于减少程序中的构造。
+但构造数量的减少是否有利于加快程序的运行，这一点最终还是取决于实现。
+最好的办法就是自己去试一试。</p>
+<p>减少构造的办法有很多种。
+有些办法对程序的修改非常少。
+例如，最简单的方法就是使用破坏性函数。
+下表罗列了一些常用的函数，以及这些函数对应的破坏性版本。</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">安全</th>
+<th class="head">破坏性</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>append</td>
+<td>nconc</td>
+</tr>
+<tr class="row-odd"><td>reverse</td>
+<td>nreverse</td>
+</tr>
+<tr class="row-even"><td>remove</td>
+<td>delete</td>
+</tr>
+<tr class="row-odd"><td>remove-if</td>
+<td>delete-if</td>
+</tr>
+<tr class="row-even"><td>remove-duplicates</td>
+<td>delete-duplicates</td>
+</tr>
+<tr class="row-odd"><td>subst</td>
+<td>nsubst</td>
+</tr>
+<tr class="row-even"><td>subst-if</td>
+<td>nsubst-if</td>
+</tr>
+<tr class="row-odd"><td>union</td>
+<td>nunion</td>
+</tr>
+<tr class="row-even"><td>intersection</td>
+<td>nintersection</td>
+</tr>
+<tr class="row-odd"><td>set-difference</td>
+<td>nset-difference</td>
+</tr>
+</tbody>
+</table>
+<p>当确认修改列表是安全的时候，可以使用 <tt class="docutils literal"><span class="pre">delete</span></tt> 替换 <tt class="docutils literal"><span class="pre">remove</span></tt> ，用 <tt class="docutils literal"><span class="pre">nreverse</span></tt> 替换 <tt class="docutils literal"><span class="pre">reverse</span></tt> ，诸如此类。</p>
+<p>即便你想完全摆脱构造，你也不必放弃在运行中 (on the fly)创建对象的可能性。
+你需要做的是避免在运行中为它们分配空间和通过垃圾回收收回空间。通用方案是你自己预先分配内存块 (block of memory)，以及明确回收用过的块。<em>预先</em>可能意味着在编译期或者某些初始化例程中。具体情况还应具体分析。</p>
+<p>例如，当情况允许我们利用一个有限大小的堆栈时，我们可以让堆栈在一个已经分配了空间的向量中增长或缩减，而不是构造它。Common Lisp 内建支持把向量作为堆栈使用。如果我们传给 <tt class="docutils literal"><span class="pre">make-array</span></tt> 可选的 <tt class="docutils literal"><span class="pre">fill-pointer</span></tt> 参数，我们将得到一个看起来可扩展的向量。 <tt class="docutils literal"><span class="pre">make-array</span></tt> 的第一个参数指定了分配给向量的存储量，而 <tt class="docutils literal"><span class="pre">fill-pointer</span></tt> 指定了初始有效长度：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="vg">*print-array*</span> <span class="no">t</span><span class="p">)</span>
+<span class="no">T</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">vec</span> <span class="p">(</span><span class="nb">make-array</span> <span class="mi">10</span> <span class="ss">:fill-pointer</span> <span class="mi">2</span>
+                           <span class="ss">:initial-element</span> <span class="no">nil</span><span class="p">))</span>
+<span class="o">#(</span><span class="no">NIL</span> <span class="no">NIL</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>我们刚刚制造的向量对于操作序列的函数来说，仍好像只含有两个元素，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">length</span> <span class="nv">vec</span><span class="p">)</span>
+<span class="mi">2</span>
+</pre></div>
+</td></tr></table></div>
+<p>但它能够增长直到十个元素。因为 <tt class="docutils literal"><span class="pre">vec</span></tt> 有一个填充指针，我们可以使用 <tt class="docutils literal"><span class="pre">vector-push</span></tt> 和 <tt class="docutils literal"><span class="pre">vector-pop</span></tt> 函数推入和弹出元素，就像它是一个列表一样：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">vector-push</span> <span class="ss">&#39;a</span> <span class="nv">vec</span><span class="p">)</span>
+<span class="mi">2</span>
+<span class="nb">&gt;</span> <span class="nv">vec</span>
+<span class="o">#(</span><span class="no">NIL</span> <span class="no">NIL</span> <span class="nv">A</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">vector-pop</span> <span class="nv">vec</span><span class="p">)</span>
+<span class="nv">A</span>
+<span class="nb">&gt;</span> <span class="nv">vec</span>
+<span class="o">#(</span><span class="no">NIL</span> <span class="no">NIL</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>当我们调用 <tt class="docutils literal"><span class="pre">vector-push</span></tt> 时，它增加填充指针并返回它过去的值。只要填充指针小于 <tt class="docutils literal"><span class="pre">make-array</span></tt> 的第一个参数，我们就可以向这个向量中推入新元素；当空间用尽时， <tt class="docutils literal"><span class="pre">vector-push</span></tt> 返回 <tt class="docutils literal"><span class="pre">nil</span></tt> 。目前我们还可以向 <tt class="docutils literal"><span class="pre">vec</span></tt> 中推入八个元素。</p>
+<p>使用带有填充指针的向量有一个缺点，就是它们不再是简单向量了。我们不得不使用 <tt class="docutils literal"><span class="pre">aref</span></tt> 来代替 <tt class="docutils literal"><span class="pre">svref</span></tt> 引用元素。代价需要和潜在的收益保持平衡。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defconstant</span> <span class="nv">dict</span> <span class="p">(</span><span class="nb">make-array</span> <span class="mi">25000</span> <span class="ss">:fill-pointer</span> <span class="mi">0</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">read-words</span> <span class="p">(</span><span class="nv">from</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">fill-pointer</span> <span class="nv">dict</span><span class="p">)</span> <span class="mi">0</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">with-open-file</span> <span class="p">(</span><span class="nv">in</span> <span class="nv">from</span> <span class="ss">:direction</span> <span class="ss">:input</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">do</span> <span class="p">((</span><span class="nv">w</span> <span class="p">(</span><span class="nb">read-line</span> <span class="nv">in</span> <span class="no">nil</span> <span class="ss">:eof</span><span class="p">)</span>
+            <span class="p">(</span><span class="nb">read-line</span> <span class="nv">in</span> <span class="no">nil</span> <span class="ss">:eof</span><span class="p">)))</span>
+        <span class="p">((</span><span class="nb">eql</span> <span class="nv">w</span> <span class="ss">:eof</span><span class="p">))</span>
+      <span class="p">(</span><span class="nb">vector-push</span> <span class="nv">w</span> <span class="nv">dict</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">xform</span> <span class="p">(</span><span class="nv">fn</span> <span class="nv">seq</span><span class="p">)</span> <span class="p">(</span><span class="nb">map-into</span> <span class="nv">seq</span> <span class="nv">fn</span> <span class="nv">seq</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">write-words</span> <span class="p">(</span><span class="nv">to</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">with-open-file</span> <span class="p">(</span><span class="nv">out</span> <span class="nv">to</span> <span class="ss">:direction</span> <span class="ss">:output</span>
+                          <span class="ss">:if-exists</span> <span class="ss">:supersede</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">map</span> <span class="no">nil</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+                 <span class="p">(</span><span class="nb">fresh-line</span> <span class="nv">out</span><span class="p">)</span>
+                 <span class="p">(</span><span class="nb">princ</span> <span class="nv">x</span> <span class="nv">out</span><span class="p">))</span>
+             <span class="p">(</span><span class="nv">xform</span> <span class="nf">#&#39;</span><span class="nb">nreverse</span>
+                    <span class="p">(</span><span class="nb">sort</span> <span class="p">(</span><span class="nv">xform</span> <span class="nf">#&#39;</span><span class="nb">nreverse</span> <span class="nv">dict</span><span class="p">)</span>
+                          <span class="nf">#&#39;</span><span class="nb">string&lt;</span><span class="p">)))))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 13.3 生成同韵字辞典</strong></p>
+<p>当应用涉及很长的序列时，你可以用 <tt class="docutils literal"><span class="pre">map-into</span></tt> 代替 <tt class="docutils literal"><span class="pre">map</span></tt> 。 <tt class="docutils literal"><span class="pre">map-into</span></tt> 的第一个参数不是一个序列类型，而是用来存储结果的，实际的序列。这个序列可以是该函数接受的其他序列参数中的任何一个。所以，打个比方，如果你想为一个向量的每个元素加 1，你可以这么写：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">setf</span> <span class="nv">v</span> <span class="p">(</span><span class="nb">map-into</span> <span class="nv">v</span> <span class="nf">#&#39;</span><span class="nb">1+</span> <span class="nv">v</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>图 13.3 展示了一个使用大向量应用的例子：一个生成简单的同韵字辞典 (或者更确切的说，一个不完全韵辞典)的程序。函数 <tt class="docutils literal"><span class="pre">read-line</span></tt> 从一个每行仅含有一个单词的文件中读取单词，而函数 <tt class="docutils literal"><span class="pre">write-words</span></tt> 将它们按照字母的逆序打印出来。比如，输出的起始可能是</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="nv">a</span> <span class="nv">amoeba</span> <span class="nv">alba</span> <span class="nv">samba</span> <span class="nv">marimba...</span>
+</pre></div>
+</td></tr></table></div>
+<p>结束是</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="o">...</span><span class="nv">megahertz</span> <span class="nv">gigahertz</span> <span class="nv">jazz</span> <span class="nv">buzz</span> <span class="nv">fuzz</span>
+</pre></div>
+</td></tr></table></div>
+<p>利用填充指针和 <tt class="docutils literal"><span class="pre">map-into</span></tt> ，我们可以把程序写的既简单又高效。</p>
+<p>在数值应用中要当心大数 (bignums)。大数运算需要构造，因此也就会比较慢。
+即使程序的最后结果为大数，但是，通过调整计算，将中间结果保存在定长数中，这种优化也是有可能的。</p>
+<p>另一个避免垃圾回收的方法是，鼓励编译器在栈上分配对象而不是在堆上。
+如果你知道只是临时需要某个东西，你可以通过将它声明为 <tt class="docutils literal"><span class="pre">dynamic</span> <span class="pre">extent</span></tt> 来避免在堆上分配空间。</p>
+<p>通过一个动态范围 (dynamic extent)变量声明，你告诉编译器，变量的值应该和变量保持相同的生命期。
+什么时候值的生命期比变量长呢？这里有个例子：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">our-reverse</span> <span class="p">(</span><span class="nv">lst</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">rev</span> <span class="no">nil</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">dolist</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">lst</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">push</span> <span class="nv">x</span> <span class="nv">rev</span><span class="p">))</span>
+    <span class="nv">rev</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>在 <tt class="docutils literal"><span class="pre">our-reverse</span></tt> 中，作为参数传入的列表以逆序被收集到 <tt class="docutils literal"><span class="pre">rev</span></tt> 中。当函数返回时，变量 <tt class="docutils literal"><span class="pre">rev</span></tt> 将不复存在。
+然而，它的值 –– 一个逆序的列表 –– 将继续存活：它被送回调用函数，一个知道它的命运何去何从的地方。</p>
+<p>相比之下，考虑如下 <tt class="docutils literal"><span class="pre">adjoin</span></tt> 实现：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">our-adjoin</span> <span class="p">(</span><span class="nv">obj</span> <span class="nv">lst</span> <span class="k">&amp;rest</span> <span class="nv">args</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">apply</span> <span class="nf">#&#39;</span><span class="nb">member</span> <span class="nv">obj</span> <span class="nv">lst</span> <span class="nv">args</span><span class="p">)</span>
+      <span class="nv">lst</span>
+      <span class="p">(</span><span class="nb">cons</span> <span class="nv">obj</span> <span class="nv">lst</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>在这个例子里，我们可以从函数的定义看出， <tt class="docutils literal"><span class="pre">args</span></tt> 参数中的值 (列表) 哪儿也没去。它不必比存储它的变量活的更久。在这种情形下把它声明为动态范围的就比较有意义。如果我们加上这样的声明：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">our-adjoin</span> <span class="p">(</span><span class="nv">obj</span> <span class="nv">lst</span> <span class="k">&amp;rest</span> <span class="nv">args</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">declare</span> <span class="p">(</span><span class="k">dynamic-extent</span> <span class="nv">args</span><span class="p">))</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">apply</span> <span class="nf">#&#39;</span><span class="nb">member</span> <span class="nv">obj</span> <span class="nv">lst</span> <span class="nv">args</span><span class="p">)</span>
+      <span class="nv">lst</span>
+      <span class="p">(</span><span class="nb">cons</span> <span class="nv">obj</span> <span class="nv">lst</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>那么编译器就可以 (但不是必须)在栈上为 <tt class="docutils literal"><span class="pre">args</span></tt> 分配空间，在 <tt class="docutils literal"><span class="pre">our-adjoin</span></tt> 返回后，它将自动被释放。</p>
+</div>
+<div class="section" id="example-pools">
+<h2>13.5 示例: 存储池 (Example: Pools)<a class="headerlink" href="#example-pools" title="永久链接至标题">¶</a></h2>
+<p>对于涉及数据结构的应用，你可以通过在一个存储池 (pool)中预先分配一定数量的结构来避免动态分配。当你需要一个结构时，你从池中取得一份，当你用完后，再把它送回池中。为了演示存储池的使用，我们将快速的编写一段记录港口中船舶数量的程序原型 (prototype of a program)，然后用存储池的方式重写它。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defparameter</span> <span class="vg">*harbor*</span> <span class="no">nil</span><span class="p">)</span>
+
+<span class="p">(</span><span class="nb">defstruct</span> <span class="nv">ship</span>
+  <span class="nv">name</span> <span class="nv">flag</span> <span class="nv">tons</span><span class="p">)</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">enter</span> <span class="p">(</span><span class="nv">n</span> <span class="nv">f</span> <span class="nv">d</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">push</span> <span class="p">(</span><span class="nv">make-ship</span> <span class="ss">:name</span> <span class="nv">n</span> <span class="ss">:flag</span> <span class="nv">f</span> <span class="ss">:tons</span> <span class="nv">d</span><span class="p">)</span>
+        <span class="vg">*harbor*</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">find-ship</span> <span class="p">(</span><span class="nv">n</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">find</span> <span class="nv">n</span> <span class="vg">*harbor*</span> <span class="ss">:key</span> <span class="nf">#&#39;</span><span class="nv">ship-name</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">leave</span> <span class="p">(</span><span class="nv">n</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">setf</span> <span class="vg">*harbor*</span>
+        <span class="p">(</span><span class="nb">delete</span> <span class="p">(</span><span class="nv">find-ship</span> <span class="nv">n</span><span class="p">)</span> <span class="vg">*harbor*</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 13.4 港口</strong></p>
+<p>图 13.4 中展示的是第一个版本。 全局变量 <tt class="docutils literal"><span class="pre">harbor</span></tt> 是一个船只的列表， 每一艘船只由一个 <tt class="docutils literal"><span class="pre">ship</span></tt> 结构表示。 函数 <tt class="docutils literal"><span class="pre">enter</span></tt>
+在船只进入港口时被调用； <tt class="docutils literal"><span class="pre">find-ship</span></tt> 根据给定名字 (如果有的话) 来寻找对应的船只；最后， <tt class="docutils literal"><span class="pre">leave</span></tt> 在船只离开港口时被调用。</p>
+<p>一个程序的初始版本这么写简直是棒呆了，但它会产生许多的垃圾。当这个程序运行时，它会在两个方面构造：当船只进入港口时，新的结构将会被分配；而 <tt class="docutils literal"><span class="pre">harbor</span></tt> 的每一次增大都需要使用构造。</p>
+<p>我们可以通过在编译期分配空间来消除这两种构造的源头 (sources of consing)。图 13.5 展示了程序的第二个版本，它根本不会构造。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defconstant</span> <span class="nv">pool</span> <span class="p">(</span><span class="nb">make-array</span> <span class="mi">1000</span> <span class="ss">:fill-pointer</span> <span class="no">t</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">dotimes</span> <span class="p">(</span><span class="nv">i</span> <span class="mi">1000</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">aref</span> <span class="nv">pool</span> <span class="nv">i</span><span class="p">)</span> <span class="p">(</span><span class="nv">make-ship</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defconstant</span> <span class="nv">harbor</span> <span class="p">(</span><span class="nb">make-hash-table</span> <span class="ss">:size</span> <span class="mi">1100</span>
+                                     <span class="ss">:test</span> <span class="nf">#&#39;</span><span class="nb">eq</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">enter</span> <span class="p">(</span><span class="nv">n</span> <span class="nv">f</span> <span class="nv">d</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">s</span> <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">plusp</span> <span class="p">(</span><span class="nb">length</span> <span class="nv">pool</span><span class="p">))</span>
+               <span class="p">(</span><span class="nb">vector-pop</span> <span class="nv">pool</span><span class="p">)</span>
+               <span class="p">(</span><span class="nv">make-ship</span><span class="p">))))</span>
+    <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nv">ship-name</span> <span class="nv">s</span><span class="p">)</span>        <span class="nv">n</span>
+          <span class="p">(</span><span class="nv">ship-flag</span> <span class="nv">s</span><span class="p">)</span>        <span class="nv">f</span>
+          <span class="p">(</span><span class="nv">ship-tons</span> <span class="nv">s</span><span class="p">)</span>        <span class="nv">d</span>
+          <span class="p">(</span><span class="nb">gethash</span> <span class="nv">n</span> <span class="nv">harbor</span><span class="p">)</span> <span class="nv">s</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">find-ship</span> <span class="p">(</span><span class="nv">n</span><span class="p">)</span> <span class="p">(</span><span class="nb">gethash</span> <span class="nv">n</span> <span class="nv">harbor</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">leave</span> <span class="p">(</span><span class="nv">n</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">s</span> <span class="p">(</span><span class="nb">gethash</span> <span class="nv">n</span> <span class="nv">harbor</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nb">remhash</span> <span class="nv">n</span> <span class="nv">harbor</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">vector-push</span> <span class="nv">s</span> <span class="nv">pool</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 13.5 港口（第二版）</strong></p>
+<p>严格说来，新的版本仍然会构造，只是不在运行期。在第二个版本中， <tt class="docutils literal"><span class="pre">harbor</span></tt> 从列表变成了哈希表，所以它所有的空间都在编译期分配了。
+一千个 <tt class="docutils literal"><span class="pre">ship</span></tt> 结构体也会在编译期被创建出来，并被保存在向量池(vector pool) 中。(如果 <tt class="docutils literal"><span class="pre">:fill-pointer</span></tt> 参数为 <tt class="docutils literal"><span class="pre">t</span></tt> ，填充指针将指向向量的末尾。) 此时，当 <tt class="docutils literal"><span class="pre">enter</span></tt> 需要一个新的结构时，它只需从池中取来一个便是，无须再调用 <tt class="docutils literal"><span class="pre">make-ship</span></tt> 。
+而且当 <tt class="docutils literal"><span class="pre">leave</span></tt> 从 <tt class="docutils literal"><span class="pre">harbor</span></tt> 中移除一艘 <tt class="docutils literal"><span class="pre">ship</span></tt> 时，它把它送回池中，而不是抛弃它。</p>
+<p>我们使用存储池的行为实际上是肩负起内存管理的工作。这是否会让我们的程序更快仍取决于我们的 Lisp 实现怎样管理内存。总的说来，只有在那些仍使用着原始垃圾回收器的实现中，或者在那些对 GC 的不可预见性比较敏感的实时应用中才值得一试。</p>
+</div>
+<div class="section" id="fast-operators">
+<h2>13.6 快速操作符 (Fast Operators)<a class="headerlink" href="#fast-operators" title="永久链接至标题">¶</a></h2>
+<p>本章一开始就宣称 Lisp 是两种不同的语言。就某种意义来讲这确实是正确的。如果你仔细看过 Common Lisp 的设计，你会发现某些特性主要是为了速度，而另外一些主要为了便捷性。</p>
+<p>例如，你可以通过三个不同的函数取得向量给定位置上的元素： <tt class="docutils literal"><span class="pre">elt</span></tt> 、 <tt class="docutils literal"><span class="pre">aref</span></tt> 、 <tt class="docutils literal"><span class="pre">svref</span></tt> 。如此的多样性允许你把一个程序的性能提升到极致。 所以如果你可以使用 <tt class="docutils literal"><span class="pre">svref</span></tt> ，完事儿！ 相反，如果对某段程序来说速度很重要的话，或许不应该调用 <tt class="docutils literal"><span class="pre">elt</span></tt> ，它既可以用于数组也可以用于列表。</p>
+<p>对于列表来说，你应该调用 <tt class="docutils literal"><span class="pre">nth</span></tt> ，而不是 <tt class="docutils literal"><span class="pre">elt</span></tt> 。然而只有单一的一个函数 –– <tt class="docutils literal"><span class="pre">length</span></tt> –– 用于计算任何一个序列的长度。为什么 Common Lisp 不单独为列表提供一个特定的版本呢？因为如果你的程序正在计算一个列表的长度，它在速度上已经输了。在这个
+例子中，就像许多其他的例子一样，语言的设计暗示了哪些会是快速的而哪些不是。</p>
+<p>另一对相似的函数是 <tt class="docutils literal"><span class="pre">eql</span></tt> 和 <tt class="docutils literal"><span class="pre">eq</span></tt> 。前者是验证同一性 (identity) 的默认判断式，但如果你知道参数不会是字符或者数字时，使用后者其实更快。两个对象 <em>eq</em> 只有当它们处在相同的内存位置上时才成立。数字和字符可能不会与任何特定的内存位置相关，因此 <tt class="docutils literal"><span class="pre">eq</span></tt> 不适用于它们 (即便多数实现中它仍然能用于定长数)。对于其他任何种类的参数， <tt class="docutils literal"><span class="pre">eq</span></tt> 和 <tt class="docutils literal"><span class="pre">eql</span></tt> 将返回相同的值。</p>
+<p>使用 <tt class="docutils literal"><span class="pre">eq</span></tt> 来比较对象总是最快的，因为 Lisp 所需要比较的仅仅是指向对象的指针。因此 <tt class="docutils literal"><span class="pre">eq</span></tt> 哈希表 (如图 13.5 所示) 应该会提供最快的访问。 在一个 <tt class="docutils literal"><span class="pre">eq</span></tt> 哈希表中， <tt class="docutils literal"><span class="pre">gethash</span></tt> 可以只根据指针查找，甚至不需要查看它们指向的是什么。然而，访问不是唯一要考虑的因素； <em>eq</em> 和 <em>eql</em> 哈希表在拷贝型垃圾回收算法 (copying garbage collection algorithm)中会引起额外的开销，因为垃圾回收后需要对一些哈希值重新进行计算 (rehashing)。如果这变成了一个问题，最好的解决方案是使用一个把定长数作为键值的 <tt class="docutils literal"><span class="pre">eql</span></tt> 哈希表。</p>
+<p>当被调函数有一个余留参数时，调用 <tt class="docutils literal"><span class="pre">reduce</span></tt> 可能是比 <tt class="docutils literal"><span class="pre">apply</span></tt> 更高效的一种方式。例如，相比</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">apply</span> <span class="nf">#&#39;</span><span class="nb">+</span> <span class="o">&#39;</span><span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>写成如下可以更高效：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">reduce</span> <span class="nf">#&#39;</span><span class="nb">+</span> <span class="o">&#39;</span><span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>它不仅有助于调用正确的函数，还有助于按照正确的方式调用它们。余留、可选和关键字参数
+是昂贵的。只使用普通参数，函数调用中的参量会被调用者简单的留在被调者能够找到的地方。但其他种类的参数涉及运行时的处理。关键字参数是最差的。针对内建函数，优秀的编译器采用特殊的办法把使用关键字参量的调用编译成快速代码 (fast code)。但对于你自己编写的函数，避免在程序中对速度敏感的部分使用它们只有好处没有坏处。另外，不把大量的参量都放到余留参数中也是明智的举措，如果这可以避免的话。</p>
+<p>不同的编译器有时也会有一些它们独到优化。例如，有些编译器可以针对键值是一个狭小范围中的整数的 <tt class="docutils literal"><span class="pre">case</span></tt> 语句进行优化。查看你的用户手册来了解那些实现特有的优化的建议吧。</p>
+</div>
+<div class="section" id="two-phase-development">
+<h2>13.7 二阶段开发 (Two-Phase Development)<a class="headerlink" href="#two-phase-development" title="永久链接至标题">¶</a></h2>
+<p>在以速度至上的应用中，你也许想要使用诸如 C 或者汇编这样的低级语言来重写一个 Lisp 程序的某部分。你可以对用任何语言编写的程序使用这一技巧 –– C 程序的关键部分经常用汇编重写 &#8211; 但语言越抽象，用两阶段 (two phases)开发程序的好处就越明显。</p>
+<p>Common Lisp 没有规定如何集成其他语言所编写的代码。这部分留给了实现决定，而几乎所有的实现都提供了某种方式来实现它。</p>
+<p>使用一种语言编写程序然后用另一种语言重写它其中部分看起来可能是一种浪费。事实上，经验显示这是一种好的开发软件的方式。先针对功能、然后是速度比试着同时达成两者来的简单。</p>
+<p>如果编程完全是一个机械的过程 –– 简单的把规格说明翻译为代码 –– 在一步中把所有的事情都搞定也许是合理的。但编程永远不是如此。不论规格说明多么精确， 编程总是涉及一定量的探索 –– 通常比任何人能预期到的还多的多。</p>
+<p>一份好的规格说明，也许会让编程看起来像是简单的把它们翻译成代码的过程。这是一个普遍的误区。编程必定涉及探索，因为规格说明必定含糊不清。如果它们不含糊的话，它们就都算不上规格说明。</p>
+<p>在其他领域，尽可能精准的规格说明也许是可取的。如果你要求一块金属被切割成某种形状，最好准确的说出你想要的。但这个规则不适用于软件，因为程序和规格说明由相同的东西构成：文本。你不可能编写出完全合意的规格说明。如果规格说明有那么精确的话，它们就变成程序了。 <a class="reference external" href="http://ansi-common-lisp.readthedocs.org/en/latest/zhCN/notes-cn.html#notes-229">λ</a></p>
+<p>对于存在着可观数量的探索的应用 (再一次，比任何人承认的还要多，将实现分成两个阶段是值得的。而且在第一阶段中你所使用的手段 (medium) 不必就是最后的那个。例如，制作铜像的标准方法是先从粘土开始。你先用粘土做一个塑像出来，然后用它做一个模子，在这个模子中铸造铜像。在最后的塑像中是没有丁点粘土的，但你可以从铜像的形状中认识到它发挥的作用。试想下从一开始就只用一块儿铜和一个凿子来制造这么个一模一样的塑像要多难啊！出于相同的原因，首先用 Lisp 来编写程序，然后用 C 改写它，要比从头开始就用 C 编写这个程序要好。</p>
+</div>
+<div class="section" id="chapter-13-summary">
+<h2>Chapter 13 总结 (Summary)<a class="headerlink" href="#chapter-13-summary" title="永久链接至标题">¶</a></h2>
+<ol class="arabic simple">
+<li>不应过早开始优化，应该关注瓶颈，而且应该从算法开始。</li>
+<li>有五个不同的参数控制编译。它们可以在本地声明也可以在全局声明。</li>
+<li>优秀的编译器能够优化尾调用，将一个尾递归的函数转换为一个循环。内联编译是另一种避免函数调用的方法。</li>
+<li>类型声明并不是必须的，但它们可以让一个程序更高效。类型声明对于处理数值和数组的代码特别重要。</li>
+<li>少的构造可以让程序更快，特别是在使用着原始的垃圾回收器的实现中。解决方案是使用破坏性函数、预先分配空间块、以及在栈上分配。</li>
+<li>某些情况下，从预先分配的存储池中提取对象可能是有价值的。</li>
+<li>Common Lisp 的某些部分是为了速度而设计的，另一些则为了灵活性。</li>
+<li>编程必定存在探索的过程。探索和优化应该被分开 –– 有时甚至需要使用不同的语言。</li>
+</ol>
+</div>
+<div class="section" id="chapter-13-exercises">
+<h2>Chapter 13 练习 (Exercises)<a class="headerlink" href="#chapter-13-exercises" title="永久链接至标题">¶</a></h2>
+<ol class="arabic simple">
+<li>检验你的编译器是否支持 (observe)内敛声明。</li>
+<li>将下述函数重写为尾递归形式。它被编译后能快多少？</li>
+</ol>
+<div class="highlight-cl"><pre>(defun foo (x)
+  (if (zerop x)
+      0
+      (1+ (foo (1- x)))))
+
+注意：你需要增加额外的参数。</pre>
+</div>
+<ol class="arabic simple" start="3">
+<li>为下述程序增加声明。你能让它们变快多少？</li>
+</ol>
+<div class="highlight-cl"><pre>(a) 在 5.7 节中的日期运算代码。
+(b) 在 9.8 节中的光线跟踪器 (ray-tracer)。</pre>
+</div>
+<ol class="arabic simple" start="4">
+<li>重写 3.15 节中的广度优先搜索的代码让它尽可能减少使用构造。</li>
+<li>使用存储池修改 4.7 节中的二叉搜索的代码。</li>
+</ol>
+<p class="rubric">脚注</p>
+<table class="docutils footnote" frame="void" id="id9" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[1]</a></td><td>较早的实现或许不提供 <tt class="docutils literal"><span class="pre">declaim</span></tt> ；需要使用 <tt class="docutils literal"><span class="pre">proclaim</span></tt> 并且引用这些参量 (quote the argument)。</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id10" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id5">[2]</a></td><td>为了让内联声明 (inline declaration) 有效，你同时必须设置编译参数，告诉它你想获得最快的代码。</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id11" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id6">[3]</a></td><td>有两种方法可以描述 Lisp 声明类型 (typing) 的方式：从类型信息被存放的位置或者从它被使用的时间。显示类型 (manifest typing) 的意思是类型信息与数据对象 (data objects) 绑定，而运行时类型(run-time typing) 的意思是类型信息在运行时被使用。实际上，两者是一回事儿。</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'acl-chinese';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+                  </div></div>
+              </article><div class="clearer"></div>
+          </div><div class="span3">
+                <div class="sphinxsidebar">
+      <div id="sidenav" class="box sphinxsidebarwrapper">
+
+
+<h4><a href="../index.html">內容目录</a></h4>
+  <ul>
+<li><a class="reference internal" href="#">第十三章：速度</a><ul>
+<li><a class="reference internal" href="#the-bottleneck-rule">13.1 瓶颈规则 (The Bottleneck Rule)</a></li>
+<li><a class="reference internal" href="#compilation">13.2 编译 (Compilation)</a></li>
+<li><a class="reference internal" href="#type-declarations">13.3 类型声明 (Type Declarations)</a></li>
+<li><a class="reference internal" href="#garbage-avoidance">13.4 避免垃圾 (Garbage Avoidance)</a></li>
+<li><a class="reference internal" href="#example-pools">13.5 示例: 存储池 (Example: Pools)</a></li>
+<li><a class="reference internal" href="#fast-operators">13.6 快速操作符 (Fast Operators)</a></li>
+<li><a class="reference internal" href="#two-phase-development">13.7 二阶段开发 (Two-Phase Development)</a></li>
+<li><a class="reference internal" href="#chapter-13-summary">Chapter 13 总结 (Summary)</a></li>
+<li><a class="reference internal" href="#chapter-13-exercises">Chapter 13 练习 (Exercises)</a></li>
+</ul>
+</li>
+</ul>
+
+  
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      
+      
+        <li><a href="https://github.com/acl-translation/acl-chinese/blob/redirect-to-new-domain/zhCN/ch13-cn.rst">
+          Show on GitHub</a></li>
+        <li><a href="https://github.com/acl-translation/acl-chinese/edit/redirect-to-new-domain/zhCN/ch13-cn.rst">
+          Edit on GitHub</a></li>
+      
+    </ul>
+  
+</div>
+    </div>
+              </div></div>
+      </div>
+<footer class="container-fluid">
+        <hr />&copy; 版权所有 2012, Juanito Fatas Huang.最后更新日期是 Apr 22, 2013.使用 <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.</footer>
+ <!-- End original user content -->
+
+
+<br>
+<br>
+<br>
+
+
+<style type="text/css">
+  .rtd-badge {
+    position: fixed;
+    display: block;
+    bottom: 5px;
+    height: 40px;
+    text-indent: -9999em;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -moz-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  }
+  #version_menu {
+    position: fixed;
+    display: none;
+    bottom: 11px;
+    right: 166px;
+    list-style-type: none;
+    margin: 0;
+  }
+  .footer_popout:hover #version_menu {
+    display: block;
+  }
+  #version_menu li {
+    display: block;
+    float: right;
+  }
+  #version_menu li a {
+    display: block;
+    padding: 6px 10px 4px 10px;
+    margin: 7px 7px 0 0;
+    font-weight: bold;
+    font-size: 14px;
+    height: 20px;
+    line-height: 17px;
+    text-decoration: none;
+    color: #fff;
+    background: #8ca1af url(../images/gradient-light.png) bottom left repeat-x;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 1px #465158;
+    -moz-box-shadow: 0 1px 1px #465158;
+    -webkit-box-shadow: 0 1px 1px #465158;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+  }
+  #version_menu li a:hover {
+    text-decoration: none;
+    background-color: #697983;
+    box-shadow: 0 1px 0px #465158;
+    -moz-box-shadow: 0 1px 0px #465158;
+    -webkit-box-shadow: 0 1px 0px #465158;
+  }
+  .rtd-badge.rtd {
+    background: #3b4449 url(//media.readthedocs.org//images/badge-rtd.png) scroll 0px -46px no-repeat;
+    border: 1px solid #282E32;
+    width: 41px;
+    right: 5px;
+  }
+  .footer_popout:hover .rtd-badge.rtd {
+    background-position: top left;
+    width: 160px;
+  }
+  .rtd-badge.revsys { background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline-sponsored {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys-sm.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 205px;
+    right: 173px;
+  }
+
+</style>
+<div class="rtd_doc_footer">
+  <div class="footer_popout">
+    <a href="//readthedocs.org/projects/ansi-common-lisp/?fromdocs=ansi-common-lisp" class="rtd-badge rtd"> Brought to you by Read the Docs</a>
+    <ul id="version_menu">
+      
+        <li><a href="/en/latest/">latest</a></li>
+      
+    </ul>
+  </div>
+</div>
+<!-- RTD Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-17997319-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+<!-- User Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-26995626-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,898 @@
+<!DOCTYPE HTML>
+
+  <html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+<title>第十章：巨集 &mdash; ANSI Common Lisp 中文版</title>
+    
+<!-- RTD <head> -->
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/underscore.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/doctools.js"></script>
+
+<script type="text/javascript">
+  // This is included here for Javascript that doesn't have access to the templates.
+  var doc_version = "latest";
+  var doc_slug = "ansi-common-lisp";
+</script>
+
+<script type="text/javascript" src="//media.readthedocs.org/javascript/rtd.js"></script>
+<!-- end RTD <head> -->
+
+    <link rel="stylesheet" href="../_static/han.min.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/rosefinch.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/main.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:       '../',
+        VERSION:        '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX:    '.html',
+        HAS_SOURCE:     true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/han.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  <script type="text/javascript" src=../_static/jquery.dimensions.js"></script>
+  <script type="text/javascript" src="../_static/main.js"></script><link rel="top" title="ANSI Common Lisp 中文版" href="../index.html" /></head>
+
+  <body><div class="navbar navbar-static-top navbar-inverse">
+        <div id="top-bar" class="navbar-inner">
+
+          <h1 id="logo">ANSI Common Lisp 中文版<a href="../index.html" class="brand">ANSI Common Lisp 中文版</a></h1>
+          <ul class="nav"></ul><a href="https://github.com/acl-translation/acl-chinese"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
+        </div>
+      </div><div class="content container-fluid">
+        <div class="row-fluid"><div class="document span9"><article >
+                <div class="documentwrapper"><div class="body"><div class="section" id="id1">
+<h1>第十章：巨集<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h1>
+<p>Lisp 程式碼是用 Lisp 物件的列表來表示。2.3 節宣稱這讓 Lisp 可以寫出<strong>可自己寫程式的程式</strong>。本章將示範如何跨越表達式與程式碼的界線。</p>
+<div class="section" id="eval">
+<h2>10.1 求值 (Eval)<a class="headerlink" href="#eval" title="永久链接至标题">¶</a></h2>
+<p>如何產生表達式是很直觀的：呼叫 <tt class="docutils literal"><span class="pre">list</span></tt> 即可。我們沒有考慮到的是，如何使 Lisp 將列表視為程式碼。這之間缺少的連結是函數 <tt class="docutils literal"><span class="pre">eval</span></tt> ，它接受一個表達式，將其求值，然後回傳它的值:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">eval</span> <span class="o">&#39;</span><span class="p">(</span><span class="nb">+</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">))</span>
+<span class="mi">6</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">eval</span> <span class="o">&#39;</span><span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;Hello&quot;</span><span class="p">))</span>
+<span class="nv">Hello</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果這看起很熟悉的話，這是應該的。這就是我們一直交談的那個 <tt class="docutils literal"><span class="pre">eval</span></tt> 。下面這個函數實現了與頂層非常相似的東西:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">our-toplevel</span> <span class="p">()</span>
+  <span class="p">(</span><span class="nb">do</span> <span class="p">()</span>
+      <span class="p">(</span><span class="no">nil</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;~%&gt; &quot;</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">print</span> <span class="p">(</span><span class="nb">eval</span> <span class="p">(</span><span class="nb">read</span><span class="p">)))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>也是因為這個原因，頂層也稱為<strong>讀取–求值–印出迴圈</strong> (read-eval-print loop, REPL)。</p>
+<p>呼叫 <tt class="docutils literal"><span class="pre">eval</span></tt> 是跨越程式碼與列表界線的一種方法。但它不是一個好方法:</p>
+<ol class="arabic simple">
+<li>它的效率低落： <tt class="docutils literal"><span class="pre">eval</span></tt> 處理的是原始列表 (raw list)，要不當下編譯它，或是用直譯器求值。兩種方法都比執行編譯過的程式碼來得慢許多。</li>
+<li>表達式在沒有詞法語境 (lexical context)的情況下被求值。舉例來說，如果你在一個 <tt class="docutils literal"><span class="pre">let</span></tt> 裡呼叫 <tt class="docutils literal"><span class="pre">eval</span></tt> ，傳給 <tt class="docutils literal"><span class="pre">eval</span></tt> 的表達式將無法參照由 <tt class="docutils literal"><span class="pre">let</span></tt> 所設置的變數。</li>
+</ol>
+<p>有許多更好的方法 (下一節敘述)來利用產生程式碼的這個可能性。當然 <tt class="docutils literal"><span class="pre">eval</span></tt> 也是有用的，唯一合法的用途像是在頂層迴圈使用它。</p>
+<p>對於程式設計師來說， <tt class="docutils literal"><span class="pre">eval</span></tt> 的主要價值大概是作為 Lisp 的概念模型。我們可以想像 Lisp 是由一個長的 <tt class="docutils literal"><span class="pre">cond</span></tt> 表達式定義而成:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nb">eval</span> <span class="p">(</span><span class="nv">expr</span> <span class="nv">env</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">cond</span> <span class="o">...</span>
+        <span class="p">((</span><span class="nb">eql</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">expr</span><span class="p">)</span> <span class="ss">&#39;quote</span><span class="p">)</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">expr</span><span class="p">))</span>
+        <span class="o">...</span>
+        <span class="p">(</span><span class="no">t</span> <span class="p">(</span><span class="nb">apply</span> <span class="p">(</span><span class="nb">symbol-function</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">expr</span><span class="p">))</span>
+                  <span class="p">(</span><span class="nb">mapcar</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+                              <span class="p">(</span><span class="nb">eval</span> <span class="nv">x</span> <span class="nv">env</span><span class="p">))</span>
+                          <span class="p">(</span><span class="nb">cdr</span> <span class="nv">expr</span><span class="p">))))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>許多表達式由預設子句 (default clause)來處理，預設子句獲得 <tt class="docutils literal"><span class="pre">car</span></tt> 所參照的函數，將 <tt class="docutils literal"><span class="pre">cdr</span></tt> 所有的參數求值，並回傳將前者應用至後者的結果。 <a class="footnote-reference" href="#id4" id="id2">[1]</a></p>
+<p>但是像 <tt class="docutils literal"><span class="pre">(quote</span> <span class="pre">x)</span></tt> 那樣的句子就不能用這樣的方式來處理，因為 <tt class="docutils literal"><span class="pre">quote</span></tt> 就是為了防止它的參數被求值而存在的。所以我們需要給 <tt class="docutils literal"><span class="pre">quote</span></tt> 寫一個特別的子句。這也是為什麼本質上將其稱為特殊運算元 (special operator): 一個需要被實現為 <tt class="docutils literal"><span class="pre">eval</span></tt> 的一個特殊情況的運算元。</p>
+<p>函數 <tt class="docutils literal"><span class="pre">coerce</span></tt> 與 <tt class="docutils literal"><span class="pre">compile</span></tt> 提供了一個類似的橋樑，讓你把列表轉成程式碼。你可以 <tt class="docutils literal"><span class="pre">coerce</span></tt> 一個 lambda 表達式，使其成為函數，</p>
+<div class="highlight-cl"><pre>&gt; (coerce '(lambda (x) x) 'function)
+#&lt;Interpreted-Function BF9D96&gt;</pre>
+</div>
+<p>而如果你將 <tt class="docutils literal"><span class="pre">nil</span></tt> 作為第一個參數傳給 <tt class="docutils literal"><span class="pre">compile</span></tt> ，它會編譯作為第二個參數傳入的 lambda 表達式。</p>
+<div class="highlight-cl"><pre>&gt; (compile nil '(lambda (x) (+ x 2)))
+#&lt;Compiled-Function BF55BE&gt;
+NIL
+NIL</pre>
+</div>
+<p>由於 <tt class="docutils literal"><span class="pre">coerce</span></tt> 與 <tt class="docutils literal"><span class="pre">compile</span></tt> 可接受列表作為參數，一個程式可以在動態執行時 (on the fly)建造新函數。但與呼叫 <tt class="docutils literal"><span class="pre">eval</span></tt> 比起來，這不是一個從根本解決的辦法，並且需抱有同樣的疑慮來檢視這兩個函數。</p>
+<p>函數 <tt class="docutils literal"><span class="pre">eval</span></tt> , <tt class="docutils literal"><span class="pre">coerce</span></tt> 與 <tt class="docutils literal"><span class="pre">compile</span></tt> 的麻煩不是它們跨越了程式碼與列表之間的界線，而是它們在執行期做這件事。跨越界線的代價昂貴。大多數情況下，在編譯期做這件事是沒問題的，當你的程式執行時，幾乎不用成本。下一節會示範如何辦到這件事。</p>
+</div>
+<div class="section" id="macros">
+<h2>10.2 巨集 (Macros)<a class="headerlink" href="#macros" title="永久链接至标题">¶</a></h2>
+<p>寫出能寫程式的程式的最普遍方法是透過定義巨集。<em>巨集</em>是透過轉換 (transformation)而實現的運算元。你透過說明你一個呼叫應該要翻譯成什麼，來定義一個巨集。這個翻譯稱為巨集展開 (macro-expansion)，巨集展開由編譯器自動完成。所以你的巨集所產生的程式碼，會變成程式的一個部分，就像你自己輸入的程式一樣。</p>
+<p>巨集通常藉由呼叫 <tt class="docutils literal"><span class="pre">defmacro</span></tt> 來定義。一個 <tt class="docutils literal"><span class="pre">defmacro</span></tt> 看起來很像 <tt class="docutils literal"><span class="pre">defun</span></tt> 。但是與其定義一個函數呼叫應該產生的值，它定義了該怎麼翻譯出一個函數呼叫。舉例來說，一個將其參數設為 <tt class="docutils literal"><span class="pre">nil</span></tt> 的巨集可以定義成如下:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defmacro</span> <span class="nv">nil!</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">list</span> <span class="ss">&#39;setf</span> <span class="nv">x</span> <span class="no">nil</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>這定義了一個新的運算元，稱為 <tt class="docutils literal"><span class="pre">nil!</span></tt> ，它接受一個參數。一個這樣形式 <tt class="docutils literal"><span class="pre">(nil!</span> <span class="pre">a)</span></tt> 的呼叫，會在求值或編譯前，被翻譯成 <tt class="docutils literal"><span class="pre">(setf</span> <span class="pre">a</span> <span class="pre">nil)</span></tt> 。所以如果我們輸入 <tt class="docutils literal"><span class="pre">(nil!</span> <span class="pre">x)</span></tt> 至頂層，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">nil!</span> <span class="nv">x</span><span class="p">)</span>
+<span class="no">NIL</span>
+<span class="nb">&gt;</span> <span class="nv">x</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>完全等同於輸入表達式 <tt class="docutils literal"><span class="pre">(setf</span> <span class="pre">x</span> <span class="pre">nil)</span></tt> 。</p>
+<p>要測試一個函數，我們呼叫它，但要測試一個巨集，我們看它的展開式 (expansion)。</p>
+<p>函數 <tt class="docutils literal"><span class="pre">macropexpand-1</span></tt> 接受一個巨集呼叫，並產生它的展開式:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">macropexpand-1</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">nil!</span> <span class="nv">x</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">SETF</span> <span class="nv">X</span> <span class="no">NIL</span><span class="p">)</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+<p>一個巨集呼叫可以展開成另一個巨集呼叫。當編譯器（或頂層）遇到一個巨集呼叫時，它持續展開它，直到不可展開為止。</p>
+<p>理解巨集的祕密是理解它們是如何被實現的。在檯面底下，它們只是轉換成表達式的函數。舉例來說，如果你傳入這個形式 <tt class="docutils literal"><span class="pre">(nil!</span> <span class="pre">a)</span></tt> 的表達式給這個函數</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">expr</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">apply</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">list</span> <span class="ss">&#39;setf</span> <span class="nv">x</span> <span class="no">nil</span><span class="p">))</span>
+         <span class="p">(</span><span class="nb">cdr</span> <span class="nv">expr</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>它會回傳 <tt class="docutils literal"><span class="pre">(setf</span> <span class="pre">a</span> <span class="pre">nil)</span></tt> 。當你使用 <tt class="docutils literal"><span class="pre">defmacro</span></tt> ，你定義一個類似這樣的函數。 <tt class="docutils literal"><span class="pre">macroexpand-1</span></tt> 全部所做的事情是，當它看到一個表達式的 <tt class="docutils literal"><span class="pre">car</span></tt> 是巨集時，將表達式傳給對應的函數。</p>
+</div>
+<div class="section" id="backquote">
+<h2>10.3 反引號 (Backquote)<a class="headerlink" href="#backquote" title="永久链接至标题">¶</a></h2>
+<p>反引號讀取巨集 (read-macro)使得從模版 (templates)建構列表變得有可能。反引號廣泛使用在巨集定義中。一個平常的引用是鍵盤上的右引號 (apostrophe)，然而一個反引號是一個左引號。(譯註: open quote 左引號，closed quote 右引號)。它稱作“反引號”是因為它看起來像是反過來的引號 (titled backwards)。</p>
+<p>(譯註: 反引號是鍵盤左上方數字 1 左邊那個: <tt class="docutils literal"><span class="pre">`</span></tt> ，而引號是 enter 左邊那個 <tt class="docutils literal"><span class="pre">'</span></tt>)</p>
+<p>一個反引號單獨使用時，等於普通的引號:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="o">`</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>和普通引號一樣，單一個反引號保護其參數被求值。</p>
+<p>反引號的優點是，在一個反引號表達式裡，你可以使用 <tt class="docutils literal"><span class="pre">,</span></tt> (逗號)與 <tt class="docutils literal"><span class="pre">,&#64;</span></tt> (逗號小老鼠「comma-at」)來重啟求值。如果你在反引號表達式裡，在某個東西前面加逗號，則它會被求值。所以我們可以使用反引號與逗號來建構列表模版:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">a</span> <span class="mi">1</span> <span class="nv">b</span> <span class="mi">2</span><span class="p">)</span>
+<span class="mi">2</span>
+<span class="nb">&gt;</span> <span class="o">`</span><span class="p">(</span><span class="nv">a</span> <span class="nv">is</span> <span class="o">,</span><span class="nv">a</span> <span class="nb">and</span> <span class="nv">b</span> <span class="nv">is</span> <span class="o">,</span><span class="nv">b</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">IS</span> <span class="mi">1</span> <span class="nv">AND</span> <span class="nv">B</span> <span class="nv">IS</span> <span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>通過使用反引號取代呼叫 <tt class="docutils literal"><span class="pre">list</span></tt> ，我們可以寫出巨集會產生出的展開式的巨集定義。舉例來說 <tt class="docutils literal"><span class="pre">nil!</span></tt> 可以定義為:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defmacro</span> <span class="nv">nil!</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+  <span class="o">`</span><span class="p">(</span><span class="nb">setf</span> <span class="o">,</span><span class="nv">x</span> <span class="no">nil</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>逗號小老鼠與逗號相似，但將其(本來應該是列表的)參數扒開。將列表的元素插入模版來取代列表。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">lst</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="o">`</span><span class="p">(</span><span class="nv">lst</span> <span class="nv">is</span> <span class="o">,</span><span class="nv">lst</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">LST</span> <span class="nv">IS</span> <span class="p">(</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span><span class="p">))</span>
+<span class="nb">&gt;</span> <span class="o">`</span><span class="p">(</span><span class="nv">its</span> <span class="nv">elements</span> <span class="nv">are</span> <span class="o">,@</span><span class="nv">lst</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">ITS</span> <span class="nv">ELEMENTS</span> <span class="nv">ARE</span> <span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>逗號小老鼠在巨集裡很有用，舉例來說，在用剩餘參數 (rest parameters)表示程式碼主體的巨集。假設我們想要一個 <tt class="docutils literal"><span class="pre">while</span></tt> 巨集，只要初始測試表達式為真，對其主體求值:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">x</span> <span class="mi">0</span><span class="p">))</span>
+    <span class="p">(</span><span class="nv">while</span> <span class="p">(</span><span class="nb">&lt;</span> <span class="nv">x</span> <span class="mi">10</span><span class="p">)</span>
+       <span class="p">(</span><span class="nb">princ</span> <span class="nv">x</span><span class="p">)</span>
+       <span class="p">(</span><span class="nb">incf</span> <span class="nv">x</span><span class="p">)))</span>
+<span class="mi">0123456789</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>我們可以透過使用一個剩餘參數 (rest parameter) ，蒐集主體的表達式列表，來定義一個這樣的巨集，接著使用逗號小老鼠來扒開這個列表放至展開式裡:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defmacro</span> <span class="nv">while</span> <span class="p">(</span><span class="nv">test</span> <span class="k">&amp;rest</span> <span class="nv">body</span><span class="p">)</span>
+  <span class="o">`</span><span class="p">(</span><span class="nb">do</span> <span class="p">()</span>
+       <span class="p">((</span><span class="nb">not</span> <span class="o">,</span><span class="nv">test</span><span class="p">))</span>
+     <span class="o">,@</span><span class="nv">body</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<div class="section" id="example-quicksort">
+<h2>10.4 範例：快速排序法 (Example: Quicksort)<a class="headerlink" href="#example-quicksort" title="永久链接至标题">¶</a></h2>
+<p>圖 10.1 包含了重度依賴巨集的一個範例函數 –– 一個使用快速排序演算法來排序向量的函數。這個函數的工作方式如下:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">quicksort</span> <span class="p">(</span><span class="nv">vec</span> <span class="nv">l</span> <span class="nv">r</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">i</span> <span class="nv">l</span><span class="p">)</span>
+        <span class="p">(</span><span class="nv">j</span> <span class="nv">r</span><span class="p">)</span>
+        <span class="p">(</span><span class="nv">p</span> <span class="p">(</span><span class="nb">svref</span> <span class="nv">vec</span> <span class="p">(</span><span class="nb">round</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">l</span> <span class="nv">r</span><span class="p">)</span> <span class="mi">2</span><span class="p">))))</span>    <span class="c1">; 1</span>
+    <span class="p">(</span><span class="nv">while</span> <span class="p">(</span><span class="nb">&lt;=</span> <span class="nv">i</span> <span class="nv">j</span><span class="p">)</span>                           <span class="c1">; 2</span>
+      <span class="p">(</span><span class="nv">while</span> <span class="p">(</span><span class="nb">&lt;</span> <span class="p">(</span><span class="nb">svref</span> <span class="nv">vec</span> <span class="nv">i</span><span class="p">)</span> <span class="nv">p</span><span class="p">)</span> <span class="p">(</span><span class="nb">incf</span> <span class="nv">i</span><span class="p">))</span>
+      <span class="p">(</span><span class="nv">while</span> <span class="p">(</span><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">svref</span> <span class="nv">vec</span> <span class="nv">j</span><span class="p">)</span> <span class="nv">p</span><span class="p">)</span> <span class="p">(</span><span class="nb">decf</span> <span class="nv">j</span><span class="p">))</span>
+      <span class="p">(</span><span class="nb">when</span> <span class="p">(</span><span class="nb">&lt;=</span> <span class="nv">i</span> <span class="nv">j</span><span class="p">)</span>
+        <span class="p">(</span><span class="nb">rotatef</span> <span class="p">(</span><span class="nb">svref</span> <span class="nv">vec</span> <span class="nv">i</span><span class="p">)</span> <span class="p">(</span><span class="nb">svref</span> <span class="nv">vec</span> <span class="nv">j</span><span class="p">))</span>
+        <span class="p">(</span><span class="nb">incf</span> <span class="nv">i</span><span class="p">)</span>
+        <span class="p">(</span><span class="nb">decf</span> <span class="nv">j</span><span class="p">)))</span>
+    <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">&gt;=</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">j</span> <span class="nv">l</span><span class="p">)</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nv">quicksort</span> <span class="nv">vec</span> <span class="nv">l</span> <span class="nv">j</span><span class="p">))</span>    <span class="c1">; 3</span>
+    <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">&gt;=</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">r</span> <span class="nv">i</span><span class="p">)</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nv">quicksort</span> <span class="nv">vec</span> <span class="nv">i</span> <span class="nv">r</span><span class="p">)))</span>
+  <span class="nv">vec</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>圖 10.1 快速排序。</strong></p>
+<ol class="arabic simple">
+<li>開始你透過選擇某個元素作為主鍵 ( <em>pivot</em> )。許多實現選擇要被排序的序列中間元素。</li>
+<li>接著你分割 (partition)向量，持續交換元素，直到所有主鍵左邊的元素小於主鍵，右邊的元素大於主鍵。</li>
+<li>最後，如果左右分割之一有兩個或更多元素時，你遞迴地應用這個算法至向量的那些分割上。</li>
+</ol>
+<p>每一次遞迴時，分割越變越小，直到向量完整排序為止。</p>
+<p>在圖 10.1 的實現裡，接受一個向量以及標記欲排序範圍的兩個整數。這個範圍當下的中間元素被選為主鍵 ( <tt class="docutils literal"><span class="pre">p</span></tt> )。接著從左右兩端開始產生分割，並將左邊太大或右邊太小的元素交換過來。(將兩個參數傳給 <tt class="docutils literal"><span class="pre">rotatef</span></tt> 函數，交換它們的值。)最後，如果一個分割含有多個元素時，用同樣的流程來排序它們。</p>
+<p>除了我們前一節定義的 <tt class="docutils literal"><span class="pre">while</span></tt> 巨集之外，圖 10.1 也用了內建的 <tt class="docutils literal"><span class="pre">when</span></tt> , <tt class="docutils literal"><span class="pre">incf</span></tt> , <tt class="docutils literal"><span class="pre">decf</span></tt> 以及 <tt class="docutils literal"><span class="pre">rotatef</span></tt> 巨集。使用這些巨集使程式看起來更加簡潔與清晰。</p>
+</div>
+<div class="section" id="macro-design">
+<h2>10.5 設計巨集 (Macro Design)<a class="headerlink" href="#macro-design" title="永久链接至标题">¶</a></h2>
+<p>撰寫巨集是一種獨特的程式設計，它有著獨一無二的目標與問題。能夠改變編譯器所看到的東西，就像是能夠重寫它一樣。所以當你開始撰寫巨集時，你需要像語言設計者一樣思考。</p>
+<p>本節快速給出巨集所牽涉問題的概要，以及解決它們的技巧。作為一個例子，我們會定義一個稱為      <tt class="docutils literal"><span class="pre">ntimes</span></tt> 的巨集，它接受一個數字 <em>n</em> 並對其主體求值 <em>n</em> 次。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">ntimes</span> <span class="mi">10</span>
+    <span class="p">(</span><span class="nb">princ</span> <span class="s">&quot;.&quot;</span><span class="p">))</span>
+<span class="o">..........</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>下面是一個不正確的 <tt class="docutils literal"><span class="pre">ntimes</span></tt> 定義，說明了巨集設計中的某些議題:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defmacro</span> <span class="nv">ntimes</span> <span class="p">(</span><span class="nv">n</span> <span class="k">&amp;rest</span> <span class="nv">body</span><span class="p">)</span>
+  <span class="o">`</span><span class="p">(</span><span class="nb">do</span> <span class="p">((</span><span class="nv">x</span> <span class="mi">0</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="mi">1</span><span class="p">)))</span>
+       <span class="p">((</span><span class="nb">&gt;=</span> <span class="nv">x</span> <span class="o">,</span><span class="nv">n</span><span class="p">))</span>
+     <span class="o">,@</span><span class="nv">body</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>這個定義第一眼看起來可能沒問題。在上面這個情況，它會如預期的工作。但實際上它在兩個方面壞掉了。</p>
+<p>一個巨集設計者需要考慮的問題之一是無意的變數捕捉 (inadvertent variable capture)。這發生在當一個在巨集展開式裡用到的變數，恰巧與展開式即將插入的語境裡，有使用同樣名字作為變數的情況。不正確的 <tt class="docutils literal"><span class="pre">ntimes</span></tt> 定義創造了一個變數 <tt class="docutils literal"><span class="pre">x</span></tt> 。所以如果這個巨集在已經有 <tt class="docutils literal"><span class="pre">x</span></tt> 作為名字的地方被呼叫時，它可能無法做到我們所預期的:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">x</span> <span class="mi">10</span><span class="p">))</span>
+    <span class="p">(</span><span class="nv">ntimes</span> <span class="mi">5</span>
+       <span class="p">(</span><span class="nb">setf</span> <span class="nv">x</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="mi">1</span><span class="p">)))</span>
+    <span class="nv">x</span><span class="p">)</span>
+<span class="mi">10</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果 <tt class="docutils literal"><span class="pre">ntimes</span></tt> 如我們預期般的執行，這個表達式應該會對 <tt class="docutils literal"><span class="pre">x</span></tt> 遞增五次，最後回傳 <tt class="docutils literal"><span class="pre">15</span></tt> 。但因為巨集展開剛好使用 <tt class="docutils literal"><span class="pre">x</span></tt> 作為迭代變數， <tt class="docutils literal"><span class="pre">setf</span></tt> 表達式遞增那個 <tt class="docutils literal"><span class="pre">x</span></tt> ，而不是我們要遞增的那個。一旦巨集呼叫被展開，前述的展開式變成:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">x</span> <span class="mi">10</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">do</span> <span class="p">((</span><span class="nv">x</span> <span class="mi">0</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="mi">1</span><span class="p">)))</span>
+        <span class="p">((</span><span class="nb">&gt;=</span> <span class="nv">x</span> <span class="mi">5</span><span class="p">))</span>
+      <span class="p">(</span><span class="nb">setf</span> <span class="nv">x</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="mi">1</span><span class="p">)))</span>
+    <span class="nv">x</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>最普遍的解法是不要使用任何可能會被捕捉的一般符號。取而代之的我們使用 gensym (8.4 小節)。因為 <tt class="docutils literal"><span class="pre">read</span></tt> 函數 <tt class="docutils literal"><span class="pre">intern</span></tt> 每個它見到的符號，所以在一個程式裡，沒有可能會有任何符號會 <tt class="docutils literal"><span class="pre">eql</span></tt> gensym。如果我們使用 gensym 而不是 <tt class="docutils literal"><span class="pre">x</span></tt> 來重寫 <tt class="docutils literal"><span class="pre">ntimes</span></tt> 的定義，至少對於變數捕捉來說，它是安全的:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defmacro</span> <span class="nv">ntimes</span> <span class="p">(</span><span class="nv">n</span> <span class="k">&amp;rest</span> <span class="nv">body</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">g</span> <span class="p">(</span><span class="nb">gensym</span><span class="p">)))</span>
+    <span class="o">`</span><span class="p">(</span><span class="nb">do</span> <span class="p">((</span><span class="o">,</span><span class="nv">g</span> <span class="mi">0</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">g</span> <span class="mi">1</span><span class="p">)))</span>
+         <span class="p">((</span><span class="nb">&gt;=</span> <span class="o">,</span><span class="nv">g</span> <span class="o">,</span><span class="nv">n</span><span class="p">))</span>
+       <span class="o">,@</span><span class="nv">body</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>但這個巨集在另一問題上仍有疑慮: 多重求值 (multiple evaluation)。因為第一個參數被直接插入 <tt class="docutils literal"><span class="pre">do</span></tt> 表達式，它會在每次迭代時被求值。當第一個參數是有副作用的表達式，這個錯誤非常清楚地表現出來:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">v</span> <span class="mi">10</span><span class="p">))</span>
+    <span class="p">(</span><span class="nv">ntimes</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">v</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">v</span> <span class="mi">1</span><span class="p">))</span>
+      <span class="p">(</span><span class="nb">princ</span> <span class="s">&quot;.&quot;</span><span class="p">)))</span>
+<span class="o">.....</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>由於 <tt class="docutils literal"><span class="pre">v</span></tt> 一開始是 <tt class="docutils literal"><span class="pre">10</span></tt> ，而 <tt class="docutils literal"><span class="pre">setf</span></tt> 回傳其第二個參數的值，應該印出九個句點。實際上它只印出五個。</p>
+<p>如果我們看看巨集呼叫所展開的表達式，就可以知道為什麼:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">v</span> <span class="mi">10</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">do</span> <span class="p">((</span><span class="ss">#:g1</span> <span class="mi">0</span> <span class="p">(</span><span class="nb">+</span> <span class="ss">#:g1</span> <span class="mi">1</span><span class="p">)))</span>
+        <span class="p">((</span><span class="nb">&gt;=</span> <span class="ss">#:g1</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">v</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">v</span> <span class="mi">1</span><span class="p">))))</span>
+      <span class="p">(</span><span class="nb">princ</span> <span class="s">&quot;.&quot;</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>每次迭代我們不是把迭代變數 (gensym 通常印出前面有 <tt class="docutils literal"><span class="pre">#:</span></tt> 的符號)與 <tt class="docutils literal"><span class="pre">9</span></tt> 比較，而是與每次求值時會遞減的表達式比較。這如同每次我們查看地平線時，地平線都越來越近。</p>
+<p>避免非預期的多重求值的方法是設置一個變數，在任何迭代前將其設為有疑惑的那個表達式。這通常牽扯到另一個 gensym:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defmacro</span> <span class="nv">ntimes</span> <span class="p">(</span><span class="nv">n</span> <span class="k">&amp;rest</span> <span class="nv">body</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">g</span> <span class="p">(</span><span class="nb">gensym</span><span class="p">))</span>
+        <span class="p">(</span><span class="nv">h</span> <span class="p">(</span><span class="nb">gensym</span><span class="p">)))</span>
+    <span class="o">`</span><span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="o">,</span><span class="nv">h</span> <span class="o">,</span><span class="nv">n</span><span class="p">))</span>
+       <span class="p">(</span><span class="nb">do</span> <span class="p">((</span><span class="o">,</span><span class="nv">g</span> <span class="mi">0</span> <span class="p">(</span><span class="nb">+</span> <span class="o">,</span><span class="nv">g</span> <span class="mi">1</span><span class="p">)))</span>
+           <span class="p">((</span><span class="nb">&gt;=</span> <span class="o">,</span><span class="nv">g</span> <span class="o">,</span><span class="nv">h</span><span class="p">))</span>
+         <span class="o">,@</span><span class="nv">body</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>終於，這是一個 <tt class="docutils literal"><span class="pre">ntimes</span></tt> 的正確定義。</p>
+<p>非預期的變數捕捉與多重求值是折磨巨集的主要問題，但不只有這些問題而已。有經驗後，要避免這樣的錯誤與避免更熟悉的錯誤一樣簡單，比如除以零的錯誤。</p>
+<p>你的 Common Lisp 實現是一個學習更多有關巨集的好地方。藉由呼叫展開至內建巨集，你可以理解它們是怎麼寫的。下面是大多數實現對於一個 <tt class="docutils literal"><span class="pre">cond</span></tt> 表達式會產生的展開式:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">pprint</span> <span class="p">(</span><span class="nb">macroexpand-1</span> <span class="o">&#39;</span><span class="p">(</span><span class="nb">cond</span> <span class="p">(</span><span class="nv">a</span> <span class="nv">b</span><span class="p">)</span>
+                                <span class="p">(</span><span class="nv">c</span> <span class="nv">d</span> <span class="nv">e</span><span class="p">)</span>
+                                <span class="p">(</span><span class="no">t</span> <span class="nv">f</span><span class="p">))))</span>
+<span class="p">(</span><span class="nv">IF</span> <span class="nv">A</span>
+    <span class="nv">B</span>
+    <span class="p">(</span><span class="nv">IF</span> <span class="nv">C</span>
+        <span class="p">(</span><span class="nv">PROGN</span> <span class="nv">D</span> <span class="nv">E</span><span class="p">)</span>
+        <span class="nv">F</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>函數 <tt class="docutils literal"><span class="pre">pprint</span></tt> 印出像程式碼一樣縮排的表達式，這在檢視巨集展開式時特別有用。</p>
+</div>
+<div class="section" id="generalized-reference">
+<h2>10.6 通用化參照 (Generalized Reference)<a class="headerlink" href="#generalized-reference" title="永久链接至标题">¶</a></h2>
+<p>由於一個巨集呼叫可以直接在它出現的地方展開成程式碼，任何展開為 <tt class="docutils literal"><span class="pre">setf</span></tt> 表達式的巨集呼叫都可以作為 <tt class="docutils literal"><span class="pre">setf</span></tt> 表達式的第一個參數。 舉例來說，如果我們定義一個 <tt class="docutils literal"><span class="pre">car</span></tt> 的同義詞，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defmacro</span> <span class="nv">cah</span> <span class="p">(</span><span class="nv">lst</span><span class="p">)</span> <span class="o">`</span><span class="p">(</span><span class="nb">car</span> <span class="o">,</span><span class="nv">lst</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>然後因為一個 <tt class="docutils literal"><span class="pre">car</span></tt> 呼叫可以是 <tt class="docutils literal"><span class="pre">setf</span></tt> 的第一個參數，而 <tt class="docutils literal"><span class="pre">cah</span></tt> 一樣可以:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">x</span> <span class="p">(</span><span class="nb">list</span> <span class="ss">&#39;a</span> <span class="ss">&#39;b</span> <span class="ss">&#39;c</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nv">cah</span> <span class="nv">x</span><span class="p">)</span> <span class="mi">44</span><span class="p">)</span>
+    <span class="nv">x</span><span class="p">)</span>
+<span class="p">(</span><span class="mi">44</span> <span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>撰寫一個展開成一個 <tt class="docutils literal"><span class="pre">setf</span></tt> 表達式的巨集是另一個問題，是一個比原先看起來更為困難的問題。看起來也許你可以這樣實現 <tt class="docutils literal"><span class="pre">incf</span></tt> ，只要</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defmacro</span> <span class="nb">incf</span> <span class="p">(</span><span class="nv">x</span> <span class="k">&amp;optional</span> <span class="p">(</span><span class="nv">y</span> <span class="mi">1</span><span class="p">))</span> <span class="c1">; wrong</span>
+  <span class="o">`</span><span class="p">(</span><span class="nb">setf</span> <span class="o">,</span><span class="nv">x</span> <span class="p">(</span><span class="nb">+</span> <span class="o">,</span><span class="nv">x</span> <span class="o">,</span><span class="nv">y</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>但這是行不通的。這兩個表達式不相等:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">car</span> <span class="p">(</span><span class="nb">push</span> <span class="mi">1</span> <span class="nv">lst</span><span class="p">))</span> <span class="p">(</span><span class="nb">1+</span> <span class="p">(</span><span class="nb">car</span> <span class="p">(</span><span class="nb">push</span> <span class="mi">1</span> <span class="nv">lst</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nb">incf</span> <span class="p">(</span><span class="nb">car</span> <span class="p">(</span><span class="nb">push</span> <span class="mi">1</span> <span class="nv">lst</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果 <tt class="docutils literal"><span class="pre">lst</span></tt> 是 <tt class="docutils literal"><span class="pre">nil</span></tt> 的話，第二個表達式會設成 <tt class="docutils literal"><span class="pre">(2)</span></tt> ，但第一個表達式會設成 <tt class="docutils literal"><span class="pre">(1</span> <span class="pre">2)</span></tt> 。</p>
+<p>Common Lisp 提供了 <tt class="docutils literal"><span class="pre">define-modify-macro</span></tt> 作為寫出對於 <tt class="docutils literal"><span class="pre">setf</span></tt> 限制類別的巨集的一種方法 它接受三個參數: 巨集的名字，額外的參數 (隱含第一個參數 <tt class="docutils literal"><span class="pre">place</span></tt>)，以及產生出 <tt class="docutils literal"><span class="pre">place</span></tt> 新數值的函數名。所以我們可以將 <tt class="docutils literal"><span class="pre">incf</span></tt> 定義為</p>
+<p>(譯註: <tt class="docutils literal"><span class="pre">define-modify-macro</span></tt> 的定義可以看 <a class="reference external" href="https://gist.github.com/2958757">這裡</a> )</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">define-modify-macro</span> <span class="nv">our-incf</span> <span class="p">(</span><span class="k">&amp;optional</span> <span class="p">(</span><span class="nv">y</span> <span class="mi">1</span><span class="p">))</span> <span class="nb">+</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>以及另一版 <tt class="docutils literal"><span class="pre">push</span></tt> 将元素推至一個列表的尾端可寫為</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">define-modify-macro</span> <span class="nv">append1f</span> <span class="p">(</span><span class="nv">val</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">lst</span> <span class="nv">val</span><span class="p">)</span> <span class="p">(</span><span class="nb">append</span> <span class="nv">lst</span> <span class="p">(</span><span class="nb">list</span> <span class="nv">val</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>後者會如下工作:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">lst</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nv">append1f</span> <span class="nv">lst</span> <span class="ss">&#39;d</span><span class="p">)</span>
+    <span class="nv">lst</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span> <span class="nv">D</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>順道一提， <tt class="docutils literal"><span class="pre">push</span></tt> 與 <tt class="docutils literal"><span class="pre">pop</span></tt> 都不能定義為 modify-macros，前者因為 <tt class="docutils literal"><span class="pre">place</span></tt> 不是其第一個參數，而後者因為其回傳值不是更改後的物件。</p>
+</div>
+<div class="section" id="example-macro-utilities">
+<h2>10.7 範例：實用的巨集函數 (Example: Macro Utilities)<a class="headerlink" href="#example-macro-utilities" title="永久链接至标题">¶</a></h2>
+<p>6.4 節介紹了實用函數 (utility)的概念，一種像是構造 Lisp 的通用運算元。我們可以使用巨集來定義不能寫作函數的實用函數。我們已經見過幾個例子: <tt class="docutils literal"><span class="pre">nil!</span></tt> , <tt class="docutils literal"><span class="pre">ntimes</span></tt> 以及 <tt class="docutils literal"><span class="pre">while</span></tt> ，全部都需要寫成巨集，因為它們全都需要某種控制參數求值的方法。本節給出更多你可以使用巨集寫出的多種實用函數。圖 10.2 挑選了幾個實踐中證實值得寫的實用函數。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defmacro</span> <span class="nv">for</span> <span class="p">(</span><span class="nv">var</span> <span class="nv">start</span> <span class="nv">stop</span> <span class="k">&amp;body</span> <span class="nv">body</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">gstop</span> <span class="p">(</span><span class="nb">gensym</span><span class="p">)))</span>
+    <span class="o">`</span><span class="p">(</span><span class="nb">do</span> <span class="p">((</span><span class="o">,</span><span class="nv">var</span> <span class="o">,</span><span class="nv">start</span> <span class="p">(</span><span class="nb">1+</span> <span class="o">,</span><span class="nv">var</span><span class="p">))</span>
+          <span class="p">(</span><span class="o">,</span><span class="nv">gstop</span> <span class="o">,</span><span class="nv">stop</span><span class="p">))</span>
+         <span class="p">((</span><span class="nb">&gt;</span> <span class="o">,</span><span class="nv">var</span> <span class="o">,</span><span class="nv">gstop</span><span class="p">))</span>
+       <span class="o">,@</span><span class="nv">body</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defmacro</span> <span class="nv">in</span> <span class="p">(</span><span class="nv">obj</span> <span class="k">&amp;rest</span> <span class="nv">choices</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">insym</span> <span class="p">(</span><span class="nb">gensym</span><span class="p">)))</span>
+    <span class="o">`</span><span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="o">,</span><span class="nv">insym</span> <span class="o">,</span><span class="nv">obj</span><span class="p">))</span>
+       <span class="p">(</span><span class="nb">or</span> <span class="o">,@</span><span class="p">(</span><span class="nb">mapcar</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">c</span><span class="p">)</span> <span class="o">`</span><span class="p">(</span><span class="nb">eql</span> <span class="o">,</span><span class="nv">insym</span> <span class="o">,</span><span class="nv">c</span><span class="p">))</span>
+                     <span class="nv">choices</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="nb">defmacro</span> <span class="nv">random-choice</span> <span class="p">(</span><span class="k">&amp;rest</span> <span class="nv">exprs</span><span class="p">)</span>
+  <span class="o">`</span><span class="p">(</span><span class="nb">case</span> <span class="p">(</span><span class="nb">random</span> <span class="o">,</span><span class="p">(</span><span class="nb">length</span> <span class="nv">exprs</span><span class="p">))</span>
+     <span class="o">,@</span><span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">key</span> <span class="mi">-1</span><span class="p">))</span>
+         <span class="p">(</span><span class="nb">mapcar</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">expr</span><span class="p">)</span>
+                     <span class="o">`</span><span class="p">(</span><span class="o">,</span><span class="p">(</span><span class="nb">incf</span> <span class="nv">key</span><span class="p">)</span> <span class="o">,</span><span class="nv">expr</span><span class="p">))</span>
+                 <span class="nv">exprs</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nb">defmacro</span> <span class="nv">avg</span> <span class="p">(</span><span class="k">&amp;rest</span> <span class="nv">args</span><span class="p">)</span>
+  <span class="o">`</span><span class="p">(</span><span class="nb">/</span> <span class="p">(</span><span class="nb">+</span> <span class="o">,@</span><span class="nv">args</span><span class="p">)</span> <span class="o">,</span><span class="p">(</span><span class="nb">length</span> <span class="nv">args</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defmacro</span> <span class="nv">with-gensyms</span> <span class="p">(</span><span class="nv">syms</span> <span class="k">&amp;body</span> <span class="nv">body</span><span class="p">)</span>
+  <span class="o">`</span><span class="p">(</span><span class="k">let</span> <span class="o">,</span><span class="p">(</span><span class="nb">mapcar</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">s</span><span class="p">)</span>
+                     <span class="o">`</span><span class="p">(</span><span class="o">,</span><span class="nv">s</span> <span class="p">(</span><span class="nb">gensym</span><span class="p">)))</span>
+                 <span class="nv">syms</span><span class="p">)</span>
+     <span class="o">,@</span><span class="nv">body</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defmacro</span> <span class="nv">aif</span> <span class="p">(</span><span class="nv">test</span> <span class="nv">then</span> <span class="k">&amp;optional</span> <span class="nv">else</span><span class="p">)</span>
+  <span class="o">`</span><span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">it</span> <span class="o">,</span><span class="nv">test</span><span class="p">))</span>
+     <span class="p">(</span><span class="k">if</span> <span class="nv">it</span> <span class="o">,</span><span class="nv">then</span> <span class="o">,</span><span class="nv">else</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>圖 10.2: 實用巨集函數</strong></p>
+<p>第一個 <tt class="docutils literal"><span class="pre">for</span></tt> ，設計上與 <tt class="docutils literal"><span class="pre">while</span></tt> 相似 (164 頁，譯註: 10.3 節)。它是給需要使用一個綁定至一個值的範圍的新變數來對主體求值的迴圈:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">for</span> <span class="nv">x</span> <span class="mi">1</span> <span class="mi">8</span>
+          <span class="p">(</span><span class="nb">princ</span> <span class="nv">x</span><span class="p">))</span>
+<span class="mi">12345678</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>這比寫出等效的 <tt class="docutils literal"><span class="pre">do</span></tt> 來得省事，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">do</span> <span class="p">((</span><span class="nv">x</span> <span class="mi">1</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="mi">1</span><span class="p">)))</span>
+    <span class="p">((</span><span class="nb">&gt;</span> <span class="nv">x</span> <span class="mi">8</span><span class="p">))</span>
+  <span class="p">(</span><span class="nb">princ</span> <span class="nv">x</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>這非常接近實際的展開式:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">do</span> <span class="p">((</span><span class="nv">x</span> <span class="mi">1</span> <span class="p">(</span><span class="nb">1+</span> <span class="nv">x</span><span class="p">))</span>
+     <span class="p">(</span><span class="ss">#:g1</span> <span class="mi">8</span><span class="p">))</span>
+    <span class="p">((</span><span class="nb">&gt;</span> <span class="nv">x</span> <span class="ss">#:g1</span><span class="p">))</span>
+  <span class="p">(</span><span class="nb">princ</span> <span class="nv">x</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>巨集需要引入一個額外的變數來持有標記範圍 (range)結束的值。 上面在例子裡的 <tt class="docutils literal"><span class="pre">8</span></tt> 也可是個函數呼叫，這樣我們就不需要求值好幾次。額外的變數需要是一個 gensym ，為了避免非預期的變數捕捉。</p>
+<p>圖 10.2 的第二個巨集 <tt class="docutils literal"><span class="pre">in</span></tt> ，若其第一個參數 <tt class="docutils literal"><span class="pre">eql</span></tt> 任何自己其他的參數時，回傳真。表達式我們可以寫成:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">in</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">expr</span><span class="p">)</span> <span class="ss">&#39;+</span> <span class="ss">&#39;-</span> <span class="ss">&#39;*</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>我們可以改寫成:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">op</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">expr</span><span class="p">)))</span>
+  <span class="p">(</span><span class="nb">or</span> <span class="p">(</span><span class="nb">eql</span> <span class="nv">op</span> <span class="ss">&#39;+</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">eql</span> <span class="nv">op</span> <span class="ss">&#39;-</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">eql</span> <span class="nv">op</span> <span class="ss">&#39;*</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>確實，第一個表達式展開後像是第二個，除了變數 <tt class="docutils literal"><span class="pre">op</span></tt> 被一個 gensym 取代了。</p>
+<p>下一個例子 <tt class="docutils literal"><span class="pre">random-choice</span></tt> ，隨機選取一個參數求值。在 74 頁 (譯註: 第 4 章的圖 4.6)我們需要隨機在兩者之間選擇。 <tt class="docutils literal"><span class="pre">random-choice</span></tt> 巨集實現了通用的解法。一個像是這樣的呼叫:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">random-choice</span> <span class="p">(</span><span class="nv">turn-left</span><span class="p">)</span> <span class="p">(</span><span class="nv">turn-right</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>會被展開為:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">case</span> <span class="p">(</span><span class="nb">random</span> <span class="mi">2</span><span class="p">)</span>
+  <span class="p">(</span><span class="mi">0</span> <span class="p">(</span><span class="nv">turn-left</span><span class="p">))</span>
+  <span class="p">(</span><span class="mi">1</span> <span class="p">(</span><span class="nv">turn-right</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>下一個巨集 <tt class="docutils literal"><span class="pre">with-gensyms</span></tt> 主要預期用在巨集主體裡。它不尋常，特別是在特定應用中的巨集，需要 gensym 幾個變數。有了這個巨集，與其</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">x</span> <span class="p">(</span><span class="nb">gensym</span><span class="p">))</span> <span class="p">(</span><span class="nv">y</span> <span class="p">(</span><span class="nb">gensym</span><span class="p">))</span> <span class="p">(</span><span class="nv">z</span> <span class="p">(</span><span class="nb">gensym</span><span class="p">)))</span>
+        <span class="o">...</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>我們可以寫成</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">with-gensyms</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">y</span> <span class="nv">z</span><span class="p">)</span>
+        <span class="o">...</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>到目前為止，圖 10.2 定義的巨集，沒有一個可以定義成函數。作為一個規則，寫成巨集是因為你不能將它寫成函數。但這個規則有幾個例外。有時候你或許想要定義一個運算元來作為巨集，好讓它在編譯期完成它的工作。巨集 <tt class="docutils literal"><span class="pre">avg</span></tt> 回傳其參數的平均值，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">avg</span> <span class="mi">2</span> <span class="mi">4</span> <span class="mi">8</span><span class="p">)</span>
+<span class="m">14/3</span>
+</pre></div>
+</td></tr></table></div>
+<p>是一個這種例子的巨集。我們可以將 <tt class="docutils literal"><span class="pre">avg</span></tt> 寫成函數，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">avg</span> <span class="p">(</span><span class="k">&amp;rest</span> <span class="nv">args</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">/</span> <span class="p">(</span><span class="nb">apply</span> <span class="nf">#&#39;</span><span class="nb">+</span> <span class="nv">args</span><span class="p">)</span> <span class="p">(</span><span class="nb">length</span> <span class="nv">args</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>但它會需要在執行期找出參數的數量。只要我們願意放棄應用 <tt class="docutils literal"><span class="pre">avg</span></tt> ，為什麼不在編譯期呼叫 <tt class="docutils literal"><span class="pre">length</span></tt> 呢？</p>
+<p>圖 10.2 的最後一個巨集是 <tt class="docutils literal"><span class="pre">aif</span></tt> ，它在此作為一個故意變數捕捉的例子。它讓我們可以使用變數 <tt class="docutils literal"><span class="pre">it</span></tt> 來參照到一個條件式裡的測試參數所返回的值。也就是說，與其寫成</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">val</span> <span class="p">(</span><span class="nv">calculate-something</span><span class="p">)))</span>
+  <span class="p">(</span><span class="k">if</span> <span class="nv">val</span>
+      <span class="p">(</span><span class="nb">1+</span> <span class="nv">val</span><span class="p">)</span>
+      <span class="mi">0</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>我們可以寫成</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">aif</span> <span class="p">(</span><span class="nv">calculate-something</span><span class="p">)</span>
+     <span class="p">(</span><span class="nb">1+</span> <span class="nv">it</span><span class="p">)</span>
+     <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>小心使用</strong> ( <em>Use judiciously</em>)，預期的變數捕捉可以是一個無價的技巧。Common Lisp 本身在多處使用它: 舉例來說 <tt class="docutils literal"><span class="pre">next-method-p</span></tt> 與 <tt class="docutils literal"><span class="pre">call-next-method</span></tt> 皆依賴於變數捕捉。</p>
+<p>像這些巨集明確演示了為何要撰寫替你寫程式的程式。一旦你定義了 <tt class="docutils literal"><span class="pre">for</span></tt> ，你就不需要寫整個 <tt class="docutils literal"><span class="pre">do</span></tt> 表達式。值得寫一個巨集只為了節省打字嗎？非常值得。節省打字是程式設計的全部；一個編譯器的目的便是替你省下使用機械語言輸入程式的時間。而巨集允許你將同樣的優點帶到特定的應用裡，就像高階語言帶給程式語言一般。透過審慎的使用巨集，你也許可以使你的程式比起原來大幅度地精簡，並使程式更顯著地容易閱讀、撰寫及維護。</p>
+<p>如果仍對此懷疑，考慮看看如果你沒有使用任何內建巨集時，程式看起來會是怎麼樣。所有巨集產生的展開式，你會需要用手產生。你也可以將這個問題用在另一方面。當你在撰寫一個程式時，捫心自問，我需要撰寫巨集展開式嗎？如果是的話，巨集所產生的展開式就是你需要寫的東西。</p>
+</div>
+<div class="section" id="lisp-on-lisp">
+<h2>10.8 源自 Lisp (On Lisp)<a class="headerlink" href="#lisp-on-lisp" title="永久链接至标题">¶</a></h2>
+<p>現在巨集已經介紹過了，我們看過更多的 Lisp 是由超乎我們想像的 Lisp 寫成。許多不是函數的 Common Lisp 運算元是巨集，而他們全部用 Lisp 寫成的。只有二十五個 Common Lisp 內建的運算元是特殊運算元。</p>
+<p><a class="reference external" href="http://www.franz.com/about/bios/jkf.lhtml">John Foderaro</a> 將 Lisp 稱為“可程式的程式語言。” 通過撰寫你自己的函數與巨集，你將 Lisp 變成任何你想要的語言。 (我們會在 17 章看到這個可能性的圖形化示範)無論你的程式適合何種形式，你確信你可以將 Lisp 塑造成適合它的語言。</p>
+<p>巨集是這個彈性的主要成分之一。它們允許你將 Lisp 變得完全認不出來，但仍然用一種有原則且高效的方法來實作。在 Lisp 社區裡，巨集是個越來越感興趣的主題。可以使用巨集辦到驚人之事是很清楚的，但更確信的是巨集背後還有更多需要被探索。如果你想的話，可以通過你來發現。Lisp 永遠將進化放在程式設計師手裡。這是它為什麼存活的原因。</p>
+</div>
+<div class="section" id="chapter-10-summary">
+<h2>Chapter 10 總結 (Summary)<a class="headerlink" href="#chapter-10-summary" title="永久链接至标题">¶</a></h2>
+<ol class="arabic simple">
+<li>呼叫 <tt class="docutils literal"><span class="pre">eval</span></tt> 是讓 Lisp 將列表視為程式碼的一種方法，但這是不必要而且效率低落的。</li>
+<li>你透過敘說一個呼叫會展開成什麼來定義一個巨集。檯面底下，巨集只是回傳表達式的函數。</li>
+<li>一個使用反引號定義的主體看起來像它會產生出的展開式 (expansion)。</li>
+<li>巨集設計者需要注意變數捕捉及多重求值。巨集可以透過漂亮印出 (pretty-printing)來測試它們的展開式。</li>
+<li>多重求值是大多數展開成 <tt class="docutils literal"><span class="pre">setf</span></tt> 表達式的問題。</li>
+<li>巨集比函數來得靈活，可以用來定義許多實用函數。你甚至可以使用變數捕捉來獲得好處。</li>
+<li>Lisp 存活的原因是它將進化交給程式設計師的雙手。巨集是使其可能的部分原因之一。</li>
+</ol>
+</div>
+<div class="section" id="chapter-10-exercises">
+<h2>Chapter 10 練習 (Exercises)<a class="headerlink" href="#chapter-10-exercises" title="永久链接至标题">¶</a></h2>
+<ol class="arabic simple">
+<li>如果 <tt class="docutils literal"><span class="pre">x</span></tt> 是 <tt class="docutils literal"><span class="pre">a</span></tt> ， <tt class="docutils literal"><span class="pre">y</span></tt> 是 <tt class="docutils literal"><span class="pre">b</span></tt> 以及 <tt class="docutils literal"><span class="pre">z</span></tt> 是 <tt class="docutils literal"><span class="pre">(c</span> <span class="pre">d)</span></tt> ，寫出反引用表達式僅包含產生下列結果之一的變數:</li>
+</ol>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">a</span><span class="p">)</span> <span class="p">((</span><span class="nv">C</span> <span class="nv">D</span><span class="p">)</span> <span class="nv">A</span> <span class="nv">Z</span><span class="p">)</span>
+
+<span class="p">(</span><span class="nv">b</span><span class="p">)</span> <span class="p">(</span><span class="nv">X</span> <span class="nv">B</span> <span class="nv">C</span> <span class="nv">D</span><span class="p">)</span>
+
+<span class="p">(</span><span class="nv">c</span><span class="p">)</span> <span class="p">((</span><span class="nv">C</span> <span class="nv">D</span> <span class="nv">A</span><span class="p">)</span> <span class="nv">Z</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<ol class="arabic simple" start="2">
+<li>使用 <tt class="docutils literal"><span class="pre">cond</span></tt> 來定義 <tt class="docutils literal"><span class="pre">if</span></tt> 。</li>
+<li>定義一個巨集，接受一個數字 <em>n</em> ，伴隨著一個或多個表達式，並回傳第 <em>n</em> 個表達式的值:</li>
+</ol>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">n</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="p">(</span><span class="nv">nth-expr</span> <span class="nv">n</span> <span class="p">(</span><span class="nb">/</span> <span class="mi">1</span> <span class="mi">0</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="mi">1</span> <span class="mi">2</span><span class="p">)</span> <span class="p">(</span><span class="nb">/</span> <span class="mi">1</span> <span class="mi">0</span><span class="p">)))</span>
+<span class="mi">3</span>
+</pre></div>
+</td></tr></table></div>
+<ol class="arabic simple" start="4">
+<li>定義 <tt class="docutils literal"><span class="pre">ntimes</span></tt> (167 頁，譯註: 10.5 節)使其展開成一個 (區域)遞迴函數，而不是一個 <tt class="docutils literal"><span class="pre">do</span></tt> 表達式。</li>
+<li>定義一個巨集 <tt class="docutils literal"><span class="pre">n-of</span></tt> ，接受一個數字 <em>n</em> 與一個表達式，回傳一個 <em>n</em> 個漸進值:</li>
+</ol>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">i</span> <span class="mi">0</span><span class="p">)</span> <span class="p">(</span><span class="nv">n</span> <span class="mi">4</span><span class="p">))</span>
+    <span class="p">(</span><span class="nv">n-of</span> <span class="nv">n</span> <span class="p">(</span><span class="nb">incf</span> <span class="nv">i</span><span class="p">)))</span>
+<span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<ol class="arabic simple" start="6">
+<li>定義一個巨集，接受一變數列表以及一個程式碼主體，並確保變數在程式碼主體被求值後恢復 (revert)到原本的數值。</li>
+<li>下面這個 <tt class="docutils literal"><span class="pre">push</span></tt> 的定義哪裡錯誤？</li>
+</ol>
+<div class="highlight-cl"><pre>(defmacro push (obj lst)
+  `(setf ,lst (cons ,obj ,lst)))
+
+舉出一個不會與實際 push 做一樣事情的函數呼叫例子。</pre>
+</div>
+<ol class="arabic simple" start="8">
+<li>定義一個將其參數翻倍的巨集:</li>
+</ol>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">x</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="p">(</span><span class="nv">double</span> <span class="nv">x</span><span class="p">)</span>
+    <span class="nv">x</span><span class="p">)</span>
+<span class="mi">2</span>
+</pre></div>
+</td></tr></table></div>
+<p class="rubric">腳註</p>
+<table class="docutils footnote" frame="void" id="id4" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[1]</a></td><td>要真的複製一個 Lisp 的話， <tt class="docutils literal"><span class="pre">eval</span></tt> 會需要接受第二個參數 (這裡的 <tt class="docutils literal"><span class="pre">env</span></tt>) 來表示詞法環境 (lexical enviroment)。這個模型的 <tt class="docutils literal"><span class="pre">eval</span></tt> 是不正確的，因為它在對參數求值前就取出函數，然而 Common Lisp 故意沒有特別指出這兩個操作的順序。</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'acl-chinese';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+                  </div></div>
+              </article><div class="clearer"></div>
+          </div><div class="span3">
+                <div class="sphinxsidebar">
+      <div id="sidenav" class="box sphinxsidebarwrapper">
+
+
+<h4><a href="../index.html">內容目录</a></h4>
+  <ul>
+<li><a class="reference internal" href="#">第十章：巨集</a><ul>
+<li><a class="reference internal" href="#eval">10.1 求值 (Eval)</a></li>
+<li><a class="reference internal" href="#macros">10.2 巨集 (Macros)</a></li>
+<li><a class="reference internal" href="#backquote">10.3 反引號 (Backquote)</a></li>
+<li><a class="reference internal" href="#example-quicksort">10.4 範例：快速排序法 (Example: Quicksort)</a></li>
+<li><a class="reference internal" href="#macro-design">10.5 設計巨集 (Macro Design)</a></li>
+<li><a class="reference internal" href="#generalized-reference">10.6 通用化參照 (Generalized Reference)</a></li>
+<li><a class="reference internal" href="#example-macro-utilities">10.7 範例：實用的巨集函數 (Example: Macro Utilities)</a></li>
+<li><a class="reference internal" href="#lisp-on-lisp">10.8 源自 Lisp (On Lisp)</a></li>
+<li><a class="reference internal" href="#chapter-10-summary">Chapter 10 總結 (Summary)</a></li>
+<li><a class="reference internal" href="#chapter-10-exercises">Chapter 10 練習 (Exercises)</a></li>
+</ul>
+</li>
+</ul>
+
+  
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      
+      
+        <li><a href="https://github.com/acl-translation/acl-chinese/blob/redirect-to-new-domain/zhTW/ch10.rst">
+          Show on GitHub</a></li>
+        <li><a href="https://github.com/acl-translation/acl-chinese/edit/redirect-to-new-domain/zhTW/ch10.rst">
+          Edit on GitHub</a></li>
+      
+    </ul>
+  
+</div>
+    </div>
+              </div></div>
+      </div>
+<footer class="container-fluid">
+        <hr />&copy; 版权所有 2012, Juanito Fatas Huang.最后更新日期是 Apr 22, 2013.使用 <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.</footer>
+ <!-- End original user content -->
+
+
+<br>
+<br>
+<br>
+
+
+<style type="text/css">
+  .rtd-badge {
+    position: fixed;
+    display: block;
+    bottom: 5px;
+    height: 40px;
+    text-indent: -9999em;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -moz-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  }
+  #version_menu {
+    position: fixed;
+    display: none;
+    bottom: 11px;
+    right: 166px;
+    list-style-type: none;
+    margin: 0;
+  }
+  .footer_popout:hover #version_menu {
+    display: block;
+  }
+  #version_menu li {
+    display: block;
+    float: right;
+  }
+  #version_menu li a {
+    display: block;
+    padding: 6px 10px 4px 10px;
+    margin: 7px 7px 0 0;
+    font-weight: bold;
+    font-size: 14px;
+    height: 20px;
+    line-height: 17px;
+    text-decoration: none;
+    color: #fff;
+    background: #8ca1af url(../images/gradient-light.png) bottom left repeat-x;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 1px #465158;
+    -moz-box-shadow: 0 1px 1px #465158;
+    -webkit-box-shadow: 0 1px 1px #465158;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+  }
+  #version_menu li a:hover {
+    text-decoration: none;
+    background-color: #697983;
+    box-shadow: 0 1px 0px #465158;
+    -moz-box-shadow: 0 1px 0px #465158;
+    -webkit-box-shadow: 0 1px 0px #465158;
+  }
+  .rtd-badge.rtd {
+    background: #3b4449 url(//media.readthedocs.org//images/badge-rtd.png) scroll 0px -46px no-repeat;
+    border: 1px solid #282E32;
+    width: 41px;
+    right: 5px;
+  }
+  .footer_popout:hover .rtd-badge.rtd {
+    background-position: top left;
+    width: 160px;
+  }
+  .rtd-badge.revsys { background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline-sponsored {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys-sm.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 205px;
+    right: 173px;
+  }
+
+</style>
+<div class="rtd_doc_footer">
+  <div class="footer_popout">
+    <a href="//readthedocs.org/projects/ansi-common-lisp/?fromdocs=ansi-common-lisp" class="rtd-badge rtd"> Brought to you by Read the Docs</a>
+    <ul id="version_menu">
+      
+        <li><a href="/en/latest/">latest</a></li>
+      
+    </ul>
+  </div>
+</div>
+<!-- RTD Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-17997319-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+<!-- User Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-26995626-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+</body>
+</html>

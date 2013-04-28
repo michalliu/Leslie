@@ -1,0 +1,807 @@
+<!DOCTYPE HTML>
+
+  <html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+<title>第七章：输入与输出 &mdash; ANSI Common Lisp 中文版</title>
+    
+<!-- RTD <head> -->
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/underscore.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/doctools.js"></script>
+
+<script type="text/javascript">
+  // This is included here for Javascript that doesn't have access to the templates.
+  var doc_version = "latest";
+  var doc_slug = "ansi-common-lisp";
+</script>
+
+<script type="text/javascript" src="//media.readthedocs.org/javascript/rtd.js"></script>
+<!-- end RTD <head> -->
+
+    <link rel="stylesheet" href="../_static/han.min.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/rosefinch.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/main.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:       '../',
+        VERSION:        '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX:    '.html',
+        HAS_SOURCE:     true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/han.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  <script type="text/javascript" src=../_static/jquery.dimensions.js"></script>
+  <script type="text/javascript" src="../_static/main.js"></script><link rel="top" title="ANSI Common Lisp 中文版" href="../index.html" /></head>
+
+  <body><div class="navbar navbar-static-top navbar-inverse">
+        <div id="top-bar" class="navbar-inner">
+
+          <h1 id="logo">ANSI Common Lisp 中文版<a href="../index.html" class="brand">ANSI Common Lisp 中文版</a></h1>
+          <ul class="nav"></ul><a href="https://github.com/acl-translation/acl-chinese"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
+        </div>
+      </div><div class="content container-fluid">
+        <div class="row-fluid"><div class="document span9"><article >
+                <div class="documentwrapper"><div class="body"><div class="section" id="id1">
+<h1>第七章：输入与输出<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h1>
+<p>Common Lisp 有着威力强大的 I/O 工具。针对输入以及一些普遍读取字符的函数，我们有 <tt class="docutils literal"><span class="pre">read</span></tt> ，包含了一个完整的解析器 (parser)。针对输出以及一些普遍写出字符的函数，我们有 <tt class="docutils literal"><span class="pre">format</span></tt> ，它自己几乎就是一个语言。本章介绍了所有基本的概念。</p>
+<p>Common Lisp 有两种流 (streams)，字符流与二进制流。本章描述了字符流的操作；二进制流的操作涵盖在 14.2 节。</p>
+<div class="section" id="streams">
+<h2>7.1 流 (Streams)<a class="headerlink" href="#streams" title="永久链接至标题">¶</a></h2>
+<p>流是用来表示字符来源与/或终点的 Lisp 对象。要从文件读取或写入，你将文件作为流打开。但流与文件是不一样的。当你在顶层读入或印出时，你也可以使用流。你甚至可以创建可以读取或写入字串的流。</p>
+<p>输入缺省是从 <tt class="docutils literal"><span class="pre">*standard-input*</span></tt> 流读取。输出缺省是在 <tt class="docutils literal"><span class="pre">*standard-output*</span></tt> 流。最初它们大概会在相同的地方：一个表示顶层的流。</p>
+<p>我们已经看过 <tt class="docutils literal"><span class="pre">read</span></tt> 与 <tt class="docutils literal"><span class="pre">format</span></tt> 是如何在顶层读取与印出。前者接受一个应是流的选择性参数，缺省是 <tt class="docutils literal"><span class="pre">*standard-input*</span></tt> 。 <tt class="docutils literal"><span class="pre">format</span></tt> 的第一个参数也可以是一个流，但当它是 <tt class="docutils literal"><span class="pre">t</span></tt> 时，输出被送到 <tt class="docutils literal"><span class="pre">*standard-output*</span></tt> 。所以我们目前为止都只用到缺省的流而已。我们可以在任何流上面做同样的 I/O 操作。</p>
+<p>一个路径名 (pathname) 是一种可携的方式 (portable way)来指定一个文件。一个路径名有六个部分：host, device, directory, name, type 及 version。你可以通过调用 <tt class="docutils literal"><span class="pre">make-pathname</span></tt> 搭配一个或多个对应的关键字参数来产生一个路径。在最简单的情况下，你可以只指明名字，让其他的部分留为缺省：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">path</span> <span class="p">(</span><span class="nb">make-pathname</span> <span class="ss">:name</span> <span class="s">&quot;myfile&quot;</span><span class="p">))</span>
+      <span class="l-Other">#P&quot;myfile&quot;</span>
+</pre></div>
+</td></tr></table></div>
+<p>开启一个文件的基本函数是 <tt class="docutils literal"><span class="pre">open</span></tt> 。它接受一个路径名 <a class="footnote-reference" href="#id5" id="id2">[1]</a> 以及大量的选择性关键字参数，而若是开启成功时，返回一个指向文件的流。</p>
+<p>你可以在创建流时，指定你想要怎么使用它。 无论你是要写入流、从流读取或是两者皆是，``direction`` 参数都会侦测到。三个对应的数值是 <tt class="docutils literal"><span class="pre">:input</span></tt> , <tt class="docutils literal"><span class="pre">output</span></tt> , <tt class="docutils literal"><span class="pre">:io</span></tt> 。如果是用来输出的流， <tt class="docutils literal"><span class="pre">if-exists</span></tt> 参数说明了如果文件已经存在时该怎么做；通常它应该是 <tt class="docutils literal"><span class="pre">:supercede</span></tt> (译注: 取代)。所以要创建一个可以写至 <tt class="docutils literal"><span class="pre">&quot;myfile&quot;</span></tt> 文件的流，你可以：</p>
+<div class="highlight-cl"><pre>&gt; (setf str (open path :direction :output
+                       :if-exists :supercede))
+#&lt;Stream C017E6&gt;</pre>
+</div>
+<p>流的印出表示法 (printed-representation) 因实现而异 (implementation-dependent)。</p>
+<p>现在我们可以把这个流作为第一个参数传给 <tt class="docutils literal"><span class="pre">format</span></tt> ，它会在流印出，而不是顶层：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">format</span> <span class="nv">str</span> <span class="s">&quot;Something~%&quot;</span><span class="p">)</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果我们在此时检视这个文件，输出也许会、也许不会在那里。某些实现会将输出储存成一块 (chunks)再写出。它也许不会出现，直到我们将流关闭：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">close</span> <span class="nv">str</span><span class="p">)</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>当你使用完时，永远记得关闭文件；在你还没关闭之前，内容是不保证会出现的。现在如果我们检视文件 &#8220;myfile&#8221; ，应该有一行：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="nv">Something</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果我们只想从一个文件读取，我们可以开启一个具有 <tt class="docutils literal"><span class="pre">:direction</span> <span class="pre">:input</span></tt> 的流 ：</p>
+<div class="highlight-cl"><pre>&gt; (setf str (open path :direction :input))
+#&lt;Stream C01C86&gt;</pre>
+</div>
+<p>我们可以对一个文件使用任何输入函数。7.2 节会更详细的描述输入。这里作为一个示例，我们将使用 <tt class="docutils literal"><span class="pre">read-line</span></tt> 从文件来读取一行文字：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">read-line</span> <span class="nv">str</span><span class="p">)</span>
+<span class="s">&quot;Something&quot;</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">close</span> <span class="nv">str</span><span class="p">)</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>当你读取完毕时，记得关闭文件。</p>
+<p>大部分时间我们不使用 <tt class="docutils literal"><span class="pre">open</span></tt> 与 <tt class="docutils literal"><span class="pre">close</span></tt> 来操作文件的 I/O 。 <tt class="docutils literal"><span class="pre">with-open-file</span></tt> 宏通常更方便。它的第一个参数应该是一个列表，包含了变数名、伴随着你想传给 <tt class="docutils literal"><span class="pre">open</span></tt> 的参数。在这之後，它接受一个代码主体，它会被绑定至流的变数一起被求值，其中流是通过将剩馀的参数传给 <tt class="docutils literal"><span class="pre">open</span></tt> 来创建的。之後这个流会被自动关闭。所以整个文件写入动作可以表示为：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">with-open-file</span> <span class="p">(</span><span class="nv">str</span> <span class="nv">path</span> <span class="ss">:direction</span> <span class="ss">:output</span>
+                          <span class="ss">:if-exists</span> <span class="ss">:supercede</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">format</span> <span class="nv">str</span> <span class="s">&quot;Something~%&quot;</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p><tt class="docutils literal"><span class="pre">with-open-file</span></tt> 宏将 <tt class="docutils literal"><span class="pre">close</span></tt> 放在 <tt class="docutils literal"><span class="pre">unwind-protect</span></tt> 里 (参见 92 页，译注: 5.6 节)，即使一个错误打断了主体的求值，文件是保证会被关闭的。</p>
+</div>
+<div class="section" id="input">
+<h2>7.2 输入 (Input)<a class="headerlink" href="#input" title="永久链接至标题">¶</a></h2>
+<p>两个最受欢迎的输入函数是 <tt class="docutils literal"><span class="pre">read-line</span></tt> 及 <tt class="docutils literal"><span class="pre">read</span></tt> 。前者读入换行符 (newline)之前的所有字符，并用字串返回它们。它接受一个选择性流参数 (optional stream argument)；若流忽略时，缺省为 <tt class="docutils literal"><span class="pre">*standard-input*</span></tt> :</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">progn</span>
+    <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;Please enter your name: &quot;</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">read-line</span><span class="p">))</span>
+<span class="nv">Please</span> <span class="nv">enter</span> <span class="nv">your</span> <span class="nv">name:</span> <span class="nv">Rodrigo</span> <span class="nv">de</span> <span class="nv">Bivar</span>
+<span class="s">&quot;Rodrigo de Bivar&quot;</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>译注: Rodrigo de Bivar 人称熙德 (El cid)，十一世纪的西班牙民族英雄。</p>
+<p>如果你想要原封不动的输出，这是你该用的函数。(第二个返回值只在 <tt class="docutils literal"><span class="pre">read-line</span></tt> 在遇到换行符之前，用尽输入时返回真。)</p>
+<p>在一般情况下， <tt class="docutils literal"><span class="pre">read-line</span></tt> 接受四个选择性参数: 一个流；一个参数用来决定遇到 <tt class="docutils literal"><span class="pre">end-of-file</span></tt> 时，是否产生错误；若前一个参数为 <tt class="docutils literal"><span class="pre">nil</span></tt> 时，该返回什么；第四个参数 (在 235 页讨论)通常可以省略。</p>
+<p>所以要在顶层显示一个文件的内容，我们可以使用下面这个函数：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">pseudo-cat</span> <span class="p">(</span><span class="nv">file</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">with-open-file</span> <span class="p">(</span><span class="nv">str</span> <span class="nv">file</span> <span class="ss">:direction</span> <span class="ss">:input</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">do</span> <span class="p">((</span><span class="nv">line</span> <span class="p">(</span><span class="nb">read-line</span> <span class="nv">str</span> <span class="no">nil</span> <span class="ss">&#39;eof</span><span class="p">)</span>
+               <span class="p">(</span><span class="nb">read-line</span> <span class="nv">str</span> <span class="no">nil</span> <span class="ss">&#39;eof</span><span class="p">)))</span>
+        <span class="p">((</span><span class="nb">eql</span> <span class="nv">line</span> <span class="ss">&#39;eof</span><span class="p">))</span>
+      <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;~A~%&quot;</span> <span class="nv">line</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果我们想要把输入解析为 Lisp 对象，使用 <tt class="docutils literal"><span class="pre">read</span></tt> 。这个函数恰好读取一个表达式，在表达式结束时停止读取。所以可以读取多於或少於一行。而当然它所读取的内容必须是合法的 Lisp 语法。</p>
+<p>如果我们在顶层使用 <tt class="docutils literal"><span class="pre">read</span></tt> ，它会让我们在表达式里面，想用几个换行符就用几个：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">read</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">a</span>
+<span class="nv">b</span>
+<span class="nv">c</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>换句话说，如果我们在一行里面输入许多表达式， <tt class="docutils literal"><span class="pre">read</span></tt> 会在第一个表达式之後，停止处理字符，留下剩馀的字符给之後读取这个流的函数处理。所以如果我们在一行输入多个表达式，来回应 <tt class="docutils literal"><span class="pre">ask-number</span></tt> (20 页。译注：2.10 小节)所印出提示符，会发生如下情形:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">ask-number</span><span class="p">)</span>
+<span class="nv">Please</span> <span class="nv">enter</span> <span class="nv">a</span> <span class="nv">number.</span> <span class="nv">a</span> <span class="nv">b</span>
+<span class="nv">Please</span> <span class="nv">enter</span> <span class="nv">a</span> <span class="nv">number.</span> <span class="nv">Please</span> <span class="nv">enter</span> <span class="nv">a</span> <span class="nv">number.</span> <span class="mi">43</span>
+<span class="mi">43</span>
+</pre></div>
+</td></tr></table></div>
+<p>两个连续的提示符 (successive prompts)在第二行被印出。第一个 <tt class="docutils literal"><span class="pre">read</span></tt> 调用会返回 <tt class="docutils literal"><span class="pre">a</span></tt> ，而它不是一个数字，所以函数再次要求一个数字。但第一个 <tt class="docutils literal"><span class="pre">read</span></tt>      只读取到 <tt class="docutils literal"><span class="pre">a</span></tt> 的结尾。所以下一个 <tt class="docutils literal"><span class="pre">read</span></tt> 调用返回 <tt class="docutils literal"><span class="pre">b</span></tt> ，导致了下一个提示符。</p>
+<p>你或许想要避免使用 <tt class="docutils literal"><span class="pre">read</span></tt> 来直接处理使用者的输入。前述的函数若使用 <tt class="docutils literal"><span class="pre">read-line</span></tt> 来获得使用者输入会比较好，然後对结果字串调用 <tt class="docutils literal"><span class="pre">read-from-string</span></tt> 。这个函数接受一个字串，并返回第一个读取的表达式:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">read-from-string</span> <span class="s">&quot;a b c&quot;</span><span class="p">)</span>
+<span class="nv">A</span>
+<span class="mi">2</span>
+</pre></div>
+</td></tr></table></div>
+<p>它同时返回第二个值，一个指出停止读取字串时的位置的数字。</p>
+<p>在一般情况下， <tt class="docutils literal"><span class="pre">read-from-string</span></tt> 可以接受两个选择性参数与三个关键字参数。两个选择性参数是 <tt class="docutils literal"><span class="pre">read</span></tt> 的第三、第四个参数: 一个 end-of-file (这个情况是字串) 決定是否报错，若不报错该返回什么。关键字参数 <tt class="docutils literal"><span class="pre">:start</span></tt> 及 <tt class="docutils literal"><span class="pre">:end</span></tt> 可以用来划分从字串的哪里开始读。</p>
+<p>所有的这些输入函数是由基本函数 (primitive) <tt class="docutils literal"><span class="pre">read-char</span></tt> 所定义的，它读取一个字符。它接受四个与 <tt class="docutils literal"><span class="pre">read</span></tt> 及 <tt class="docutils literal"><span class="pre">read-line</span></tt> 一样的选择性参数。Common Lisp 也定义一个函数叫做 <tt class="docutils literal"><span class="pre">peek-char</span></tt> ，跟 <tt class="docutils literal"><span class="pre">read-char</span></tt> 类似，但不会将字符从流中移除。</p>
+</div>
+<div class="section" id="output">
+<h2>7.3 输出 (Output)<a class="headerlink" href="#output" title="永久链接至标题">¶</a></h2>
+<p>三个最简单的输出函数是 <tt class="docutils literal"><span class="pre">prin1</span></tt> , <tt class="docutils literal"><span class="pre">princ</span></tt> 以及 <tt class="docutils literal"><span class="pre">terpri</span></tt> 。这三个函数的最後一个参数皆为选择性的流参数，缺省是 <tt class="docutils literal"><span class="pre">*standard-output*</span></tt> 。</p>
+<p><tt class="docutils literal"><span class="pre">princ1</span></tt> 与 <tt class="docutils literal"><span class="pre">princ</span></tt> 的差别大致在於 <tt class="docutils literal"><span class="pre">prin1</span></tt> 给程序产生输出，而 <tt class="docutils literal"><span class="pre">princ</span></tt> 给人类产生输出。所以举例来说， <tt class="docutils literal"><span class="pre">prin1</span></tt> 会印出字串左右的双引号，而 <tt class="docutils literal"><span class="pre">princ</span></tt> 不会:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">prin1</span> <span class="s">&quot;Hello&quot;</span><span class="p">)</span>
+<span class="s">&quot;Hello&quot;</span>
+<span class="s">&quot;Hello&quot;</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">princ</span> <span class="s">&quot;Hello&quot;</span><span class="p">)</span>
+<span class="nv">Hello</span>
+<span class="s">&quot;Hello&quot;</span>
+</pre></div>
+</td></tr></table></div>
+<p>两者皆返回它们的第一个参数 (译注: 第二个值是返回值) –– 顺道一提，是用 <tt class="docutils literal"><span class="pre">prin1</span></tt> 印出。 <tt class="docutils literal"><span class="pre">terpri</span></tt> 仅印出一新行。</p>
+<p>有这些函数的背景知识在解释更为通用的 <tt class="docutils literal"><span class="pre">format</span></tt> 是很有用的。这个函数几乎可以用在所有的输出。他接受一个流 (或 <tt class="docutils literal"><span class="pre">t</span></tt> 或 <tt class="docutils literal"><span class="pre">nil</span></tt> )、一个格式化字串 (format string)以及零个或多个额外的参数。格式化字串可以包含特定的格式化指令 (format directives)，这些指令前面有波浪号 <tt class="docutils literal"><span class="pre">~</span></tt> 。某些格式化指令作为字串的占位符 (placeholder)使用。这些位置会被格式化字串之後，所给入参数的表示法所取代。</p>
+<p>如果我们把 <tt class="docutils literal"><span class="pre">t</span></tt> 作为第一个参数，输出会被送至 <tt class="docutils literal"><span class="pre">*standard-output*</span></tt> 。如果我们给 <tt class="docutils literal"><span class="pre">nil</span></tt> ， <tt class="docutils literal"><span class="pre">format</span></tt> 会返回一个它会如何印出的字串。为了保持简短，我们会在所有的示例里演示怎么做。</p>
+<p>由於每人的观点不同， <tt class="docutils literal"><span class="pre">format</span></tt> 可以是令人惊讶的强大或是极为可怕的复杂。有大量的格式化指令可用，而只有少部分会被大多数程序设计师使用。两个最常用的格式化指令是 <tt class="docutils literal"><span class="pre">~A</span></tt> 以及 <tt class="docutils literal"><span class="pre">~%</span></tt> 。(你使用 <tt class="docutils literal"><span class="pre">~a</span></tt> 或 <tt class="docutils literal"><span class="pre">~A</span></tt> 都没关系，但後者较常见，因为它让格式化指令看起来一目了然。) 一个 <tt class="docutils literal"><span class="pre">~A</span></tt> 是一个值的占位符，它会像是用 <tt class="docutils literal"><span class="pre">princ</span></tt> 印出一般。一个 <tt class="docutils literal"><span class="pre">~%</span></tt> 代表着一个换行符 (newline)。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">format</span> <span class="no">nil</span> <span class="s">&quot;Dear ~A, ~% Our records indicate...&quot;</span>
+                                                        <span class="s">&quot;Mr. Malatesta&quot;</span><span class="p">)</span>
+<span class="s">&quot;Dear Mr. Malatesta,</span>
+<span class="s">   Our records indicate...&quot;</span>
+</pre></div>
+</td></tr></table></div>
+<p>这里 <tt class="docutils literal"><span class="pre">format</span></tt> 返回了一个值，由一个含有换行符的字串组成。</p>
+<p><tt class="docutils literal"><span class="pre">~S</span></tt> 格式化指令像是 <tt class="docutils literal"><span class="pre">~A</span></tt> ，但它使用 <tt class="docutils literal"><span class="pre">prin1</span></tt> 印出对象，而不是 <tt class="docutils literal"><span class="pre">princ</span></tt> 印出:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;~S  ~A&quot;</span> <span class="s">&quot;z&quot;</span> <span class="s">&quot;z&quot;</span><span class="p">)</span>
+<span class="s">&quot;z&quot;</span> <span class="nv">z</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>格式化指令可以接受参数。 <tt class="docutils literal"><span class="pre">~F</span></tt> 用来印出向右对齐 (right-justified)的浮点数，可接受五个参数:</p>
+<ol class="arabic simple">
+<li>要印出字符的总数。缺省是数字的长度。</li>
+<li>小数之後要印几位数。缺省是全部。</li>
+<li>小数点要往左移几位 (即等同於将数字乘 10)。缺省是没有。</li>
+<li>若数字太长无法满足第一个参数时，所要印出的字符。如果没有指定字符，一个过长的数字会尽可能使用它所需的空间被印出。</li>
+<li>数字开始印之前左边的字符。缺省是空白。</li>
+</ol>
+<p>下面是一个有五个参数的罕见例子:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nv">?</span> <span class="p">(</span><span class="nb">format</span> <span class="no">nil</span> <span class="s">&quot;~10,2,0,&#39;*,&#39; F&quot;</span> <span class="mf">26.21875</span><span class="p">)</span>
+<span class="s">&quot;     26.22&quot;</span>
+</pre></div>
+</td></tr></table></div>
+<p>这是原本的数字取至小数点第二位、(小数点向左移 0 位)、在 10 个字符的空间里向右对齐，左边补满空白。注意作为参数给入是写成 <tt class="docutils literal"><span class="pre">'*</span></tt> 而不是 <tt class="docutils literal"><span class="pre">#\*</span></tt> 。由於数字塞得下 10 个字符，不需要使用第四个参数。</p>
+<p>所有的这些参数都是选择性的。要使用缺省值你可以直接忽略对应的参数。如果我们想要做的是，印出一个小数点取至第二位的数字，我们可以说:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">format</span> <span class="no">nil</span> <span class="s">&quot;~,2,,,F&quot;</span> <span class="mf">26.21875</span><span class="p">)</span>
+<span class="s">&quot;26.22&quot;</span>
+</pre></div>
+</td></tr></table></div>
+<p>你也可以忽略一系列的尾随逗号 (trailing commas)，前面指令更常见的写法会是:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">format</span> <span class="no">nil</span> <span class="s">&quot;~,2F&quot;</span> <span class="mf">26.21875</span><span class="p">)</span>
+<span class="s">&quot;26.22&quot;</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>警告:</strong> 当 <tt class="docutils literal"><span class="pre">format</span></tt> 取整数时，它不保证会向上进位或向下舍入。就是说 <tt class="docutils literal"><span class="pre">(format</span> <span class="pre">nil</span> <span class="pre">&quot;~,1F&quot;</span> <span class="pre">1.25)</span></tt> 可能会是 <tt class="docutils literal"><span class="pre">&quot;1.2&quot;</span></tt> 或 <tt class="docutils literal"><span class="pre">&quot;1.3&quot;</span></tt> 。所以如果你使用 <tt class="docutils literal"><span class="pre">format</span></tt> 来显示资讯时，而使用者期望看到某种特定取整数方式的数字 (如: 金额数量)，你应该在印出之前先显式地取好整数。</p>
+</div>
+<div class="section" id="example-string-substitution">
+<h2>7.4 示例：字串代换 (Example: String Substitution)<a class="headerlink" href="#example-string-substitution" title="永久链接至标题">¶</a></h2>
+<p>作为一个 I/O 的示例，本节演示如何写一个简单的程序来对文本文件做字串替换。我们即将写一个可以将一个文件中，旧的字串 <tt class="docutils literal"><span class="pre">old</span></tt> 换成某个新的字串 <tt class="docutils literal"><span class="pre">new</span></tt> 的函数。最简单的实现方式是将输入文件里的每一个字符与 <tt class="docutils literal"><span class="pre">old</span></tt> 的第一个字符比较。如果没有匹配，我们可以直接印出该字符至输出。如果匹配了，我们可以将输入的下一个字符与 <tt class="docutils literal"><span class="pre">old</span></tt> 的第二个字符比较，等等。如果输入字符与 <tt class="docutils literal"><span class="pre">old</span></tt> 完全相等时，我们有一个成功的匹配，则我们印出 <tt class="docutils literal"><span class="pre">new</span></tt> 至文件。</p>
+<p>而要是 <tt class="docutils literal"><span class="pre">old</span></tt> 在匹配途中失败了，会发生什么事呢？举例来说，假设我们要找的模式 (pattern)是 <tt class="docutils literal"><span class="pre">&quot;abac&quot;</span></tt> ，而输入文件包含的是 <tt class="docutils literal"><span class="pre">&quot;ababac&quot;</span></tt> 。输入会一直到第四个字符才发现不匹配，也就是在模式中的 <tt class="docutils literal"><span class="pre">c</span></tt> 以及输入的 <tt class="docutils literal"><span class="pre">b</span></tt> 才发现。在此时我们可以将原本的 <tt class="docutils literal"><span class="pre">a</span></tt> 写至输出文件，因为我们已经知道这里没有匹配。但有些我们从输入读入的字符还是需要留着: 举例来说，第三个 <tt class="docutils literal"><span class="pre">a</span></tt> ，确实是成功匹配的开始。所以在我们要实现这个算法之前，我们需要一个地方来储存，我们已经从输入读入的字符，但之后仍然需要的字符。</p>
+<p>一个暂时储存输入的队列 (queue)称作缓冲区 (buffer)。在这个情况里，因为我们知道我们不需要储存超过一个预定的字符量，我们可以使用一个叫做环状缓冲区 <tt class="docutils literal"><span class="pre">ring</span> <span class="pre">buffer</span></tt> 的资料结构。一个环状缓冲区实际上是一个向量。是使用的方式使其成为环状: 我们将之後的元素所输入进来的值储存起来，而当我们到达向量结尾时，我们重头开始。如果我们不需要储存超过 <tt class="docutils literal"><span class="pre">n</span></tt> 个值，则我们只需要一个长度为 <tt class="docutils literal"><span class="pre">n</span></tt> 或是大於 <tt class="docutils literal"><span class="pre">n</span></tt> 的向量，这样我们就不需要覆写正在用的值。</p>
+<p>在图 7.1 的代码，实现了环状缓冲区的操作。 <tt class="docutils literal"><span class="pre">buf</span></tt> 有五个字段 (field): 一个包含存入缓冲区的向量，四个其它字段用来放指向向量的索引 (indices)。两个索引是 <tt class="docutils literal"><span class="pre">start</span></tt> 与 <tt class="docutils literal"><span class="pre">end</span></tt> ，任何环状缓冲区的使用都会需要这两个索引: <tt class="docutils literal"><span class="pre">start</span></tt> 指向缓冲区的第一个值，当我们取出一个值时， <tt class="docutils literal"><span class="pre">start</span></tt> 会递增 (incremented)； <tt class="docutils literal"><span class="pre">end</span></tt> 指向缓冲区的最後一个值，当我们插入一个新值时， <tt class="docutils literal"><span class="pre">end</span></tt> 会递增。</p>
+<p>另外两个索引， <tt class="docutils literal"><span class="pre">used</span></tt> 以及 <tt class="docutils literal"><span class="pre">new</span></tt> ，是我们需要给这个应用的基本环状缓冲区所加入的东西。它们会介於 <tt class="docutils literal"><span class="pre">start</span></tt> 与 <tt class="docutils literal"><span class="pre">end</span></tt> 之间。实际上，它总是符合</p>
+<div class="highlight-cl"><pre>start ≤ used ≤ new ≤ end</pre>
+</div>
+<p>你可以把 <tt class="docutils literal"><span class="pre">used</span></tt> 与 <tt class="docutils literal"><span class="pre">new</span></tt> 想成是当前匹配 (current match) 的 <tt class="docutils literal"><span class="pre">start</span></tt> 与 <tt class="docutils literal"><span class="pre">end</span></tt> 。当我们开始一轮匹配时， <tt class="docutils literal"><span class="pre">used</span></tt> 会等於 <tt class="docutils literal"><span class="pre">start</span></tt> 而 <tt class="docutils literal"><span class="pre">new</span></tt> 会等於 <tt class="docutils literal"><span class="pre">end</span></tt> 。当下一个字符 (successive character)匹配时，我们需要递增 <tt class="docutils literal"><span class="pre">used</span></tt> 。当 <tt class="docutils literal"><span class="pre">used</span></tt> 与 <tt class="docutils literal"><span class="pre">new</span></tt> 相等时，我们将开始匹配时，所有存在缓冲区的字符读入。我们不想要使用超过从匹配时所存在缓冲区的字符，或是重复使用同样的字符。因此这个 <tt class="docutils literal"><span class="pre">new</span></tt> 索引，开始等於 <tt class="docutils literal"><span class="pre">end</span></tt> ，但它不会在一轮匹配我们插入新字符至缓冲区一起递增。</p>
+<p>函数 <tt class="docutils literal"><span class="pre">bref</span></tt> 接受一个缓冲区与一个索引，并返回索引所在位置的元素。藉由使用 <tt class="docutils literal"><span class="pre">index</span></tt> 对向量的长度取 <tt class="docutils literal"><span class="pre">mod</span></tt> ，我们可以假装我们有一个任意长的缓冲区。调用 <tt class="docutils literal"><span class="pre">(new-buf</span> <span class="pre">n)</span></tt> 会产生一个新的缓冲区，能够容纳 <tt class="docutils literal"><span class="pre">n</span></tt> 个对象。</p>
+<p>要插入一个新值至缓冲区，我们将使用 <tt class="docutils literal"><span class="pre">buf-insert</span></tt> 。它将 <tt class="docutils literal"><span class="pre">end</span></tt> 递增，并把新的值放在那个位置 (译注: 递增完的位置)。相反的 <tt class="docutils literal"><span class="pre">buf-pop</span></tt> 返回一个缓冲区的第一个数值，接着将 <tt class="docutils literal"><span class="pre">start</span></tt> 递增。任何环状缓冲区都会有这两个函数。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defstruct</span> <span class="nv">buf</span>
+  <span class="nv">vec</span> <span class="p">(</span><span class="nv">start</span> <span class="mi">-1</span><span class="p">)</span> <span class="p">(</span><span class="nv">used</span> <span class="mi">-1</span><span class="p">)</span> <span class="p">(</span><span class="nv">new</span> <span class="mi">-1</span><span class="p">)</span> <span class="p">(</span><span class="nv">end</span> <span class="mi">-1</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">bref</span> <span class="p">(</span><span class="nv">buf</span> <span class="nv">n</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">svref</span> <span class="p">(</span><span class="nv">buf-vec</span> <span class="nv">buf</span><span class="p">)</span>
+         <span class="p">(</span><span class="nb">mod</span> <span class="nv">n</span> <span class="p">(</span><span class="nb">length</span> <span class="p">(</span><span class="nv">buf-vec</span> <span class="nv">buf</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">bref</span><span class="p">)</span> <span class="p">(</span><span class="nv">val</span> <span class="nv">buf</span> <span class="nv">n</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">svref</span> <span class="p">(</span><span class="nv">buf-vec</span> <span class="nv">buf</span><span class="p">)</span>
+               <span class="p">(</span><span class="nb">mod</span> <span class="nv">n</span> <span class="p">(</span><span class="nb">length</span> <span class="p">(</span><span class="nv">buf-vec</span> <span class="nv">buf</span><span class="p">))))</span>
+        <span class="nv">val</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">new-buf</span> <span class="p">(</span><span class="nv">len</span><span class="p">)</span>
+  <span class="p">(</span><span class="nv">make-buf</span> <span class="ss">:vec</span> <span class="p">(</span><span class="nb">make-array</span> <span class="nv">len</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">buf-insert</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">b</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nv">bref</span> <span class="nv">b</span> <span class="p">(</span><span class="nb">incf</span> <span class="p">(</span><span class="nv">buf-end</span> <span class="nv">b</span><span class="p">)))</span> <span class="nv">x</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">buf-pop</span> <span class="p">(</span><span class="nv">b</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">prog1</span>
+    <span class="p">(</span><span class="nv">bref</span> <span class="nv">b</span> <span class="p">(</span><span class="nb">incf</span> <span class="p">(</span><span class="nv">buf-start</span> <span class="nv">b</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nv">buf-used</span> <span class="nv">b</span><span class="p">)</span> <span class="p">(</span><span class="nv">buf-start</span> <span class="nv">b</span><span class="p">)</span>
+          <span class="p">(</span><span class="nv">buf-new</span>  <span class="nv">b</span><span class="p">)</span> <span class="p">(</span><span class="nv">buf-end</span>   <span class="nv">b</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">buf-next</span> <span class="p">(</span><span class="nv">b</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">when</span> <span class="p">(</span><span class="nb">&lt;</span> <span class="p">(</span><span class="nv">buf-used</span> <span class="nv">b</span><span class="p">)</span> <span class="p">(</span><span class="nv">buf-new</span> <span class="nv">b</span><span class="p">))</span>
+    <span class="p">(</span><span class="nv">bref</span> <span class="nv">b</span> <span class="p">(</span><span class="nb">incf</span> <span class="p">(</span><span class="nv">buf-used</span> <span class="nv">b</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">buf-reset</span> <span class="p">(</span><span class="nv">b</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nv">buf-used</span> <span class="nv">b</span><span class="p">)</span> <span class="p">(</span><span class="nv">buf-start</span> <span class="nv">b</span><span class="p">)</span>
+        <span class="p">(</span><span class="nv">buf-new</span>  <span class="nv">b</span><span class="p">)</span> <span class="p">(</span><span class="nv">buf-end</span>   <span class="nv">b</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">buf-clear</span> <span class="p">(</span><span class="nv">b</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nv">buf-start</span> <span class="nv">b</span><span class="p">)</span> <span class="mi">-1</span> <span class="p">(</span><span class="nv">buf-used</span>  <span class="nv">b</span><span class="p">)</span> <span class="mi">-1</span>
+        <span class="p">(</span><span class="nv">buf-new</span>   <span class="nv">b</span><span class="p">)</span> <span class="mi">-1</span> <span class="p">(</span><span class="nv">buf-end</span>   <span class="nv">b</span><span class="p">)</span> <span class="mi">-1</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">buf-flush</span> <span class="p">(</span><span class="nv">b</span> <span class="nv">str</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">do</span> <span class="p">((</span><span class="nv">i</span> <span class="p">(</span><span class="nb">1+</span> <span class="p">(</span><span class="nv">buf-used</span> <span class="nv">b</span><span class="p">))</span> <span class="p">(</span><span class="nb">1+</span> <span class="nv">i</span><span class="p">)))</span>
+      <span class="p">((</span><span class="nb">&gt;</span> <span class="nv">i</span> <span class="p">(</span><span class="nv">buf-end</span> <span class="nv">b</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nb">princ</span> <span class="p">(</span><span class="nv">bref</span> <span class="nv">b</span> <span class="nv">i</span><span class="p">)</span> <span class="nv">str</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 7.1 环状缓冲区的操作</strong></p>
+<p>接下来我们需要两个特别为这个应用所写的函数: <tt class="docutils literal"><span class="pre">buf-next</span></tt> 从缓冲区读取一个值而不取出，而 <tt class="docutils literal"><span class="pre">buf-reset</span></tt> 重置 <tt class="docutils literal"><span class="pre">used</span></tt> 与 <tt class="docutils literal"><span class="pre">new</span></tt> 到初始值，分别是 <tt class="docutils literal"><span class="pre">start</span></tt> 与 <tt class="docutils literal"><span class="pre">end</span></tt> 。如果我们已经把至 <tt class="docutils literal"><span class="pre">new</span></tt> 的值全部读取完毕时， <tt class="docutils literal"><span class="pre">buf-next</span></tt> 返回 <tt class="docutils literal"><span class="pre">nil</span></tt> 。区别这个值与实际的值不会产生问题，因为我们只把值存在缓冲区。</p>
+<p>最後 <tt class="docutils literal"><span class="pre">buf-flush</span></tt> 透过将所有作用的元素，写至由第二个参数所给入的流，而 <tt class="docutils literal"><span class="pre">buf-clear</span></tt> 通过重置所有的索引至 <tt class="docutils literal"><span class="pre">-1</span></tt> 将缓冲区清空。</p>
+<p>在图 7.1 定义的函数被图 7.2 所使用，包含了字串替换的代码。函数 <tt class="docutils literal"><span class="pre">file-subst</span></tt> 接受四个参数；一个查询字串，一个替换字串，一个输入文件以及一个输出文件。它创建了代表每个文件的流，然後调用 <tt class="docutils literal"><span class="pre">stream-subst</span></tt> 来完成实际的工作。</p>
+<p>第二个函数 <tt class="docutils literal"><span class="pre">stream-subst</span></tt> 使用本节开始所勾勒的算法。它一次从输入流读一个字符。直到输入字符匹配要寻找的字串时，直接写至输出流 (1)。当一个匹配开始时，有关字符在缓冲区 <tt class="docutils literal"><span class="pre">buf</span></tt> 排队等候 (2)。</p>
+<p>变数 <tt class="docutils literal"><span class="pre">pos</span></tt> 指向我们想要匹配的字符在寻找字串的所在位置。如果 <tt class="docutils literal"><span class="pre">pos</span></tt> 等於这个字串的长度，我们有一个完整的匹配，则我们将替换字串写至输出流，并清空缓冲区 (3)。如果在这之前匹配失败，我们可以将缓冲区的第一个元素取出，并写至输出流，之後我们重置缓冲区，并从 <tt class="docutils literal"><span class="pre">pos</span></tt> 等於 0 重新开始 (4)。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">file-subst</span> <span class="p">(</span><span class="nv">old</span> <span class="nv">new</span> <span class="nv">file1</span> <span class="nv">file2</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">with-open-file</span> <span class="p">(</span><span class="nv">in</span> <span class="nv">file1</span> <span class="ss">:direction</span> <span class="ss">:input</span><span class="p">)</span>
+     <span class="p">(</span><span class="nb">with-open-file</span> <span class="p">(</span><span class="nv">out</span> <span class="nv">file2</span> <span class="ss">:direction</span> <span class="ss">:output</span>
+                                <span class="ss">:if-exists</span> <span class="ss">:supercede</span><span class="p">)</span>
+       <span class="p">(</span><span class="nv">stream-subst</span> <span class="nv">old</span> <span class="nv">new</span> <span class="nv">in</span> <span class="nv">out</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">stream-subst</span> <span class="p">(</span><span class="nv">old</span> <span class="nv">new</span> <span class="nv">in</span> <span class="nv">out</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let*</span> <span class="p">((</span><span class="nv">pos</span> <span class="mi">0</span><span class="p">)</span>
+         <span class="p">(</span><span class="nv">len</span> <span class="p">(</span><span class="nb">length</span> <span class="nv">old</span><span class="p">))</span>
+         <span class="p">(</span><span class="nv">buf</span> <span class="p">(</span><span class="nv">new-buf</span> <span class="nv">len</span><span class="p">))</span>
+         <span class="p">(</span><span class="nv">from-buf</span> <span class="no">nil</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">do</span> <span class="p">((</span><span class="nv">c</span> <span class="p">(</span><span class="nb">read-char</span> <span class="nv">in</span> <span class="no">nil</span> <span class="ss">:eof</span><span class="p">)</span>
+            <span class="p">(</span><span class="nb">or</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">from-buf</span> <span class="p">(</span><span class="nv">buf-next</span> <span class="nv">buf</span><span class="p">))</span>
+                <span class="p">(</span><span class="nb">read-char</span> <span class="nv">in</span> <span class="no">nil</span> <span class="ss">:eof</span><span class="p">))))</span>
+        <span class="p">((</span><span class="nb">eql</span> <span class="nv">c</span> <span class="ss">:eof</span><span class="p">))</span>
+      <span class="p">(</span><span class="nb">cond</span> <span class="p">((</span><span class="nb">char=</span> <span class="nv">c</span> <span class="p">(</span><span class="nb">char</span> <span class="nv">old</span> <span class="nv">pos</span><span class="p">))</span>
+             <span class="p">(</span><span class="nb">incf</span> <span class="nv">pos</span><span class="p">)</span>
+             <span class="p">(</span><span class="nb">cond</span> <span class="p">((</span><span class="nb">=</span> <span class="nv">pos</span> <span class="nv">len</span><span class="p">)</span>            <span class="c1">; 3</span>
+                    <span class="p">(</span><span class="nb">princ</span> <span class="nv">new</span> <span class="nv">out</span><span class="p">)</span>
+                    <span class="p">(</span><span class="nb">setf</span> <span class="nv">pos</span> <span class="mi">0</span><span class="p">)</span>
+                    <span class="p">(</span><span class="nv">buf-clear</span> <span class="nv">buf</span><span class="p">))</span>
+                   <span class="p">((</span><span class="nb">not</span> <span class="nv">from-buf</span><span class="p">)</span>         <span class="c1">; 2</span>
+                    <span class="p">(</span><span class="nv">buf-insert</span> <span class="nv">c</span> <span class="nv">buf</span><span class="p">))))</span>
+            <span class="p">((</span><span class="nb">zerop</span> <span class="nv">pos</span><span class="p">)</span>                   <span class="c1">; 1</span>
+             <span class="p">(</span><span class="nb">princ</span> <span class="nv">c</span> <span class="nv">out</span><span class="p">)</span>
+             <span class="p">(</span><span class="nb">when</span> <span class="nv">from-buf</span>
+               <span class="p">(</span><span class="nv">buf-pop</span> <span class="nv">buf</span><span class="p">)</span>
+               <span class="p">(</span><span class="nv">buf-reset</span> <span class="nv">buf</span><span class="p">)))</span>
+            <span class="p">(</span><span class="no">t</span>                             <span class="c1">; 4</span>
+             <span class="p">(</span><span class="nb">unless</span> <span class="nv">from-buf</span>
+               <span class="p">(</span><span class="nv">buf-insert</span> <span class="nv">c</span> <span class="nv">buf</span><span class="p">))</span>
+             <span class="p">(</span><span class="nb">princ</span> <span class="p">(</span><span class="nv">buf-pop</span> <span class="nv">buf</span><span class="p">)</span> <span class="nv">out</span><span class="p">)</span>
+             <span class="p">(</span><span class="nv">buf-reset</span> <span class="nv">buf</span><span class="p">)</span>
+             <span class="p">(</span><span class="nb">setf</span> <span class="nv">pos</span> <span class="mi">0</span><span class="p">))))</span>
+    <span class="p">(</span><span class="nv">buf-flush</span> <span class="nv">buf</span> <span class="nv">out</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 7.2 字串替换</strong></p>
+<p>下列表格展示了当我们将文件中的 <tt class="docutils literal"><span class="pre">&quot;baro&quot;</span></tt> 替换成 <tt class="docutils literal"><span class="pre">&quot;baric&quot;</span></tt> 所发生的事，其中文件只有一个单字 <tt class="docutils literal"><span class="pre">&quot;barbarous&quot;</span></tt> :</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%" />
+<col width="19%" />
+<col width="13%" />
+<col width="11%" />
+<col width="15%" />
+<col width="22%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">CHARACTER</th>
+<th class="head">SOURCE</th>
+<th class="head">MATCH</th>
+<th class="head">CASE</th>
+<th class="head">OUTPUT</th>
+<th class="head">BUFFER</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>b</td>
+<td>file</td>
+<td>b</td>
+<td>2</td>
+<td>&nbsp;</td>
+<td>b</td>
+</tr>
+<tr class="row-odd"><td>a</td>
+<td>file</td>
+<td>a</td>
+<td>2</td>
+<td>&nbsp;</td>
+<td>b a</td>
+</tr>
+<tr class="row-even"><td>r</td>
+<td>file</td>
+<td>r</td>
+<td>2</td>
+<td>&nbsp;</td>
+<td>b a r</td>
+</tr>
+<tr class="row-odd"><td>b</td>
+<td>file</td>
+<td>o</td>
+<td>4</td>
+<td>b</td>
+<td>b.a r b.</td>
+</tr>
+<tr class="row-even"><td>a</td>
+<td>buffer</td>
+<td>b</td>
+<td>1</td>
+<td>a</td>
+<td>a.r b.</td>
+</tr>
+<tr class="row-odd"><td>r</td>
+<td>buffer</td>
+<td>b</td>
+<td>1</td>
+<td>r</td>
+<td>r.b.</td>
+</tr>
+<tr class="row-even"><td>b</td>
+<td>buffer</td>
+<td>b</td>
+<td>1</td>
+<td>&nbsp;</td>
+<td>r b:</td>
+</tr>
+<tr class="row-odd"><td>a</td>
+<td>file</td>
+<td>a</td>
+<td>2</td>
+<td>&nbsp;</td>
+<td>r b:a</td>
+</tr>
+<tr class="row-even"><td>r</td>
+<td>file</td>
+<td>r</td>
+<td>2</td>
+<td>&nbsp;</td>
+<td>r b:a</td>
+</tr>
+<tr class="row-odd"><td>o</td>
+<td>file</td>
+<td>o</td>
+<td>3</td>
+<td>baric</td>
+<td>r b:a r</td>
+</tr>
+<tr class="row-even"><td>u</td>
+<td>file</td>
+<td>b</td>
+<td>1</td>
+<td>u</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>a</td>
+<td>file</td>
+<td>b</td>
+<td>1</td>
+<td>s</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p>第一栏是当前字符 –– <tt class="docutils literal"><span class="pre">c</span></tt> 的值；第二栏显示是从缓冲区或是直接从输入流读取；第三栏显示需要匹配的字符 –– <tt class="docutils literal"><span class="pre">old</span></tt> 的第 <strong>posth</strong> 字符；第四栏显示那一个条件式 (case)被求值作为结果；第五栏显示被写至输出流的字符；而最後一栏显示缓冲区之後的内容。在最後一栏里， <tt class="docutils literal"><span class="pre">used</span></tt> 与 <tt class="docutils literal"><span class="pre">new</span></tt> 的位置一样，由一个冒号 ( <tt class="docutils literal"><span class="pre">:</span></tt> colon)表示。</p>
+<p>在文件 <tt class="docutils literal"><span class="pre">&quot;test1&quot;</span></tt> 里有如下文字：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nv">The</span> <span class="nv">struggle</span> <span class="nv">between</span> <span class="nv">Liberty</span> <span class="nb">and</span> <span class="nv">Authority</span> <span class="nv">is</span> <span class="k">the</span> <span class="nv">most</span> <span class="nv">conspicuous</span> <span class="nv">feature</span>
+<span class="nv">in</span> <span class="k">the</span> <span class="nv">portions</span> <span class="nv">of</span> <span class="nv">history</span> <span class="nv">with</span> <span class="nv">which</span> <span class="nv">we</span> <span class="nv">are</span> <span class="nv">earliest</span> <span class="nv">familiar,</span> <span class="nv">particularly</span>
+<span class="nv">in</span> <span class="nv">that</span> <span class="nv">of</span> <span class="nv">Greece,</span> <span class="nv">Rome,</span> <span class="nb">and</span> <span class="nv">England.</span>
+</pre></div>
+</td></tr></table></div>
+<p>在我们对 <tt class="docutils literal"><span class="pre">(file-subst</span> <span class="pre">&quot;</span> <span class="pre">th&quot;</span> <span class="pre">&quot;</span> <span class="pre">z&quot;</span> <span class="pre">&quot;test1&quot;</span> <span class="pre">&quot;test2&quot;)</span></tt> 求值之後，读取文件 <tt class="docutils literal"><span class="pre">&quot;test2&quot;</span></tt> 为:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nv">The</span> <span class="nv">struggle</span> <span class="nv">between</span> <span class="nv">Liberty</span> <span class="nb">and</span> <span class="nv">Authority</span> <span class="nv">is</span> <span class="nv">ze</span> <span class="nv">most</span> <span class="nv">conspicuous</span> <span class="nv">feature</span>
+<span class="nv">in</span> <span class="nv">ze</span> <span class="nv">portions</span> <span class="nv">of</span> <span class="nv">history</span> <span class="nv">with</span> <span class="nv">which</span> <span class="nv">we</span> <span class="nv">are</span> <span class="nv">earliest</span> <span class="nv">familiar,</span> <span class="nv">particularly</span>
+<span class="nv">in</span> <span class="nv">zat</span> <span class="nv">of</span> <span class="nv">Greece,</span> <span class="nv">Rome,</span> <span class="nb">and</span> <span class="nv">England.</span>
+</pre></div>
+</td></tr></table></div>
+<p>为了使这个例子尽可能的简单，图 7.2 的代码只将一个字串换成另一个字串。很容易扩展为搜索一个模式而不是一个字面字串。你只需要做的是，将 <tt class="docutils literal"><span class="pre">char=</span></tt> 调用换成一个你想要的更通用的匹配函数调用。</p>
+</div>
+<div class="section" id="macro-characters">
+<h2>7.5 宏字符 (Macro Characters)<a class="headerlink" href="#macro-characters" title="永久链接至标题">¶</a></h2>
+<p>一个宏字符 (macro character)是获得 <tt class="docutils literal"><span class="pre">read</span></tt> 特别待遇的字符。比如小写的 <tt class="docutils literal"><span class="pre">a</span></tt> ，通常与小写 <tt class="docutils literal"><span class="pre">b</span></tt> 一样处理，但一个左括号就不同了: 它告诉 Lisp 开始读入一个列表。</p>
+<p>一个宏字符或宏字符组合也称作 <tt class="docutils literal"><span class="pre">read-macro</span></tt> (读取宏) 。许多 Common Lisp 预定义的读取宏是缩写。比如说引用 (Quote): 读入一个像是 <tt class="docutils literal"><span class="pre">'a</span></tt> 的表达式时，它被读取器展开成 <tt class="docutils literal"><span class="pre">(quote</span> <span class="pre">a)</span></tt> 。当你输入引用的表达式 (quoted expression)至顶层时，它们在读入之时就会被求值，所以一般来说你看不到这样的转换。你可以透过显式调用 <tt class="docutils literal"><span class="pre">read</span></tt> 使其现形:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">car</span> <span class="p">(</span><span class="nb">read-from-string</span> <span class="s">&quot;&#39;a&quot;</span><span class="p">))</span>
+<span class="nv">QUOTE</span>
+</pre></div>
+</td></tr></table></div>
+<p>引用对於读取宏来说是不寻常的，因为它用单一字符表示。有了一个有限的字符集，你可以在 Common Lisp 里有许多单一字符的读取宏，来表示一个或更多字符。</p>
+<p>这样的读取宏叫做派发 (dispatching)读取宏，而第一个字符叫做派发字符 (dispatching character)。所有预定义的派发读取宏使用井号 ( <tt class="docutils literal"><span class="pre">#</span></tt> )作为派发字符。我们已经见过好几个。举例来说， <tt class="docutils literal"><span class="pre">#'</span></tt> 是 <tt class="docutils literal"><span class="pre">(function</span> <span class="pre">...)</span></tt> 的缩写，同样的 <tt class="docutils literal"><span class="pre">'</span></tt> 是 <tt class="docutils literal"><span class="pre">(quote</span> <span class="pre">...)</span></tt> 的缩写。</p>
+<p>其它我们见过的派发读取宏包括 <tt class="docutils literal"><span class="pre">#(...)</span></tt> ，产生一个向量； <tt class="docutils literal"><span class="pre">#nA(...)</span></tt> 产生数组； <tt class="docutils literal"><span class="pre">#\</span></tt> 产生一个字符； <tt class="docutils literal"><span class="pre">#S(n</span> <span class="pre">...)</span></tt> 产生一个结构。当这些类型的每个对象被 <tt class="docutils literal"><span class="pre">prin1</span></tt> 显示时 (或是 <tt class="docutils literal"><span class="pre">format</span></tt> 搭配 <tt class="docutils literal"><span class="pre">~S</span></tt>)，它们使用对应的读取宏 <a class="footnote-reference" href="#id6" id="id3">[2]</a> 。这表示着你可以写出或读回这样的对象:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="vg">*print-array*</span> <span class="no">t</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">vectorp</span> <span class="p">(</span><span class="nb">read-from-string</span> <span class="p">(</span><span class="nb">format</span> <span class="no">nil</span> <span class="s">&quot;~S&quot;</span>
+                                       <span class="p">(</span><span class="nb">vector</span> <span class="mi">1</span> <span class="mi">2</span><span class="p">)))))</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+<p>当然我们拿回来的不是同一个向量，而是具有同样元素的新向量。</p>
+<p>不是所有对象被显示时都有着清楚 (distinct)、可读的形式。举例来说，函数与哈希表，倾向於这样 <tt class="docutils literal"><span class="pre">#&lt;...&gt;</span></tt> 被显示。实际上 <tt class="docutils literal"><span class="pre">#&lt;...&gt;</span></tt> 也是一个读取宏，但是特别用来产生当遇到 <tt class="docutils literal"><span class="pre">read</span></tt> 的错误。函数与哈希表不能被写出与读回来，而这个读取宏确保使用者不会有这样的幻觉。 <a class="footnote-reference" href="#id7" id="id4">[3]</a></p>
+<p>当你定义你自己的事物表示法时 (举例来说，结构的印出函数)，你要将此准则记住。要不使用一个可以被读回来的表示法，或是使用 <tt class="docutils literal"><span class="pre">#&lt;...&gt;</span></tt> 。</p>
+</div>
+<div class="section" id="chapter-7-summary">
+<h2>Chapter 7 总结 (Summary)<a class="headerlink" href="#chapter-7-summary" title="永久链接至标题">¶</a></h2>
+<ol class="arabic simple">
+<li>流是输入的来源或终点。在字符流里，输入输出是由字符组成。</li>
+<li>缺省的流指向顶层。新的流可以由开启文件产生。</li>
+<li>你可以解析对象、字符组成的字串、或是单独的字符。</li>
+<li><tt class="docutils literal"><span class="pre">format</span></tt> 函数提供了完整的输出控制。</li>
+<li>为了要替换文本文件中的字串，你需要将字符读入缓冲区。</li>
+<li>当 <tt class="docutils literal"><span class="pre">read</span></tt> 遇到一个宏字符像是 <tt class="docutils literal"><span class="pre">'</span></tt> ，它调用相关的函数。</li>
+</ol>
+</div>
+<div class="section" id="chapter-7-exercises">
+<h2>Chapter 7 练习 (Exercises)<a class="headerlink" href="#chapter-7-exercises" title="永久链接至标题">¶</a></h2>
+<ol class="arabic simple">
+<li>定义一个函数，接受一个文件名并返回一个由字串组成的列表，来表示文件里的每一行。</li>
+<li>定义一个函数，接受一个文件名并返回一个由表达式组成的列表，来表示文件里的每一行。</li>
+<li>假设有某种格式的文件文件，注解是由 <tt class="docutils literal"><span class="pre">%</span></tt> 字符表示。从这个字符开始直到行尾都会被忽略。定义一个函数，接受两个文件名称，并拷贝第一个文件的内容去掉注解，写至第二个文件。</li>
+<li>定义一个函数，接受一个二维浮点数组，将其用简洁的栏位显示。每个元素应印至小数点二位，一栏十个字符宽。（假设所有的字符可以容纳）。你会需要 <tt class="docutils literal"><span class="pre">array-dimensions</span></tt> (参见 361 页，译注: Appendix D)。</li>
+<li>修改 <tt class="docutils literal"><span class="pre">stream-subst</span></tt> 来允许万用字符 (wildcard) 可以在模式中使用。若字符 <tt class="docutils literal"><span class="pre">+</span></tt> 出现在 <tt class="docutils literal"><span class="pre">old</span></tt> 里，它应该匹配任何输入字符。</li>
+<li>修改 <tt class="docutils literal"><span class="pre">stream-subst</span></tt> 来允许模式可以包含一个用来匹配任何数字的元素，以及一个可以匹配任何英文字符的元素或是一个可以匹配任何字符的元素。模式必须可以匹配任何特定的输入字符。(提示: <tt class="docutils literal"><span class="pre">old</span></tt> 可以不是一个字串。)</li>
+</ol>
+<p class="rubric">脚注</p>
+<table class="docutils footnote" frame="void" id="id5" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[1]</a></td><td>你可以给一个字串取代路径名，但这样就不可携了 (portable)。</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id6" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[2]</a></td><td>要让向量与数组这样被显示，将 <tt class="docutils literal"><span class="pre">*print-array*</span></tt> 设为真。</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id7" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[3]</a></td><td>Lisp 不能只用 <tt class="docutils literal"><span class="pre">#'</span></tt> 来表示函数，因为 <tt class="docutils literal"><span class="pre">#'</span></tt> 本身无法提供表示闭包的方式。</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'acl-chinese';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+                  </div></div>
+              </article><div class="clearer"></div>
+          </div><div class="span3">
+                <div class="sphinxsidebar">
+      <div id="sidenav" class="box sphinxsidebarwrapper">
+
+
+<h4><a href="../index.html">內容目录</a></h4>
+  <ul>
+<li><a class="reference internal" href="#">第七章：输入与输出</a><ul>
+<li><a class="reference internal" href="#streams">7.1 流 (Streams)</a></li>
+<li><a class="reference internal" href="#input">7.2 输入 (Input)</a></li>
+<li><a class="reference internal" href="#output">7.3 输出 (Output)</a></li>
+<li><a class="reference internal" href="#example-string-substitution">7.4 示例：字串代换 (Example: String Substitution)</a></li>
+<li><a class="reference internal" href="#macro-characters">7.5 宏字符 (Macro Characters)</a></li>
+<li><a class="reference internal" href="#chapter-7-summary">Chapter 7 总结 (Summary)</a></li>
+<li><a class="reference internal" href="#chapter-7-exercises">Chapter 7 练习 (Exercises)</a></li>
+</ul>
+</li>
+</ul>
+
+  
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      
+      
+        <li><a href="https://github.com/acl-translation/acl-chinese/blob/redirect-to-new-domain/zhCN/ch7-cn.rst">
+          Show on GitHub</a></li>
+        <li><a href="https://github.com/acl-translation/acl-chinese/edit/redirect-to-new-domain/zhCN/ch7-cn.rst">
+          Edit on GitHub</a></li>
+      
+    </ul>
+  
+</div>
+    </div>
+              </div></div>
+      </div>
+<footer class="container-fluid">
+        <hr />&copy; 版权所有 2012, Juanito Fatas Huang.最后更新日期是 Apr 22, 2013.使用 <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.</footer>
+ <!-- End original user content -->
+
+
+<br>
+<br>
+<br>
+
+
+<style type="text/css">
+  .rtd-badge {
+    position: fixed;
+    display: block;
+    bottom: 5px;
+    height: 40px;
+    text-indent: -9999em;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -moz-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  }
+  #version_menu {
+    position: fixed;
+    display: none;
+    bottom: 11px;
+    right: 166px;
+    list-style-type: none;
+    margin: 0;
+  }
+  .footer_popout:hover #version_menu {
+    display: block;
+  }
+  #version_menu li {
+    display: block;
+    float: right;
+  }
+  #version_menu li a {
+    display: block;
+    padding: 6px 10px 4px 10px;
+    margin: 7px 7px 0 0;
+    font-weight: bold;
+    font-size: 14px;
+    height: 20px;
+    line-height: 17px;
+    text-decoration: none;
+    color: #fff;
+    background: #8ca1af url(../images/gradient-light.png) bottom left repeat-x;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 1px #465158;
+    -moz-box-shadow: 0 1px 1px #465158;
+    -webkit-box-shadow: 0 1px 1px #465158;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+  }
+  #version_menu li a:hover {
+    text-decoration: none;
+    background-color: #697983;
+    box-shadow: 0 1px 0px #465158;
+    -moz-box-shadow: 0 1px 0px #465158;
+    -webkit-box-shadow: 0 1px 0px #465158;
+  }
+  .rtd-badge.rtd {
+    background: #3b4449 url(//media.readthedocs.org//images/badge-rtd.png) scroll 0px -46px no-repeat;
+    border: 1px solid #282E32;
+    width: 41px;
+    right: 5px;
+  }
+  .footer_popout:hover .rtd-badge.rtd {
+    background-position: top left;
+    width: 160px;
+  }
+  .rtd-badge.revsys { background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline-sponsored {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys-sm.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 205px;
+    right: 173px;
+  }
+
+</style>
+<div class="rtd_doc_footer">
+  <div class="footer_popout">
+    <a href="//readthedocs.org/projects/ansi-common-lisp/?fromdocs=ansi-common-lisp" class="rtd-badge rtd"> Brought to you by Read the Docs</a>
+    <ul id="version_menu">
+      
+        <li><a href="/en/latest/">latest</a></li>
+      
+    </ul>
+  </div>
+</div>
+<!-- RTD Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-17997319-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+<!-- User Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-26995626-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+</body>
+</html>

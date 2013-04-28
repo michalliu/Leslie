@@ -1,0 +1,1250 @@
+<!DOCTYPE HTML>
+
+  <html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+<title>第三章：列表 &mdash; ANSI Common Lisp 中文版</title>
+    
+<!-- RTD <head> -->
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/underscore.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/doctools.js"></script>
+
+<script type="text/javascript">
+  // This is included here for Javascript that doesn't have access to the templates.
+  var doc_version = "latest";
+  var doc_slug = "ansi-common-lisp";
+</script>
+
+<script type="text/javascript" src="//media.readthedocs.org/javascript/rtd.js"></script>
+<!-- end RTD <head> -->
+
+    <link rel="stylesheet" href="../_static/han.min.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/rosefinch.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/main.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:       '../',
+        VERSION:        '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX:    '.html',
+        HAS_SOURCE:     true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/han.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  <script type="text/javascript" src=../_static/jquery.dimensions.js"></script>
+  <script type="text/javascript" src="../_static/main.js"></script><link rel="top" title="ANSI Common Lisp 中文版" href="../index.html" /></head>
+
+  <body><div class="navbar navbar-static-top navbar-inverse">
+        <div id="top-bar" class="navbar-inner">
+
+          <h1 id="logo">ANSI Common Lisp 中文版<a href="../index.html" class="brand">ANSI Common Lisp 中文版</a></h1>
+          <ul class="nav"></ul><a href="https://github.com/acl-translation/acl-chinese"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
+        </div>
+      </div><div class="content container-fluid">
+        <div class="row-fluid"><div class="document span9"><article >
+                <div class="documentwrapper"><div class="body"><div class="section" id="id1">
+<h1>第三章：列表<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h1>
+<p>列表是 Lisp 中基本的資料結構之一。在最早的 Lisp 方言中，他們是唯一的資料結構： Lisp 這個名字本來代表的是 &#8220;LISt Processor&#8221; 。但 Lisp 已經超越這個縮寫很久了。 Common Lisp 是一個有著各式各樣資料結構的通用型程式語言 (general-purpose programming language)。</p>
+<p>Lisp 程式開發通常呼應著開發 Lisp 語言自身。在最初版本的 Lisp 程式，你可能使用很多列表。然而之後的版本，你可能切換到快速、特定的資料結構。本章描述了你可以用列表所做的很多事情，以及使用它們來演示一些普遍的 Lisp 概念。</p>
+<div class="section" id="conses">
+<h2>3.1 創建 (Conses)<a class="headerlink" href="#conses" title="永久链接至标题">¶</a></h2>
+<p>在2.4節我們介紹了 <tt class="docutils literal"><span class="pre">cons</span></tt> , <tt class="docutils literal"><span class="pre">car</span></tt> , 以及 <tt class="docutils literal"><span class="pre">cdr</span></tt> ，基本的 List 操作函數 (list-manipulation fuctions)。 <tt class="docutils literal"><span class="pre">cons</span></tt> 真正所做的事情是，把兩個物件結合成一個有兩部分的物件，稱之為 <em>Cons</em> 物件。概念上來說，一個 Cons 物件是一對指標; 第一個是 car ，第二個是 cdr。</p>
+<p>Cons 物件提供了一個方便的表示法來表示任何型態的物件。一個 Cons 物件裡的一對指標可以指向任何種類的物件，包括 Cons 物件本身。它利用到我們之後可以用 <tt class="docutils literal"><span class="pre">cons</span></tt> 來創建列表的可能性。</p>
+<p>我們往往不會把列表想成是成對的，但它們可以這樣被定義。任何非空的列表，都可以被視為一對由列表第一個元素及列表其餘元素所組成的列表。 Lisp 列表體現了這個概念。我們使用 Cons 的一半 (car)來指向列表的第一個元素，然後用另一半 (cdr)指向列表其餘的元素 (可能是別的 Cons 物件或 nil)。 Lisp 的慣例是使用 <tt class="docutils literal"><span class="pre">car</span></tt> 代表列表的第一個元素，而用 <tt class="docutils literal"><span class="pre">cdr</span></tt> 代表列表的其餘的元素。所以現在 <tt class="docutils literal"><span class="pre">car</span></tt> 是列表的第一個元素的同義詞，而 <tt class="docutils literal"><span class="pre">cdr</span></tt> 是列表的其餘的元素的同義詞。列表不是不同的物件，而是像 Cons 這樣的方式連結起來。</p>
+<p>當我們想在 <tt class="docutils literal"><span class="pre">NIL</span></tt> 上面建立東西時，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">x</span> <span class="p">(</span><span class="nb">cons</span> <span class="ss">&#39;a</span> <span class="no">nil</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">A</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<div class="figure">
+<img alt="../_images/Figure-3.12.png" src="../_images/Figure-3.12.png" />
+</div>
+<p>圖 3.1 一個元素的列表</p>
+<p>產生的列表由一個 Cons 所組成，見圖3.1。這種表達 Cons 的方式叫做箱子表示法 (box notation)，因為每一個 Cons 是用一個箱子表示，內含一個 <tt class="docutils literal"><span class="pre">car</span></tt> 和 <tt class="docutils literal"><span class="pre">cdr</span></tt> 的指標。當我們呼叫 <tt class="docutils literal"><span class="pre">car</span></tt> 與 <tt class="docutils literal"><span class="pre">cdr</span></tt> 時，我們得到指標指向的地方：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">x</span><span class="p">)</span>
+<span class="nv">A</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">x</span><span class="p">)</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>當我們創建一個多元素的列表時，我們得到一串 Conses (a chain of conses)：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">y</span> <span class="p">(</span><span class="nb">list</span> <span class="ss">&#39;a</span> <span class="ss">&#39;b</span> <span class="ss">&#39;c</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>產生的結構見圖 3.2。現在當我們想得到這個列表的 <tt class="docutils literal"><span class="pre">cdr</span></tt> 時，它是一個兩個元素的列表。</p>
+<div class="figure">
+<img alt="../_images/Figure-3.21.png" src="../_images/Figure-3.21.png" />
+</div>
+<p>圖 3.2 三個元素的列表</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">y</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>在一個有多個元素的列表中， <tt class="docutils literal"><span class="pre">car</span></tt> 指標讓你取得元素，而 <tt class="docutils literal"><span class="pre">cdr</span></tt> 讓你取得列表內其餘的東西。</p>
+<p>一個列表可以有任何種類的物件作為元素，包括另一個列表：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">z</span> <span class="p">(</span><span class="nb">list</span> <span class="ss">&#39;a</span> <span class="p">(</span><span class="nb">list</span> <span class="ss">&#39;b</span> <span class="ss">&#39;c</span><span class="p">)</span> <span class="ss">&#39;d</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">A</span> <span class="p">(</span><span class="nv">B</span> <span class="nv">C</span><span class="p">)</span> <span class="nv">D</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>當這種情況發生時，它的結構如圖3.3所示; 第二個 Cons 的 <tt class="docutils literal"><span class="pre">car</span></tt> 指標也指向一個列表：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">car</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">z</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<div class="figure">
+<img alt="../_images/Figure-3.31.png" src="../_images/Figure-3.31.png" />
+</div>
+<p>圖 3.3 巢狀列表</p>
+<p>前兩個我們創建的列表都有三個元素; 只不過 <tt class="docutils literal"><span class="pre">z</span></tt> 列表的第二個元素也剛好是一個列表。像這樣的列表稱為 <em>巢狀</em> 列表，而像 <tt class="docutils literal"><span class="pre">y</span></tt> 這樣的列表稱之為 <em>平坦</em> 列表 ( <em>flat</em> list)。</p>
+<p>如果參數是一個 Cons 物件，函數 <tt class="docutils literal"><span class="pre">consp</span></tt> 回傳真。所以我們可以這樣定義 <tt class="docutils literal"><span class="pre">listp</span></tt> ：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">our-listp</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">or</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">consp</span> <span class="nv">x</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>因為所有不是 Cons 物件的東西就是一個原子 (atom)，判斷式 <tt class="docutils literal"><span class="pre">atom</span></tt> 可以這樣定義：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">our-atom</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="nb">consp</span> <span class="nv">x</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>注意， <tt class="docutils literal"><span class="pre">NIL</span></tt> 是一個原子，同時也是一個列表。</p>
+</div>
+<div class="section" id="equality">
+<h2>3.2 等式 (Equality)<a class="headerlink" href="#equality" title="永久链接至标题">¶</a></h2>
+<p>每一次你呼叫 <tt class="docutils literal"><span class="pre">cons</span></tt> 時， Lisp 會分配一塊新的記憶體給兩個指標。所以如果我們用同樣的參數呼叫 <tt class="docutils literal"><span class="pre">cons</span></tt> 兩次，我們得到兩個數值看起來一樣，但實際上是兩個不同的物件：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">eql</span> <span class="p">(</span><span class="nb">cons</span> <span class="ss">&#39;a</span> <span class="no">nil</span><span class="p">)</span> <span class="p">(</span><span class="nb">cons</span> <span class="ss">&#39;a</span> <span class="no">nil</span><span class="p">))</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果我們也可以詢問兩個列表是否有相同元素，那就很方便了。 Common Lisp 提供了這種目的另一個判斷式： <tt class="docutils literal"><span class="pre">equal</span></tt> 。而另一方面 <tt class="docutils literal"><span class="pre">eql</span></tt> 只有在它的參數是相同物件時才回傳真，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">x</span> <span class="p">(</span><span class="nb">cons</span> <span class="ss">&#39;a</span> <span class="no">nil</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">A</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">eql</span> <span class="nv">x</span> <span class="nv">x</span><span class="p">)</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+<p>本質上 <tt class="docutils literal"><span class="pre">equal</span></tt> 若它的參數列印出的值相同時，回傳真：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">equal</span> <span class="nv">x</span> <span class="p">(</span><span class="nb">cons</span> <span class="ss">&#39;a</span> <span class="no">nil</span><span class="p">))</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+<p>這個判斷式對非列表結構的別種物件也有效，但一種僅對列表有效的版本可以這樣定義：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">defun</span> <span class="nv">our-equal</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">y</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">or</span> <span class="p">(</span><span class="nb">eql</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">)</span>
+        <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nb">consp</span> <span class="nv">x</span><span class="p">)</span>
+             <span class="p">(</span><span class="nb">consp</span> <span class="nv">y</span><span class="p">)</span>
+             <span class="p">(</span><span class="nv">our-equal</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">y</span><span class="p">))</span>
+             <span class="p">(</span><span class="nv">our-equal</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">y</span><span class="p">)))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>這個定義意味著，如果某個 x 和 y 相等 ( <tt class="docutils literal"><span class="pre">eql</span></tt> )，那麼他們也相等 ( <tt class="docutils literal"><span class="pre">equal</span></tt> )。</p>
+<p><strong>勘誤:</strong> 這個版本的 <tt class="docutils literal"><span class="pre">our-equal</span></tt> 可以用在符號的列表 (list of symbols)，而不是列表 (list)。</p>
+</div>
+<div class="section" id="lisp-why-lisp-has-no-pointers">
+<h2>3.3 為什麼 Lisp 沒有指標 (Why Lisp Has No Pointers)<a class="headerlink" href="#lisp-why-lisp-has-no-pointers" title="永久链接至标题">¶</a></h2>
+<p>一個理解 Lisp 的祕密之一是意識到變數是有值的，就像列表有元素一樣。如同 Conses 物件有指標指向他們的元素，變數有指標指向他們的值。</p>
+<p>你可能在別的語言中使用過顯式指標 (explicitly pointer)。在 Lisp ，你永遠不用這麼做，因為語言幫你處理好指標了。我們已經在列表看過這是怎麼達成的。同樣的事情發生在變數身上。舉例來說，假設我們想要把兩個變數設成同樣的列表：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">x</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">y</span> <span class="nv">x</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<div class="figure">
+<img alt="../_images/Figure-3.41.png" src="../_images/Figure-3.41.png" />
+</div>
+<p>圖3.4 兩個變數設為相同的列表</p>
+<p>當我們把 x 的值賦給 y 時，究竟發生什麼事呢？記憶體中與 x 有關的位置並沒有包含這個列表，而是一個指標指向它。當我們給 y 賦一個相同的值時， Lisp 複製的是指標，而不是列表。（圖 3.4 顯式賦值 x 給 y 後的結果）所以無論何時你把一個變數賦給另一個變數時，兩個變數會有 <tt class="docutils literal"><span class="pre">eql</span></tt> 的值。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">eql</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">)</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+<p>Lisp 沒有指標的原因是因為每一個值，其實概念上來說都是一個指標。當你賦一個值給變數或將這個值存在資料結構中，其實被儲存的是指向這個值的指標。當你要取得變數的值，或是存在資料結構中的內容時， Lisp 回傳指向這個值的指標。但這都在檯面下發生。你可以不加思索地把值放在結構裡，或放 &#8220;在&#8221; 變數裡。</p>
+<p>為了效率的原因， Lisp 有時會選擇一個折衷的表示法，而不是指標。舉例來說，因為一個小整數所需的記憶體空間，少於一個指標所需的空間，一個 Lisp 實現可能會直接處理這個小整數，而不是用指標來處理。但基本要點是，程式設計師，預設上，你可以把任何東西放在任何地方。除非你宣告你不願這麼做，不然你能夠在任何的資料結構，存放任何種類的物件，包括結構本身。</p>
+</div>
+<div class="section" id="building-lists">
+<h2>3.4 建立列表 (Building Lists)<a class="headerlink" href="#building-lists" title="永久链接至标题">¶</a></h2>
+<div class="figure">
+<img alt="../_images/Figure-3.51.png" src="../_images/Figure-3.51.png" />
+</div>
+<p>圖 3.5 複製的結果</p>
+<p>函數 <tt class="docutils literal"><span class="pre">copy-list</span></tt> 接受一個列表，然後返回此列表的副本。新的列表會有同樣的元素，但是裝在新的 Conses 物件裡：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">x</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">)</span>
+        <span class="nv">y</span> <span class="p">(</span><span class="nb">copy-list</span> <span class="nv">x</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>圖 3.5 展示出結果的結構; 回傳值像是有著相同乘客的新公車。我們可以把 <tt class="docutils literal"><span class="pre">copy-list</span></tt> 想成是這麼定義的:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">our-copy-list</span> <span class="p">(</span><span class="nv">lst</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">atom</span> <span class="nv">lst</span><span class="p">)</span>
+      <span class="nv">lst</span>
+      <span class="p">(</span><span class="nb">cons</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">lst</span><span class="p">)</span> <span class="p">(</span><span class="nv">our-copy-list</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">)))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>這個定義暗示著 x 與 (copy-list x) 會永遠 <tt class="docutils literal"><span class="pre">equal</span></tt> ，並永遠不 <tt class="docutils literal"><span class="pre">eql</span></tt> ，除非 x 是 <tt class="docutils literal"><span class="pre">NIL</span></tt> 。</p>
+<p>最後，函數 <tt class="docutils literal"><span class="pre">append</span></tt> 回傳任何數目的列表串接 (concatenation)：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">append</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span><span class="p">)</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">c</span> <span class="nv">d</span><span class="p">)</span> <span class="ss">&#39;e</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span> <span class="nv">D</span> <span class="nv">E</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>通過這麼做，它複製所有的參數，除了最後一個。</p>
+</div>
+<div class="section" id="example-compression">
+<h2>3.5 範例：壓縮 (Example: Compression)<a class="headerlink" href="#example-compression" title="永久链接至标题">¶</a></h2>
+<p>作為一個範例，這節將演示如何實現簡單形式的列表壓縮。這個演算法有一個令人映像深刻的名字， <em>遊程編碼</em> (run-length encoding)。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">compress</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">consp</span> <span class="nv">x</span><span class="p">)</span>
+      <span class="p">(</span><span class="nv">compr</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">x</span><span class="p">)</span> <span class="mi">1</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">x</span><span class="p">))</span>
+      <span class="nv">x</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">compr</span> <span class="p">(</span><span class="nb">elt</span> <span class="nv">n</span> <span class="nv">lst</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">lst</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">list</span> <span class="p">(</span><span class="nv">n-elts</span> <span class="nb">elt</span> <span class="nv">n</span><span class="p">))</span>
+      <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">next</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">lst</span><span class="p">)))</span>
+        <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">eql</span> <span class="nv">next</span> <span class="nb">elt</span><span class="p">)</span>
+            <span class="p">(</span><span class="nv">compr</span> <span class="nb">elt</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">n</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">))</span>
+            <span class="p">(</span><span class="nb">cons</span> <span class="p">(</span><span class="nv">n-elts</span> <span class="nb">elt</span> <span class="nv">n</span><span class="p">)</span>
+                  <span class="p">(</span><span class="nv">compr</span> <span class="nv">next</span> <span class="mi">1</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">)))))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">n-elts</span> <span class="p">(</span><span class="nb">elt</span> <span class="nv">n</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">&gt;</span> <span class="nv">n</span> <span class="mi">1</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">list</span> <span class="nv">n</span> <span class="nb">elt</span><span class="p">)</span>
+      <span class="nb">elt</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>圖 3.6 遊程編碼 (Run-length encoding)：壓縮</p>
+<p>在餐廳，這個演算法的工作方式如下。一個女服務生走向有四個客人的桌子。&#8221;你們要什麼？&#8221; 她問。&#8221;我要特餐，&#8221; 第一個客人說。
+&#8220;我也是，&#8221; 第二個客人說。&#8221;聽起來不錯，&#8221; 第三個客人說。每個人看著第四個客人。¨我要一個 &#8220;cilantro soufflé，&#8221; 他小聲地說。 (譯註：蛋奶酥上面灑香菜跟醬料）</p>
+<p>瞬息之間，女服務生就轉身踩著高跟鞋走回櫃檯去了。&#8221;三個特餐，&#8221; 她大聲對廚師說，&#8221;還有一個香菜蛋奶酥。&#8221;</p>
+<p>圖 3.6 展示了如何實現這個壓縮列表演算法。函數 <tt class="docutils literal"><span class="pre">compress</span></tt> 接受一個由原子組成的列表，然後回傳一個壓縮的列表：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">compress</span> <span class="o">&#39;</span><span class="p">(</span><span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">1</span><span class="p">))</span>
+<span class="p">((</span><span class="mi">3</span> <span class="mi">1</span><span class="p">)</span> <span class="mi">0</span> <span class="mi">1</span> <span class="p">(</span><span class="mi">4</span> <span class="mi">0</span><span class="p">)</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>當相同的元素連續出現好幾次，這個連續出現的序列被一個列表取代，列表指明出現的次數及出現的元素。</p>
+<p>主要的工作是由 遞迴的 <tt class="docutils literal"><span class="pre">compr</span></tt> 所完成。這個函數接受三個參數： <tt class="docutils literal"><span class="pre">elt</span></tt> ，上一個我們看過的元素; <tt class="docutils literal"><span class="pre">n</span></tt> ，連續出現的次數， 以及 <tt class="docutils literal"><span class="pre">lst</span></tt> ，我們還沒檢視過的部分列表。如果沒有東西需要檢視了，我們呼叫 <tt class="docutils literal"><span class="pre">n-elts</span></tt> 來取得 n elts 的表示法。如果 <tt class="docutils literal"><span class="pre">lst</span></tt> 的第一個元素還是 <tt class="docutils literal"><span class="pre">elt</span></tt> ，我們增加出現的次數 <tt class="docutils literal"><span class="pre">n</span></tt> 並繼續下去。否則我們得到，到目前為止的一個壓縮的列表，然後 <tt class="docutils literal"><span class="pre">cons</span></tt> 這個列表在 <tt class="docutils literal"><span class="pre">compr</span></tt> 處理完剩下的列表所回傳的東西之上。</p>
+<p>要復原一個壓縮的列表，我們呼叫 <tt class="docutils literal"><span class="pre">uncompress</span></tt> (圖 3.7)</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">uncompress</span> <span class="o">&#39;</span><span class="p">((</span><span class="mi">3</span> <span class="mi">1</span><span class="p">)</span> <span class="mi">0</span> <span class="mi">1</span> <span class="p">(</span><span class="mi">4</span> <span class="mi">0</span><span class="p">)</span> <span class="mi">1</span><span class="p">))</span>
+<span class="p">(</span><span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">uncompress</span> <span class="p">(</span><span class="nv">lst</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">lst</span><span class="p">)</span>
+      <span class="no">nil</span>
+      <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nb">elt</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">lst</span><span class="p">))</span>
+            <span class="p">(</span><span class="nb">rest</span> <span class="p">(</span><span class="nv">uncompress</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">))))</span>
+        <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">consp</span> <span class="nb">elt</span><span class="p">)</span>
+            <span class="p">(</span><span class="nb">append</span> <span class="p">(</span><span class="nb">apply</span> <span class="nf">#&#39;</span><span class="nv">list-of</span> <span class="nb">elt</span><span class="p">)</span>
+                    <span class="nb">rest</span><span class="p">)</span>
+            <span class="p">(</span><span class="nb">cons</span> <span class="nb">elt</span> <span class="nb">rest</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">list-of</span> <span class="p">(</span><span class="nv">n</span> <span class="nb">elt</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">zerop</span> <span class="nv">n</span><span class="p">)</span>
+      <span class="no">nil</span>
+      <span class="p">(</span><span class="nb">cons</span> <span class="nb">elt</span> <span class="p">(</span><span class="nv">list-of</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">n</span> <span class="mi">1</span><span class="p">)</span> <span class="nb">elt</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>圖 3.7 遊程編碼 (Run-length encoding)：解壓縮</p>
+<p>這個函數遞迴地遍歷這個壓縮列表，逐字複製原子並呼叫 <tt class="docutils literal"><span class="pre">list-of</span></tt> ，展開成列表。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">list-of</span> <span class="mi">3</span> <span class="ss">&#39;ho</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">HO</span> <span class="nv">HO</span> <span class="nv">HO</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>我們其實不需要自己寫 <tt class="docutils literal"><span class="pre">list-of</span></tt> 。內建的 <tt class="docutils literal"><span class="pre">make-list</span></tt> 可以辦到一樣的事情─但它使用了我們還沒介紹到的關鍵字參數 (keyword argument)。</p>
+<p>圖 3.6 跟 3.7 這種寫法不是一個有經驗的 Lisp 程式設計師用的寫法。它的效率很差，它沒有盡可能的壓縮，而且它只對由原子組成的列表有效。在幾個章節內，我們會學到解決這些問題的技巧。</p>
+<div class="highlight-cl"><pre>載入程式
+
+在這節的程式是我們第一個實質的程式。
+當我們想要寫超過數行的函數時，
+通常我們會把程式寫在一個檔案，
+然後使用 load 讓 Lisp 讀取函數的定義。
+如果我們把圖 3.6 跟 3.7 的程式，
+存在一個檔案叫做，"compress.lisp" 然後輸入
+
+(load "compress.lisp")
+
+到頂層，或多或少的，
+我們會像在直接輸入頂層一樣得到同樣的效果。
+
+注意：在某些實現中，Lisp 檔案的副檔名會是 ".lsp" 而不是 ".lisp"。</pre>
+</div>
+</div>
+<div class="section" id="access">
+<h2>3.6 存取 (Access)<a class="headerlink" href="#access" title="永久链接至标题">¶</a></h2>
+<p>Common Lisp 有額外的存取函數，它們是用 <tt class="docutils literal"><span class="pre">car</span></tt> 跟 <tt class="docutils literal"><span class="pre">cdr</span></tt> 所定義的。要找到列表特定位置的元素，我們可以呼叫 <tt class="docutils literal"><span class="pre">nth</span></tt> ，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">nth</span> <span class="mi">0</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">))</span>
+<span class="nv">A</span>
+</pre></div>
+</td></tr></table></div>
+<p>而要找到第 n 個 cdr ，我們呼叫 <tt class="docutils literal"><span class="pre">nthcdr</span></tt> ：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">nthcdr</span> <span class="mi">2</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">C</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p><tt class="docutils literal"><span class="pre">nth</span></tt> 與 <tt class="docutils literal"><span class="pre">nthcdr</span></tt> 都是零索引的 (zero-indexed); 即元素從 0 開始編號，而不是從 1 開始。在 Common Lisp 裡，無論何時你使用一個數字來參照一個資料結構中的元素時，都是從 0 開始編號的。</p>
+<p>兩個函數幾乎做一樣的事; <tt class="docutils literal"><span class="pre">nth</span></tt> 等同於取 <tt class="docutils literal"><span class="pre">nthcdr</span></tt> 的 <tt class="docutils literal"><span class="pre">car</span></tt> 。沒有檢查錯誤的情況下， <tt class="docutils literal"><span class="pre">nthcdr</span></tt> 可以這麼定義：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">our-nthcdr</span> <span class="p">(</span><span class="nv">n</span> <span class="nv">lst</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">zerop</span> <span class="nv">n</span><span class="p">)</span>
+      <span class="nv">lst</span>
+      <span class="p">(</span><span class="nv">our-nthcdr</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">n</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>函數 <tt class="docutils literal"><span class="pre">zerop</span></tt> 僅在參數為零時，才回傳真。</p>
+<p>函數 <tt class="docutils literal"><span class="pre">last</span></tt> 回傳列表的最後一個 Cons 物件：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">last</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">C</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>這跟取得最後一個元素不一樣。要取得列表的最後一個元素，你要取得 <tt class="docutils literal"><span class="pre">last</span></tt> 的 <tt class="docutils literal"><span class="pre">car</span></tt> 。</p>
+<p>Common Lisp 定義了函數 <tt class="docutils literal"><span class="pre">first</span></tt> 直到 <tt class="docutils literal"><span class="pre">tenth</span></tt> 可以取得列表對應的元素。這些函數不是 <em>零索引的</em> (zero-indexed)：</p>
+<p><tt class="docutils literal"><span class="pre">(second</span> <span class="pre">x)</span></tt> 等同於 <tt class="docutils literal"><span class="pre">(nth</span> <span class="pre">1</span> <span class="pre">x)</span></tt> 。</p>
+<p>此外， Common Lisp 定義了像是 <tt class="docutils literal"><span class="pre">caddr</span></tt> 這樣的函數，它是 cdr 的 cdr 的 car 的縮寫 (car of cdr of cdr)。所有這樣形式的函數 <tt class="docutils literal"><span class="pre">cxr</span></tt> ，其中 x 是一個字串，最多四個 a 或 d ，在 Common Lisp 裡都被定義好了。使用 <tt class="docutils literal"><span class="pre">cadr</span></tt> 可能會有例外 (exception)產生，這不是一個好主意，在所有人都可能會讀的程式碼裡來使用這樣的函數。</p>
+</div>
+<div class="section" id="mapping-functions">
+<h2>3.7 映成函數 (Mapping Functions)<a class="headerlink" href="#mapping-functions" title="永久链接至标题">¶</a></h2>
+<p>Common Lisp 提供了數個函數來對一個列表的元素做函數呼叫。最常使用的是 <tt class="docutils literal"><span class="pre">mapcar</span></tt> ，接受一個函數與一個或多個列表，並回傳把函數應用至每個列表的元素的結果，直到有的列表沒有元素為止：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">mapcar</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="mi">10</span><span class="p">))</span>
+          <span class="o">&#39;</span><span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">))</span>
+<span class="p">(</span><span class="mi">11</span> <span class="mi">12</span> <span class="mi">13</span><span class="p">)</span>
+
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">mapcar</span> <span class="nf">#&#39;</span><span class="nb">list</span>
+          <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">)</span>
+          <span class="o">&#39;</span><span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">))</span>
+<span class="p">((</span><span class="nv">A</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nv">B</span> <span class="mi">2</span><span class="p">)</span> <span class="p">(</span><span class="nv">C</span> <span class="mi">3</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>相關的 <tt class="docutils literal"><span class="pre">maplist</span></tt> 接受同樣的參數，將列表的漸進的下一個 cdr 傳入函數。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">maplist</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span> <span class="nv">x</span><span class="p">)</span>
+           <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">))</span>
+<span class="p">((</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span><span class="p">)</span> <span class="p">(</span><span class="nv">B</span> <span class="nv">C</span><span class="p">)</span> <span class="p">(</span><span class="nv">C</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>其它的映成函數，包括 <tt class="docutils literal"><span class="pre">mapc</span></tt> 我們在 88 頁討論 （譯註: 5.8 節），以及 <tt class="docutils literal"><span class="pre">mapcan</span></tt> 在 202 頁（譯註: 12.4 節）討論。</p>
+</div>
+<div class="section" id="trees">
+<h2>3.8 樹 (Trees)<a class="headerlink" href="#trees" title="永久链接至标题">¶</a></h2>
+<p>Conses 物件可以想成是二元樹， <tt class="docutils literal"><span class="pre">car</span></tt> 代表右子樹，而 <tt class="docutils literal"><span class="pre">cdr</span></tt> 代表左子樹。舉例來說，列表</p>
+<p>(a (b c) d) 也是一棵由圖 3.8 所代表的樹。（如果你逆時針旋轉45度，你會發現跟圖 3.3 一模一樣）</p>
+<div class="figure">
+<img alt="../_images/Figure-3.81.png" src="../_images/Figure-3.81.png" />
+</div>
+<p>圖 3.8 二元樹 (Binary Tree)</p>
+<p>Common Lisp 有幾個內建的給樹使用的函數。舉例來說， <tt class="docutils literal"><span class="pre">copy-tree</span></tt> 接受一個樹，並回傳一份副本。它可以這麼定義：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">our-copy-tree</span> <span class="p">(</span><span class="nv">tr</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">atom</span> <span class="nv">tr</span><span class="p">)</span>
+       <span class="nv">tr</span>
+       <span class="p">(</span><span class="nb">cons</span> <span class="p">(</span><span class="nv">our-copy-tree</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">tr</span><span class="p">))</span>
+             <span class="p">(</span><span class="nv">our-copy-tree</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">tr</span><span class="p">)))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>把這跟 36 頁的 <tt class="docutils literal"><span class="pre">copy-list</span></tt> 比較一下; <tt class="docutils literal"><span class="pre">copy-tree</span></tt> 複製每一個 Cons 物件的 car 與 cdr，而 <tt class="docutils literal"><span class="pre">copy-list</span></tt> 僅複製 cdr。</p>
+<p>沒有內部節點的二元樹沒有太大的用處。 Common Lisp 包含了操作樹的函數，不只是因為我們需要樹這個結構，而是因為我們需要一種方法，來操作列表及所有內部的列表。舉例來說，假設我們有一個這樣的列表：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nb">integerp</span> <span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">zerop</span> <span class="p">(</span><span class="nb">mod</span> <span class="nv">x</span> <span class="mi">2</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>而我們想要把各處的 x 都換成 y 。呼叫 <tt class="docutils literal"><span class="pre">substitute</span></tt> 是不行的，它只能替換序列 (sequence)中的元素：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">substitute</span> <span class="ss">&#39;x</span> <span class="ss">&#39;y</span> <span class="o">&#39;</span><span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nb">integerp</span> <span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">zerop</span> <span class="p">(</span><span class="nb">mod</span> <span class="nv">x</span> <span class="mi">2</span><span class="p">))))</span>
+<span class="p">(</span><span class="nv">AND</span> <span class="p">(</span><span class="nv">INTEGERP</span> <span class="nv">X</span><span class="p">)</span> <span class="p">(</span><span class="nv">ZEROP</span> <span class="p">(</span><span class="nv">MOD</span> <span class="nv">X</span> <span class="mi">2</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>這個呼叫是無效的，因為列表有三個元素，沒有一個元素是 x 。我們在這所需要的是 <tt class="docutils literal"><span class="pre">subst</span></tt> ，它替換樹中的元素。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">subst</span> <span class="ss">&#39;y</span> <span class="ss">&#39;x</span> <span class="o">&#39;</span><span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nb">integerp</span> <span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">zerop</span> <span class="p">(</span><span class="nb">mod</span> <span class="nv">x</span> <span class="mi">2</span><span class="p">))))</span>
+<span class="p">(</span><span class="nv">AND</span> <span class="p">(</span><span class="nv">INTEGERP</span> <span class="nv">Y</span><span class="p">)</span> <span class="p">(</span><span class="nv">ZEROP</span> <span class="p">(</span><span class="nv">MOD</span> <span class="nv">Y</span> <span class="mi">2</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果我們定義一個 <tt class="docutils literal"><span class="pre">subst</span></tt> 的版本，它看起來跟 <tt class="docutils literal"><span class="pre">copy-tree</span></tt> 很相似：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">defun</span> <span class="nv">our-subst</span> <span class="p">(</span><span class="nv">new</span> <span class="nv">old</span> <span class="nv">tree</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">eql</span> <span class="nv">tree</span> <span class="nv">old</span><span class="p">)</span>
+        <span class="nv">new</span>
+        <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">atom</span> <span class="nv">tree</span><span class="p">)</span>
+            <span class="nv">tree</span>
+            <span class="p">(</span><span class="nb">cons</span> <span class="p">(</span><span class="nv">our-subst</span> <span class="nv">new</span> <span class="nv">old</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">tree</span><span class="p">))</span>
+                  <span class="p">(</span><span class="nv">our-subst</span> <span class="nv">new</span> <span class="nv">old</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">tree</span><span class="p">))))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>操作樹的函數通常有這種形式，car 與 cdr 同時做遞迴。這種函數被稱之為是 <em>雙重遞迴</em> (doubly recursive)。</p>
+</div>
+<div class="section" id="understanding-recursion">
+<h2>3.9 理解遞迴 (Understanding Recursion)<a class="headerlink" href="#understanding-recursion" title="永久链接至标题">¶</a></h2>
+<p>學生在學習遞迴時，有時候是被鼓勵在紙上追蹤 (trace)遞迴程式調用 (invocation)的過程。 （ 288頁（譯註：Appendix A Trace and Backtraces）可以看到一個遞迴函數的追蹤過程。）但這種練習可能會誤導你：一個程式設計師在定義一個遞迴函數時，通常不會明確地去想呼叫函數後，函數調用的順序是什麼。</p>
+<p>如果一個人總是需要這樣子思考程式，遞迴會是艱難的、沒有幫助的。遞迴的優點是它精確地讓我們更抽象地來檢視演算法。你不需要考慮真正呼叫函數時所有的調用 (invocation)過程，就可以判斷一個遞迴函數是否是正確的。</p>
+<p>要知道一個遞迴函數是否做它該做的事，你只需要問，它包含了所有的情況嗎？舉例來說，下面是一個尋找列表長度的遞迴函數：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">defun</span> <span class="nv">len</span> <span class="p">(</span><span class="nv">lst</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">lst</span><span class="p">)</span>
+        <span class="mi">0</span>
+        <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nv">len</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">))</span> <span class="mi">1</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>我們可以藉由檢查兩件事情，來確信這個函數是正確的：</p>
+<ol class="arabic simple">
+<li>對長度為 0 的列表是有效的。</li>
+<li>給定它對於長度為 n 的列表是有效的，它對長度是 n+1 的列表也是有效的。</li>
+</ol>
+<p>如果這兩點是成立的，我們知道這個函數對於所有可能的列表都是正確的。</p>
+<p>我們的定義顯然地滿足第一點：如果 列表 ( <tt class="docutils literal"><span class="pre">lst</span></tt> ) 是空的 ( <tt class="docutils literal"><span class="pre">nil</span></tt> )，函數直接回傳 0。現在假定我們的函數對長度為 n 的列表是有效的。我們給它一個 n+1 長度的列表。這個定義說明了，函數會回傳列表的 cdr 的長度再加上 1。 cdr 是一個長度為 n 的列表。我們經由假定可知它的長度是 n。所以整個列表的長度是 n+1。</p>
+<p>我們需要知道的就是這些。理解遞迴的祕密就像是處理括號一樣。你怎麼知道哪個括號對上哪個？你不需要這麼做。你怎麼想像那些調用過程？你不需要這麼做。</p>
+<p>更複雜的遞歸函數，可能會有更多的情況需要討論，但是流程是一樣的。舉例來說， 41 頁的 <tt class="docutils literal"><span class="pre">our-copy-tree</span></tt> ，我們需要討論三個情況： 原子，單一的 Cons 物件， n+1 的 Cons 樹。</p>
+<p>第一個情況（長度零的列表）稱之為 <em>基本情況</em> ( <em>base case</em> )。當一個遞迴函數不像你想的那樣工作時，通常是因為基本情況是錯的。下面這個不正確 <tt class="docutils literal"><span class="pre">member</span></tt> 定義，是一個常見的錯誤，整個忽略了基本情況：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">our-member</span> <span class="p">(</span><span class="nv">obj</span> <span class="nv">lst</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">eql</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">lst</span><span class="p">)</span> <span class="nv">obj</span><span class="p">)</span>
+      <span class="nv">lst</span>
+      <span class="p">(</span><span class="nv">our-member</span> <span class="nv">obj</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>我們需要初始一個 <tt class="docutils literal"><span class="pre">null</span></tt> 測試，確保在到達列表底部時，沒有找到目標要停止遞迴。如果我們要找的物件沒有在列表裡，這個版本的 <tt class="docutils literal"><span class="pre">member</span></tt> 會陷入無窮迴圈。附錄 A 更詳細地檢視了這種問題。</p>
+<p>能夠判斷一個遞迴函數是否正確只不過是理解遞迴的上半場，下半場是能夠寫出一個做你想做的事情的遞迴函數。 6.9 節討論了這個問題。</p>
+</div>
+<div class="section" id="sets">
+<h2>3.10 集合 (Sets)<a class="headerlink" href="#sets" title="永久链接至标题">¶</a></h2>
+<p>列表是表示小集合 (small sets)的好方法。列表中的每個元素都代表了一個集合的成員：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">member</span> <span class="ss">&#39;b</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>當 <tt class="docutils literal"><span class="pre">member</span></tt> 要回傳&#8221;真&#8221;時，與其僅僅回傳 <tt class="docutils literal"><span class="pre">t</span></tt> ，它回傳由尋找物件所開始的那部分。邏輯上來說，一個 Cons 扮演的角色和 <tt class="docutils literal"><span class="pre">t</span></tt> 一樣，而經由這麼做，函數回傳了更多資訊。</p>
+<p>一般情況下， <tt class="docutils literal"><span class="pre">member</span></tt> 使用 <tt class="docutils literal"><span class="pre">eql</span></tt> 來比較物件。你可以使用一種叫做關鍵字參數 (keyword argument)的東西來重寫 (override) 預設的比較方法。多數的 Common Lisp 函數接受一個或多個關鍵字參數。這些關鍵字參數不同的地方是，他們不是把對應的參數放在特定的位置作匹配，而是在函數呼叫中用特殊標籤，稱為關鍵字，來作匹配。一個關鍵字是一個前面有冒號的符號。</p>
+<p>有一個 <tt class="docutils literal"><span class="pre">member</span></tt> 接受的關鍵字參數是 <tt class="docutils literal"><span class="pre">:test</span></tt> 參數。</p>
+<p>如果你在呼叫 <tt class="docutils literal"><span class="pre">member</span></tt> 時，傳入某個函數作為 <tt class="docutils literal"><span class="pre">:test</span></tt> 參數，那麼那個函數就會被用來比較是否相等，而不是用 <tt class="docutils literal"><span class="pre">eql</span></tt> 。所以如果我們想找到一個給定的物件與列表中的成員是否相等 ( <tt class="docutils literal"><span class="pre">equal</span></tt> )，我們可以：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">member</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span><span class="p">)</span> <span class="o">&#39;</span><span class="p">((</span><span class="nv">a</span><span class="p">)</span> <span class="p">(</span><span class="nv">z</span><span class="p">))</span> <span class="ss">:test</span> <span class="nf">#&#39;</span><span class="nb">equal</span><span class="p">)</span>
+<span class="p">((</span><span class="nv">A</span><span class="p">)</span> <span class="p">(</span><span class="nv">Z</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>關鍵字參數總是選擇性添加的。如果你在一個呼叫中包含了任何的關鍵字參數，他們要擺在最後; 如果使用了超過一個的關鍵字參數，擺放的順序無關緊要。</p>
+<p>另一個 <tt class="docutils literal"><span class="pre">member</span></tt> 接受的關鍵字參數是 <tt class="docutils literal"><span class="pre">:key</span></tt> 參數。藉由提供這個參數，你可以在作比較之前，指定一個函數運用在每一個元素：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">member</span> <span class="ss">&#39;a</span> <span class="o">&#39;</span><span class="p">((</span><span class="nv">a</span> <span class="nv">b</span><span class="p">)</span> <span class="p">(</span><span class="nv">c</span> <span class="nv">d</span><span class="p">))</span> <span class="ss">:key</span> <span class="nf">#&#39;</span><span class="nb">car</span><span class="p">)</span>
+<span class="p">((</span><span class="nv">A</span> <span class="nv">B</span><span class="p">)</span> <span class="p">(</span><span class="nv">C</span> <span class="nv">D</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>在這個例子裡，我們詢問是否有一個元素的 <tt class="docutils literal"><span class="pre">car</span></tt> 是 <tt class="docutils literal"><span class="pre">a</span></tt> 。</p>
+<p>如果我們想要使用兩個關鍵字參數，我們可以使用其中一個順序。下面這兩個呼叫是等價的：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">member</span> <span class="mi">2</span> <span class="o">&#39;</span><span class="p">((</span><span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="mi">2</span><span class="p">))</span> <span class="ss">:key</span> <span class="nf">#&#39;</span><span class="nb">car</span> <span class="ss">:test</span> <span class="nf">#&#39;</span><span class="nb">equal</span><span class="p">)</span>
+<span class="p">((</span><span class="mi">2</span><span class="p">))</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">member</span> <span class="mi">2</span> <span class="o">&#39;</span><span class="p">((</span><span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="mi">2</span><span class="p">))</span> <span class="ss">:test</span> <span class="nf">#&#39;</span><span class="nb">equal</span> <span class="ss">:key</span> <span class="nf">#&#39;</span><span class="nb">car</span><span class="p">)</span>
+<span class="p">((</span><span class="mi">2</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>兩者都詢問是否有一個元素的 <tt class="docutils literal"><span class="pre">car</span></tt> 等於 ( <tt class="docutils literal"><span class="pre">equal</span></tt> ) 2。</p>
+<p>如果我們想要找到一個元素滿足任意的判斷式像是 ─ <tt class="docutils literal"><span class="pre">oddp</span></tt> ，奇數回傳真─我們可以使用相關的 <tt class="docutils literal"><span class="pre">member-if</span></tt> ：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">member-if</span> <span class="nf">#&#39;</span><span class="nb">oddp</span> <span class="o">&#39;</span><span class="p">(</span><span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">))</span>
+<span class="p">(</span><span class="mi">3</span> <span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>我們可以想像一個限制性的版本 <tt class="docutils literal"><span class="pre">member-if</span></tt> 是這樣寫成的：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">our-member-if</span> <span class="p">(</span><span class="nv">fn</span> <span class="nv">lst</span><span class="p">)</span>
+ <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nb">consp</span> <span class="nv">lst</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">funcall</span> <span class="nv">fn</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">lst</span><span class="p">))</span>
+          <span class="nv">lst</span>
+          <span class="p">(</span><span class="nv">our-member-if</span> <span class="nv">fn</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">)))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>函數 <tt class="docutils literal"><span class="pre">adjoin</span></tt> 像是條件式的 <tt class="docutils literal"><span class="pre">cons</span></tt> (conditional <tt class="docutils literal"><span class="pre">cons</span></tt> )。它接受一個物件及一個列表，如果物件還不是列表的成員，就在創建物件至列表上。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">adjoin</span> <span class="ss">&#39;b</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">adjoin</span> <span class="ss">&#39;z</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">Z</span> <span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>通常的情況下它接受與 <tt class="docutils literal"><span class="pre">member</span></tt> 函數同樣的關鍵字參數。</p>
+<p>集合論中的聯集 (union)、交集 (intersection)及補集 (complement)的實現是由函數 <tt class="docutils literal"><span class="pre">union</span></tt> 、 <tt class="docutils literal"><span class="pre">intersection</span></tt> 以及 <tt class="docutils literal"><span class="pre">set-difference</span></tt> 。</p>
+<p>這些函數期望兩個 (exactly 2)列表（一樣接受與 <tt class="docutils literal"><span class="pre">member</span></tt> 函數同樣的關鍵字參數）。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">union</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">)</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">c</span> <span class="nv">b</span> <span class="nv">s</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">C</span> <span class="nv">B</span> <span class="nv">S</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">intersection</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">)</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">b</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">set-difference</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span> <span class="nv">d</span> <span class="nv">e</span><span class="p">)</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">b</span> <span class="nv">e</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">C</span> <span class="nv">D</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>因為集合中沒有順序的概念，這些函數不需要保留原本元素在列表被找到的順序。舉例來說，呼叫 <tt class="docutils literal"><span class="pre">set-difference</span></tt> 也有可能回傳 <tt class="docutils literal"><span class="pre">(d</span> <span class="pre">c</span> <span class="pre">a)</span></tt> 。</p>
+</div>
+<div class="section" id="sequences">
+<h2>3.11 序列 (Sequences)<a class="headerlink" href="#sequences" title="永久链接至标题">¶</a></h2>
+<p>另一種考慮一個列表的方式是想成一系列有特定順序的物件。在 Common Lisp 裡， <em>序列</em> ( <em>sequences</em> )包括了列表與向量 (vectors)。本節介紹了一些可以運用在列表上的序列函數。更深入的序列的操作在 4.4 節討論。</p>
+<p>函數 <tt class="docutils literal"><span class="pre">length</span></tt> 回傳序列中元素的數目。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">length</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">))</span>
+<span class="mi">3</span>
+</pre></div>
+</td></tr></table></div>
+<p>我們在 page 24 (譯註：2.13節 <tt class="docutils literal"><span class="pre">our-length</span></tt> )寫過這種函數的一個版本（僅可用於列表）。</p>
+<p>要複製序列的一部分，我們使用 <tt class="docutils literal"><span class="pre">subseq</span></tt> 。第二個（需要的）參數是第一個開始引用進來的元素位置，第三個（選擇性的）參數是第一個不引用進來的元素位置。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">subseq</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span> <span class="nv">d</span><span class="p">)</span> <span class="mi">1</span> <span class="mi">2</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">B</span><span class="p">)</span>
+<span class="nb">&gt;</span><span class="p">(</span><span class="nb">subseq</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span> <span class="nv">d</span><span class="p">)</span> <span class="mi">1</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">B</span> <span class="nv">C</span> <span class="nv">D</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果省略了第三個參數，子序列會從第二個參數給定的位置引用到序列尾端。</p>
+<p>函數 <tt class="docutils literal"><span class="pre">reverse</span></tt> 回傳與其參數相同元素的一個序列，但順序顛倒。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">reverse</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">C</span> <span class="nv">B</span> <span class="nv">A</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>一個迴文 (palindrome) 是一個正讀反讀都一樣的序列 ─ 舉例來說， <tt class="docutils literal"><span class="pre">(a</span> <span class="pre">b</span> <span class="pre">b</span> <span class="pre">a)</span></tt> 。如果一個迴文有偶數個元素，那麼後半段會是前半段的鏡射 (mirror)。使用 <tt class="docutils literal"><span class="pre">length</span></tt> 、 <tt class="docutils literal"><span class="pre">subseq</span></tt> 以及 <tt class="docutils literal"><span class="pre">reverse</span></tt> ，我們可以定義一個函數</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">mirror?</span> <span class="p">(</span><span class="nv">s</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">len</span> <span class="p">(</span><span class="nb">length</span> <span class="nv">s</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nb">evenp</span> <span class="nv">len</span><span class="p">)</span>
+         <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">mid</span> <span class="p">(</span><span class="nb">/</span> <span class="nv">len</span> <span class="mi">2</span><span class="p">)))</span>
+           <span class="p">(</span><span class="nb">equal</span> <span class="p">(</span><span class="nb">subseq</span> <span class="nv">s</span> <span class="mi">0</span> <span class="nv">mid</span><span class="p">)</span>
+                  <span class="p">(</span><span class="nb">reverse</span> <span class="p">(</span><span class="nb">subseq</span> <span class="nv">s</span> <span class="nv">mid</span><span class="p">)))))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>來檢測是否是迴文：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">mirror?</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">b</span> <span class="nv">a</span><span class="p">))</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+<p>Common Lisp 有一個內建的排序函數叫做 <tt class="docutils literal"><span class="pre">sort</span></tt> 。它接受一個序列及一個比較兩個參數的函數，回傳一個有同樣元素的序列，根據比較函數來排序：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">sort</span> <span class="o">&#39;</span><span class="p">(</span><span class="mi">0</span> <span class="mi">2</span> <span class="mi">1</span> <span class="mi">3</span> <span class="mi">8</span><span class="p">)</span> <span class="nf">#&#39;</span><span class="nb">&gt;</span><span class="p">)</span>
+<span class="p">(</span><span class="mi">8</span> <span class="mi">3</span> <span class="mi">2</span> <span class="mi">1</span> <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>你要小心使用 <tt class="docutils literal"><span class="pre">sort</span></tt> ，因為它是 <em>破壞性的</em> ( <em>destructive</em> )。考慮到效率的因素， <tt class="docutils literal"><span class="pre">sort</span></tt> 被允許修改傳入的序列。所以如果你不想你本來的序列被改動，傳入一個副本。</p>
+<p>使用 <tt class="docutils literal"><span class="pre">sort</span></tt> 及 <tt class="docutils literal"><span class="pre">nth</span></tt> ，我們可以寫一個函數，接受一個整數 <tt class="docutils literal"><span class="pre">n</span></tt> ，回傳列表中第 n 大的元素：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">nthmost</span> <span class="p">(</span><span class="nv">n</span> <span class="nv">lst</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">nth</span> <span class="p">(</span><span class="nb">-</span> <span class="nv">n</span> <span class="mi">1</span><span class="p">)</span>
+       <span class="p">(</span><span class="nb">sort</span> <span class="p">(</span><span class="nb">copy-list</span> <span class="nv">lst</span><span class="p">)</span> <span class="nf">#&#39;</span><span class="nb">&gt;</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>我們把整數減一因為 <tt class="docutils literal"><span class="pre">nth</span></tt> 是零索引的，但如果 <tt class="docutils literal"><span class="pre">nthmost</span></tt> 是這樣的話，會變得很不直觀。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">nthmost</span> <span class="mi">2</span> <span class="o">&#39;</span><span class="p">(</span><span class="mi">0</span> <span class="mi">2</span> <span class="mi">1</span> <span class="mi">3</span> <span class="mi">8</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>多努力一點，我們能寫出這個函數的一個更有效率的版本。</p>
+<p>函數 <tt class="docutils literal"><span class="pre">every</span></tt> 和 <tt class="docutils literal"><span class="pre">some</span></tt> 接受一個判斷式及一個或多個序列。當我們僅輸入一個序列時，它們測試序列元素是否滿足判斷式：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">every</span> <span class="nf">#&#39;</span><span class="nb">oddp</span> <span class="o">&#39;</span><span class="p">(</span><span class="mi">1</span> <span class="mi">3</span> <span class="mi">5</span><span class="p">))</span>
+<span class="no">T</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">some</span> <span class="nf">#&#39;</span><span class="nb">evenp</span> <span class="o">&#39;</span><span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">))</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果它們輸入多於一個序列時，判斷式必須接受與序列一樣多的元素作為參數，而參數從所有序列中一次提取一個：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">every</span> <span class="nf">#&#39;</span><span class="nb">&gt;</span> <span class="o">&#39;</span><span class="p">(</span><span class="mi">1</span> <span class="mi">3</span> <span class="mi">5</span><span class="p">)</span> <span class="o">&#39;</span><span class="p">(</span><span class="mi">0</span> <span class="mi">2</span> <span class="mi">4</span><span class="p">))</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果序列有不同的長度，最短的那個序列，決定需要測試的次數。</p>
+</div>
+<div class="section" id="stacks">
+<h2>3.12 堆疊 (Stacks)<a class="headerlink" href="#stacks" title="永久链接至标题">¶</a></h2>
+<p>用 Cons 物件來表示的列表，很自然地我們可以拿來實現下推堆疊 (pushdown stack)。這太常見了，以致於 Common Lisp 提供了兩個巨集給堆疊使用： <tt class="docutils literal"><span class="pre">(push</span> <span class="pre">x</span> <span class="pre">y)</span></tt> 把 x 放入列表 y 的前端。而 <tt class="docutils literal"><span class="pre">(pop</span> <span class="pre">x)</span></tt> 則是將列表 x 的第一個元素移除並回傳這個元素。</p>
+<p>兩個函數都由 <tt class="docutils literal"><span class="pre">setf</span></tt> 來定義的。如果參數是常數或變數，很簡單就可以翻譯出函數呼叫。表達式</p>
+<p><tt class="docutils literal"><span class="pre">(push</span> <span class="pre">obj</span> <span class="pre">lst)</span></tt></p>
+<p>等同於</p>
+<p><tt class="docutils literal"><span class="pre">(setf</span> <span class="pre">lst</span> <span class="pre">(cons</span> <span class="pre">obj</span> <span class="pre">lst))</span></tt></p>
+<div class="figure">
+<img alt="../_images/Figure-3.91.png" src="../_images/Figure-3.91.png" />
+</div>
+<p>圖 3.9 push 及 pop 的效果</p>
+<p>以及表達式</p>
+<p><tt class="docutils literal"><span class="pre">(pop</span> <span class="pre">lst)</span></tt></p>
+<p>等同於</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">x</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">lst</span><span class="p">)))</span>
+  <span class="p">(</span><span class="nb">setf</span> <span class="nv">lst</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">))</span>
+  <span class="nv">x</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>所以，舉例來說：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">x</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">b</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">B</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">push</span> <span class="ss">&#39;a</span> <span class="nv">x</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="nv">x</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">y</span> <span class="nv">x</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">pop</span> <span class="nv">x</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">A</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="nv">x</span>
+<span class="p">(</span><span class="nv">B</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="nv">y</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>以上全都遵循上述由 <tt class="docutils literal"><span class="pre">setf</span></tt> 所給出的相等式。圖 3.9 展示了這些表達式被求值後的結構。</p>
+<p>你可以使用 <tt class="docutils literal"><span class="pre">push</span></tt> 來定義一個給列表使用的互動版 <tt class="docutils literal"><span class="pre">reverse</span></tt> 。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">our-reverse</span> <span class="p">(</span><span class="nv">lst</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">acc</span> <span class="no">nil</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">dolist</span> <span class="p">(</span><span class="nb">elt</span> <span class="nv">lst</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">push</span> <span class="nb">elt</span> <span class="nv">acc</span><span class="p">))</span>
+    <span class="nv">acc</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>在這個版本，我們從一個空列表開始，然後把 lst 的每一個元素放入空表裡。等我們完成時，lst 最後一個元素會在最前端。</p>
+<p><tt class="docutils literal"><span class="pre">pushnew</span></tt> 巨集是 <tt class="docutils literal"><span class="pre">push</span></tt> 的變種，使用了 <tt class="docutils literal"><span class="pre">adjoin</span></tt> 而不是 <tt class="docutils literal"><span class="pre">cons</span></tt> ：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre> <span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">x</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span><span class="p">)))</span>
+     <span class="p">(</span><span class="nb">pushnew</span> <span class="ss">&#39;c</span> <span class="nv">x</span><span class="p">)</span>
+     <span class="p">(</span><span class="nb">pushnew</span> <span class="ss">&#39;a</span> <span class="nv">x</span><span class="p">)</span>
+     <span class="nv">x</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">C</span> <span class="nv">A</span> <span class="nv">B</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>在這裡， c 被放入列表，但是 a 沒有，因為它已經是列表的一個成員了。</p>
+</div>
+<div class="section" id="dotted-lists">
+<h2>3.13 點狀列表 (Dotted Lists)<a class="headerlink" href="#dotted-lists" title="永久链接至标题">¶</a></h2>
+<p>由呼叫 <tt class="docutils literal"><span class="pre">list</span></tt> 所創建的列表，這種列表精確地說稱之為 常規列表( <em>proper</em> list )。一個常規列表可以是 <tt class="docutils literal"><span class="pre">nil</span></tt> 或一個 cdr 是常規列表的 Cons 物件。也就是說，我們可以定義一個只對常規列表回傳真的判斷式： <a class="footnote-reference" href="#id5" id="id2">[3]</a></p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">proper-list?</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">or</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">x</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nb">consp</span> <span class="nv">x</span><span class="p">)</span>
+           <span class="p">(</span><span class="nv">proper-list?</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">x</span><span class="p">)))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>至目前為止，我們創建的列表都是常規列表。</p>
+<p>然而， <tt class="docutils literal"><span class="pre">cons</span></tt> 不僅是創建列表。無論何時你需要一個具有兩個變數 (field)的列表，你可以使用一個 Cons 物件。你能夠使用 <tt class="docutils literal"><span class="pre">car</span></tt> 來參照第一個變數，用 <tt class="docutils literal"><span class="pre">cdr</span></tt> 來參照第二個變數。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">pair</span> <span class="p">(</span><span class="nb">cons</span> <span class="ss">&#39;a</span> <span class="ss">&#39;b</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">A</span> <span class="o">.</span> <span class="nv">B</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>因為這個 Cons 物件不是一個常規列表，它用點狀表示法來顯示。在點狀表示法， 每個 Cons 物件 的 <tt class="docutils literal"><span class="pre">car</span></tt> 與 <tt class="docutils literal"><span class="pre">cdr</span></tt> 由一個句點隔開來表示。這個 Cons 物件的結構展示在圖 3.10 。</p>
+<div class="figure">
+<img alt="../_images/Figure-3.101.png" src="../_images/Figure-3.101.png" />
+</div>
+<p>圖 3.10 一個成對的 Cons 物件 (A cons used as a pair)</p>
+<p>一個非常規列表的 Cons 物件稱之為點狀列表 (dotted list)。這不是個好名字，因為非常規列表的 Cons 物件通常不是用來表示列表： <tt class="docutils literal"><span class="pre">(a</span> <span class="pre">.</span> <span class="pre">b)</span></tt> 只是一個有兩部分的資料結構。</p>
+<p>你也可以用點狀表示法表示常規列表，但當 Lisp 顯示一個常規列表時，它會使用普通的列表表示法：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="o">.</span> <span class="p">(</span><span class="nv">b</span> <span class="o">.</span> <span class="p">(</span><span class="nv">c</span> <span class="o">.</span> <span class="no">nil</span><span class="p">)))</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>順道一提，注意列表由點狀表示法與圖 3.2 箱子表示法的關聯性。</p>
+<p>還有一個過渡形式 (intermediate form)的表示法，介於列表表示法及純點狀表示法之間，對於 <tt class="docutils literal"><span class="pre">cdr</span></tt> 是 Cons 物件的點狀列表：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">cons</span> <span class="ss">&#39;a</span> <span class="p">(</span><span class="nb">cons</span> <span class="ss">&#39;b</span> <span class="p">(</span><span class="nb">cons</span> <span class="ss">&#39;c</span> <span class="ss">&#39;d</span><span class="p">)))</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span> <span class="o">.</span> <span class="nv">D</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<div class="figure">
+<img alt="../_images/Figure-3.111.png" src="../_images/Figure-3.111.png" />
+</div>
+<p>圖 3.11 一個點狀列表 (A dotted list)</p>
+<p>這樣的 Cons 物件看起來像常規列表，除了最後一個 cdr 前面有一個句點。這個列表的結構展示在圖 3.11 ; 注意它跟圖 3.2 是多麼的相似。</p>
+<p>所以實際上你可以這麼表示列表 <tt class="docutils literal"><span class="pre">(a</span> <span class="pre">b)</span></tt> ，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">a</span> <span class="o">.</span> <span class="p">(</span><span class="nv">b</span> <span class="o">.</span> <span class="no">nil</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">a</span> <span class="o">.</span> <span class="p">(</span><span class="nv">b</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="o">.</span><span class="no">nil</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">a</span> <span class="nv">b</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>雖然 Lisp 總是使用後面的形式，來顯示這個列表。</p>
+</div>
+<div class="section" id="assoc-lists">
+<h2>3.14 關聯列表 (Assoc-lists)<a class="headerlink" href="#assoc-lists" title="永久链接至标题">¶</a></h2>
+<p>用 Cons 物件來表示映射 (mapping)也是很自然的。一個由 Cons 物件組成的列表稱之為 <em>關聯列表</em> ( <em>assoc-list</em> or <em>alist</em> )。這樣的列表可以表示一個翻譯的集合，舉例來說：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">trans</span> <span class="o">&#39;</span><span class="p">((</span><span class="nb">+</span> <span class="o">.</span> <span class="s">&quot;add&quot;</span><span class="p">)</span> <span class="p">(</span><span class="nb">-</span> <span class="o">.</span> <span class="s">&quot;subtract&quot;</span><span class="p">)))</span>
+<span class="p">((</span><span class="nb">+</span> <span class="o">.</span> <span class="s">&quot;add&quot;</span><span class="p">)</span> <span class="p">(</span><span class="nb">-</span> <span class="o">.</span> <span class="s">&quot;subtract&quot;</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>關聯列表很慢，但是在初期的程式中很方便。 Common Lisp 有一個內建的函數， <tt class="docutils literal"><span class="pre">assoc</span></tt> 用來取出在關聯列表中，與給定的鍵值有關聯的 Cons 對：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">assoc</span> <span class="ss">&#39;+</span> <span class="nv">trans</span><span class="p">)</span>
+<span class="p">(</span><span class="nb">+</span> <span class="o">.</span> <span class="s">&quot;add&quot;</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">assoc</span> <span class="ss">&#39;*</span> <span class="nv">trans</span><span class="p">)</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果 <tt class="docutils literal"><span class="pre">assoc</span></tt> 沒有找到要找的東西時，回傳 nil 。</p>
+<p>我們可以定義一個受限版本的 <tt class="docutils literal"><span class="pre">assoc</span></tt> ：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">our-assoc</span> <span class="p">(</span><span class="nv">key</span> <span class="nv">alist</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nb">consp</span> <span class="nv">alist</span><span class="p">)</span>
+       <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">pair</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">alist</span><span class="p">)))</span>
+       <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">eql</span> <span class="nv">key</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">pair</span><span class="p">))</span>
+           <span class="nv">pair</span>
+           <span class="p">(</span><span class="nv">our-assoc</span> <span class="nv">key</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">alist</span><span class="p">))))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>和 <tt class="docutils literal"><span class="pre">member</span></tt> 一樣，實際上的 <tt class="docutils literal"><span class="pre">assoc</span></tt> 接受關鍵字參數，包括 <tt class="docutils literal"><span class="pre">:test</span></tt> 和 <tt class="docutils literal"><span class="pre">:key</span></tt> 。Common Lisp 也定義了一個 <tt class="docutils literal"><span class="pre">assoc-if</span></tt> 之於 <tt class="docutils literal"><span class="pre">assoc</span></tt> ，如同 <tt class="docutils literal"><span class="pre">member-if</span></tt> 之於 <tt class="docutils literal"><span class="pre">member</span></tt> 一樣。</p>
+</div>
+<div class="section" id="example-shortest-path">
+<h2>3.15 範例：最短路徑 (Example: Shortest Path)<a class="headerlink" href="#example-shortest-path" title="永久链接至标题">¶</a></h2>
+<p>圖 3.12 包含一個搜索網路中最短路徑的程式。函數 <tt class="docutils literal"><span class="pre">shortest-path</span></tt> 接受一個起始節點，目的節點以及一個網路，並回傳最短路徑，如果有的話。</p>
+<p>在這個範例中，節點用符號表示，而網路用含以下元素形式的關聯列表 (assoc-lists)來表示：</p>
+<p><em>(node . neighbors)</em></p>
+<p>所以由圖 3.13 展示的最小網路 (minimal network)可以這樣來表示：</p>
+<p><tt class="docutils literal"><span class="pre">(setf</span> <span class="pre">min</span> <span class="pre">'((a</span> <span class="pre">b</span> <span class="pre">c)</span> <span class="pre">(b</span> <span class="pre">c)</span> <span class="pre">(c</span> <span class="pre">d)))</span></tt></p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">shortest-path</span> <span class="p">(</span><span class="nv">start</span> <span class="nv">end</span> <span class="nv">net</span><span class="p">)</span>
+  <span class="p">(</span><span class="nv">bfs</span> <span class="nv">end</span> <span class="p">(</span><span class="nb">list</span> <span class="p">(</span><span class="nb">list</span> <span class="nv">start</span><span class="p">))</span> <span class="nv">net</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">bfs</span> <span class="p">(</span><span class="nv">end</span> <span class="nv">queue</span> <span class="nv">net</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">queue</span><span class="p">)</span>
+      <span class="no">nil</span>
+      <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">path</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">queue</span><span class="p">)))</span>
+        <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">node</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">path</span><span class="p">)))</span>
+          <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">eql</span> <span class="nv">node</span> <span class="nv">end</span><span class="p">)</span>
+              <span class="p">(</span><span class="nb">reverse</span> <span class="nv">path</span><span class="p">)</span>
+              <span class="p">(</span><span class="nv">bfs</span> <span class="nv">end</span>
+                   <span class="p">(</span><span class="nb">append</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">queue</span><span class="p">)</span>
+                           <span class="p">(</span><span class="nv">new-paths</span> <span class="nv">path</span> <span class="nv">node</span> <span class="nv">net</span><span class="p">))</span>
+                   <span class="nv">net</span><span class="p">))))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">new-paths</span> <span class="p">(</span><span class="nv">path</span> <span class="nv">node</span> <span class="nv">net</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">mapcar</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">n</span><span class="p">)</span>
+              <span class="p">(</span><span class="nb">cons</span> <span class="nv">n</span> <span class="nv">path</span><span class="p">))</span>
+          <span class="p">(</span><span class="nb">cdr</span> <span class="p">(</span><span class="nb">assoc</span> <span class="nv">node</span> <span class="nv">net</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>圖 3.12 廣度優先搜索 (breadth-first search)</p>
+<div class="figure">
+<img alt="../_images/Figure-3.131.png" src="../_images/Figure-3.131.png" />
+</div>
+<p>圖 3.13 最小網路</p>
+<p>要找到從節點 a 可以到達的節點，我們可以：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">cdr</span> <span class="p">(</span><span class="nb">assoc</span> <span class="ss">&#39;a</span> <span class="nb">min</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>圖 3.12 程式的工作方式為使用廣度優先的方式搜索網路。要使用廣度優先搜索，你需要維護一個含有未探索節點的佇列。每一次你到達一個節點，檢查這個節點是否是你要的。如果不是，你把這個節點的子節點加入佇列的尾端，並從佇列起始選一個節點，從這繼續搜索。藉由總是把較深的節點放在佇列尾端，我們確保網路一次被搜索一層。</p>
+<p>圖 3.12 中的程式碼較不複雜地表示這個概念。我們不僅想要找到節點，還想保有我們怎麼到那的紀錄。所以與其維護一個具有節點的佇列，我們維護一個已知路徑的佇列，每個已知路徑都是一列節點。當我們從佇列取出一個元素繼續搜索時，它是一個含有佇列前端節點的列表，而不只是一個節點而已。</p>
+<p>函數 <tt class="docutils literal"><span class="pre">bfs</span></tt> 負責搜索。起初佇列只有一個元素，一個表示從起點開始的路徑。所以 <tt class="docutils literal"><span class="pre">shortest-path</span></tt> 呼叫 <tt class="docutils literal"><span class="pre">bfs</span></tt> ，並傳入 <tt class="docutils literal"><span class="pre">(list</span> <span class="pre">(list</span> <span class="pre">start))</span></tt> 作為初始佇列。</p>
+<p><tt class="docutils literal"><span class="pre">bfs</span></tt> 函數第一件要考慮的事是，是否還有節點需要探索。如果佇列為空， <tt class="docutils literal"><span class="pre">bfs</span></tt> 回傳 nil 指出沒有找到路徑。如果還有節點需要搜索， <tt class="docutils literal"><span class="pre">bfs</span></tt> 檢視佇列前端的節點。如果節點的 <tt class="docutils literal"><span class="pre">car</span></tt> 部分是我們要找的節點，我們回傳這個找到的路徑，並且為了可讀性的原因我們反轉它。如果我們沒有找到我們要找的節點，它有可能在現在節點之後，所以我們把它的子節點 （或是每一個子路徑）加入佇列尾端。然後我們遞迴地呼叫 <tt class="docutils literal"><span class="pre">bfs</span></tt> 來繼續搜尋剩下的佇列。</p>
+<p>因為 <tt class="docutils literal"><span class="pre">bfs</span></tt> 廣度優先地搜索，第一個找到的路徑會是最短的，或是最短之一：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">shortest-path</span> <span class="ss">&#39;a</span> <span class="ss">&#39;d</span> <span class="nb">min</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">C</span> <span class="nv">D</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>這是佇列在我們連續呼叫 <tt class="docutils literal"><span class="pre">bfs</span></tt> 看起來的樣子：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">((</span><span class="nv">A</span><span class="p">))</span>
+<span class="p">((</span><span class="nv">B</span> <span class="nv">A</span><span class="p">)</span> <span class="p">(</span><span class="nv">C</span> <span class="nv">A</span><span class="p">))</span>
+<span class="p">((</span><span class="nv">C</span> <span class="nv">A</span><span class="p">)</span> <span class="p">(</span><span class="nv">C</span> <span class="nv">B</span> <span class="nv">A</span><span class="p">))</span>
+<span class="p">((</span><span class="nv">C</span> <span class="nv">B</span> <span class="nv">A</span><span class="p">)</span> <span class="p">(</span><span class="nv">D</span> <span class="nv">C</span> <span class="nv">A</span><span class="p">))</span>
+<span class="p">((</span><span class="nv">D</span> <span class="nv">C</span> <span class="nv">A</span><span class="p">)</span> <span class="p">(</span><span class="nv">D</span> <span class="nv">C</span> <span class="nv">B</span> <span class="nv">A</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>在佇列中的第二個元素變成下一個佇列的第一個元素。佇列的第一個元素變成下一個佇列尾端元素的 <tt class="docutils literal"><span class="pre">cdr</span></tt> 部分。</p>
+<p>在圖 3.12 的程式碼不是搜索一個網路最快的方法，但它給出了列表具有多功能的概念。在這個簡單的程式中，我們用三種不同的方式使用了列表：我們使用一個符號的列表來表示路徑，一個路徑的列表來表示在廣度優先搜索中的佇列 <a class="footnote-reference" href="#id6" id="id3">[4]</a> ，以及一個關聯列表來表示網路本身。</p>
+</div>
+<div class="section" id="garbages">
+<h2>3.16 垃圾 (Garbages)<a class="headerlink" href="#garbages" title="永久链接至标题">¶</a></h2>
+<p>有很多原因可以使列表變慢。列表提供了循序存取而不是隨機存取，所以列表取出一個指定的元素比陣列慢，同樣的原因，錄音帶取出某些東西比在光碟上慢。電腦內部裡， Cons 物件傾向於用指標表示，所以走訪一個列表意味著走訪一系列的指標，而不是簡單地像陣列一樣增加索引值。但這兩個所花的代價與配置及回收 Cons 核 (cons cells)比起來小多了。</p>
+<p><em>自動記憶體管理</em> ( <em>Automatic memory management</em> )是 Lisp 最有價值的特色之一。 Lisp 系統維護著一段記憶體稱之為堆積 ( <em>Heap</em> )。系統持續追蹤堆積當中沒有使用的記憶體，把這些記憶體發放給新產生的物件。 舉例來說，函數 <tt class="docutils literal"><span class="pre">cons</span></tt> ，回傳一個新配置的 Cons 物件。從堆積中配置記憶體有時候通稱為 <em>consing</em> 。</p>
+<p>如果記憶體永遠沒有釋放， Lisp 會因為創建新物件把記憶體用完，而必須要關閉。所以系統必須週期性地通過搜索堆積 (heap)，尋找不需要再使用的記憶體。不需要再使用的記憶體稱之為垃圾 ( <em>garbage</em> )，而清除垃圾的動作稱為垃圾回收 (<em>garbage collection</em> 或 GC)。</p>
+<p>垃圾是從哪來的？讓我們來創造一些垃圾：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">lst</span> <span class="p">(</span><span class="nb">list</span> <span class="ss">&#39;a</span> <span class="ss">&#39;b</span> <span class="ss">&#39;c</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">lst</span> <span class="no">nil</span><span class="p">)</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>一開始我們呼叫 <tt class="docutils literal"><span class="pre">list</span></tt> ， <tt class="docutils literal"><span class="pre">list</span></tt> 呼叫 <tt class="docutils literal"><span class="pre">cons</span></tt> ，在堆積上配置了一個新的 Cons 物件。在這個情況我們創出三個 Cons 物件。之後當我們把 <tt class="docutils literal"><span class="pre">lst</span></tt> 設為 <tt class="docutils literal"><span class="pre">nil</span></tt> ，我們沒有任何方法可以再存取 <tt class="docutils literal"><span class="pre">lst</span></tt> ，列表 <tt class="docutils literal"><span class="pre">(a</span> <span class="pre">b</span> <span class="pre">c)</span></tt> 。 <a class="footnote-reference" href="#id7" id="id4">[5]</a></p>
+<p>因為我們沒有任何方法再存取列表，它也有可能是不存在的。我們不再有任何方式可以存取的物件叫做垃圾。系統可以安全地重新使用這三個 cons 核。</p>
+<p>這種管理記憶體的方法，給程式設計師帶來極大的便利性。你不用顯式地配置 (allocate)或釋放 (dellocate)記憶體。這也表示了你不需要處理因為這麼做而可能產生的臭蟲。記憶體洩漏 (Memory leaks)以及迷途指標 (dangling pointer)在 Lisp 中根本不可能發生。</p>
+<p>但是像任何的科技進步，如果你不小心的話，自動記憶體管理也有可能對你不利。使用及回收堆積所帶來的代價有時可以看做 <tt class="docutils literal"><span class="pre">cons</span></tt> 的代價。這是有理的，除非一個程式從來不丟棄任何東西，不然所有的 Cons 物件終究要變成垃圾。Consing 的問題是，配置空間與清除記憶體，與程式的常規運作比起來花費昂貴。近期的研究提出了大幅改善記憶體回收的演算法，但是 consing 總是需要代價的，在某些現有的 Lisp 系統中，代價是昂貴的。</p>
+<p>除非你很小心，不然很容易寫出過度顯式創建 cons 物件的程式。舉例來說， <tt class="docutils literal"><span class="pre">remove</span></tt> 需要複製所有的 <tt class="docutils literal"><span class="pre">cons</span></tt> 核，直到最後一個元素從列表中移除。你可以藉由使用破壞性的函數避免某些 consing，它試著去重用列表的結構作為參數傳給它們。破壞性函數會在 12.4 節討論。</p>
+<p>當寫出 <tt class="docutils literal"><span class="pre">cons</span></tt> 很多的程式是如此簡單時，我們還是可以寫出不使用 <tt class="docutils literal"><span class="pre">cons</span></tt> 的程式。典型的方法會是寫出一個純函數風格，使用很多列表的第一版程式。當程式進化時，你可以在程式碼的關鍵部份使用破壞性函數以及/或別種資料結構。但這很難給出通用的建議，因為有些 Lisp 實現，記憶體管理處理得相當好，以致於使用 cons 有時比不使用 cons 還快。這整個議題在 13.4 做更進一步的細部討論。</p>
+<p>無論如何 Consing 在原型跟實驗時是好的。而且如果你利用了列表給你帶來的靈活性，你有較高的可能寫出後期可存活下來的程式。</p>
+</div>
+<div class="section" id="chapter-3-summary">
+<h2>Chapter 3 總結 (Summary)<a class="headerlink" href="#chapter-3-summary" title="永久链接至标题">¶</a></h2>
+<ol class="arabic simple">
+<li>一個 cons 是一個含兩部分的資料結構。列表用鏈結在一起的 cons 組成。</li>
+<li>判斷式 <tt class="docutils literal"><span class="pre">equal</span></tt> 比 <tt class="docutils literal"><span class="pre">eql</span></tt> 來得不嚴謹。基本上，如果傳入參數印出來的值一樣時，回傳真。</li>
+<li>所有 Lisp 物件表現得像指標。你永遠不需要顯式操作指標。</li>
+<li>你可以使用 <tt class="docutils literal"><span class="pre">copy-list</span></tt> 複製列表，並使用 <tt class="docutils literal"><span class="pre">append</span></tt> 來連接它們的元素。</li>
+<li>遊程編碼是一個餐廳中使用的簡單壓縮演算法。</li>
+<li>Common Lisp 有由 <tt class="docutils literal"><span class="pre">car</span></tt> 與 <tt class="docutils literal"><span class="pre">cdr</span></tt> 定義的多種存取函數。</li>
+<li>映成函數應用函數至逐項的元素，或逐項的列表尾端。</li>
+<li>巢狀列表的操作有時被考慮為樹的操作。</li>
+<li>要判斷一個遞迴函數是否正確，你只需要考慮是否包含了所有情況。</li>
+<li>列表可以用集合表示。數個內建函數把列表當作集合。</li>
+<li>關鍵字參數是選擇性的，並不是由位置所識別，是用符號前面的特殊標籤來識別。</li>
+<li>列表是序列的子型態。 Common Lisp 有大量的序列函數。</li>
+<li>一個不是常規列表的 cons 稱之為點狀列表。</li>
+<li>用 cons 物件作為元素的列表，可以拿來表示對應關係。這樣的列表稱為關聯列表 (assoc-lists)。</li>
+<li>自動記憶體管理拯救你處理記憶體配置的煩惱，但製造過多的垃圾會程式變慢。</li>
+</ol>
+</div>
+<div class="section" id="chapter-3-exercises">
+<h2>Chapter 3 練習 (Exercises)<a class="headerlink" href="#chapter-3-exercises" title="永久链接至标题">¶</a></h2>
+<ol class="arabic simple">
+<li>用箱子表示法表示以下列表：</li>
+</ol>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">a</span><span class="p">)</span> <span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="p">(</span><span class="nv">c</span> <span class="nv">d</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">b</span><span class="p">)</span> <span class="p">(</span><span class="nv">a</span> <span class="p">(</span><span class="nv">b</span> <span class="p">(</span><span class="nv">c</span> <span class="p">(</span><span class="nv">d</span><span class="p">))))</span>
+<span class="p">(</span><span class="nv">c</span><span class="p">)</span> <span class="p">(((</span><span class="nv">a</span> <span class="nv">b</span><span class="p">)</span> <span class="nv">c</span><span class="p">)</span> <span class="nv">d</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">d</span><span class="p">)</span> <span class="p">(</span><span class="nv">a</span> <span class="p">(</span><span class="nv">b</span> <span class="o">.</span> <span class="nv">c</span><span class="p">)</span> <span class="nv">d</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<ol class="arabic simple" start="2">
+<li>寫一個保留原本列表中元素順序的 <tt class="docutils literal"><span class="pre">union</span></tt> 版本：</li>
+</ol>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">new-union</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">)</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">b</span> <span class="nv">a</span> <span class="nv">d</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span> <span class="nv">D</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<ol class="arabic simple" start="3">
+<li>定義一個函數，接受一個列表並回傳一個列表，指出相等元素出現的次數，並由最常見至最少見的排序：</li>
+</ol>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">occurrences</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">a</span> <span class="nv">d</span> <span class="nv">a</span> <span class="nv">c</span> <span class="nv">d</span> <span class="nv">c</span> <span class="nv">a</span><span class="p">))</span>
+<span class="p">((</span><span class="nv">A</span> <span class="o">.</span> <span class="mi">4</span><span class="p">)</span> <span class="p">(</span><span class="nv">C</span> <span class="o">.</span> <span class="mi">2</span><span class="p">)</span> <span class="p">(</span><span class="nv">D</span> <span class="o">.</span> <span class="mi">2</span><span class="p">)</span> <span class="p">(</span><span class="nv">B</span> <span class="o">.</span> <span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<ol class="arabic simple" start="4">
+<li>為什麼 <tt class="docutils literal"><span class="pre">(member</span> <span class="pre">'(a)</span> <span class="pre">'((a)</span> <span class="pre">(b)))</span></tt> 回傳 nil？</li>
+<li>假設函數 <tt class="docutils literal"><span class="pre">pos+</span></tt> 接受一個列表並回傳把每個元素加上自己的位置的列表：</li>
+</ol>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">pos+</span> <span class="o">&#39;</span><span class="p">(</span><span class="mi">7</span> <span class="mi">5</span> <span class="mi">1</span> <span class="mi">4</span><span class="p">))</span>
+<span class="p">(</span><span class="mi">7</span> <span class="mi">6</span> <span class="mi">3</span> <span class="mi">7</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>使用 (a) 遞迴 (b) 迭代 (c) <tt class="docutils literal"><span class="pre">mapcar</span></tt> 來定義這個函數。</p>
+<ol class="arabic simple" start="6">
+<li>經過好幾年的審議，政府委員會決定列表應該由 <tt class="docutils literal"><span class="pre">cdr</span></tt> 指向第一個元素，而 <tt class="docutils literal"><span class="pre">car</span></tt> 指向剩下的列表。定義符合政府版本的以下函數：</li>
+</ol>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">a</span><span class="p">)</span> <span class="nb">cons</span>
+<span class="p">(</span><span class="nv">b</span><span class="p">)</span> <span class="nb">list</span>
+<span class="p">(</span><span class="nv">c</span><span class="p">)</span> <span class="nb">length</span> <span class="p">(</span><span class="nv">for</span> <span class="nv">lists</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">d</span><span class="p">)</span> <span class="nb">member</span> <span class="p">(</span><span class="nv">for</span> <span class="nv">lists</span><span class="c1">; no keywords)</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>勘誤:</strong> 要解決 3.6 (b)，你需要使用到 6.3 節的參數 <tt class="docutils literal"><span class="pre">&amp;rest</span></tt> 。</p>
+<ol class="arabic simple" start="7">
+<li>修改圖 3.6 的程式，使它使用更少 cons 核。（提示：使用點狀列表）</li>
+<li>定義一個函數，接受一個列表並用點狀表示法印出：</li>
+</ol>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">showdots</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">A</span> <span class="o">.</span> <span class="p">(</span><span class="nv">B</span> <span class="o">.</span> <span class="p">(</span><span class="nv">C</span> <span class="o">.</span> <span class="no">NIL</span><span class="p">)))</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<ol class="arabic simple" start="9">
+<li>寫一個程式來找到 3.15 節裡表示的網路中，最長有限的路徑 (不重複）。網路可能包含循環。</li>
+</ol>
+<p class="rubric">腳註</p>
+<table class="docutils footnote" frame="void" id="id5" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[3]</a></td><td>這個敘述有點誤導，因為只要是對任何東西都不回傳 nil 的函數，都不是常規列表。如果給定一個 循環 cdr 列表 (cdr-circular list)，它會無法終止。循環列表在 12.7 節 討論。</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id6" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[4]</a></td><td>12.3小節會展示更有效率的佇列實現方式。</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id7" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[5]</a></td><td>事實上，我們有一種方式來存取列表。全域變數 <tt class="docutils literal"><span class="pre">*</span></tt> , <tt class="docutils literal"><span class="pre">**</span></tt> , 以及 <tt class="docutils literal"><span class="pre">***</span></tt> 總是設定為最後三個頂層所回傳的值。這些變數在除錯的時候很有用。</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'acl-chinese';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+                  </div></div>
+              </article><div class="clearer"></div>
+          </div><div class="span3">
+                <div class="sphinxsidebar">
+      <div id="sidenav" class="box sphinxsidebarwrapper">
+
+
+<h4><a href="../index.html">內容目录</a></h4>
+  <ul>
+<li><a class="reference internal" href="#">第三章：列表</a><ul>
+<li><a class="reference internal" href="#conses">3.1 創建 (Conses)</a></li>
+<li><a class="reference internal" href="#equality">3.2 等式 (Equality)</a></li>
+<li><a class="reference internal" href="#lisp-why-lisp-has-no-pointers">3.3 為什麼 Lisp 沒有指標 (Why Lisp Has No Pointers)</a></li>
+<li><a class="reference internal" href="#building-lists">3.4 建立列表 (Building Lists)</a></li>
+<li><a class="reference internal" href="#example-compression">3.5 範例：壓縮 (Example: Compression)</a></li>
+<li><a class="reference internal" href="#access">3.6 存取 (Access)</a></li>
+<li><a class="reference internal" href="#mapping-functions">3.7 映成函數 (Mapping Functions)</a></li>
+<li><a class="reference internal" href="#trees">3.8 樹 (Trees)</a></li>
+<li><a class="reference internal" href="#understanding-recursion">3.9 理解遞迴 (Understanding Recursion)</a></li>
+<li><a class="reference internal" href="#sets">3.10 集合 (Sets)</a></li>
+<li><a class="reference internal" href="#sequences">3.11 序列 (Sequences)</a></li>
+<li><a class="reference internal" href="#stacks">3.12 堆疊 (Stacks)</a></li>
+<li><a class="reference internal" href="#dotted-lists">3.13 點狀列表 (Dotted Lists)</a></li>
+<li><a class="reference internal" href="#assoc-lists">3.14 關聯列表 (Assoc-lists)</a></li>
+<li><a class="reference internal" href="#example-shortest-path">3.15 範例：最短路徑 (Example: Shortest Path)</a></li>
+<li><a class="reference internal" href="#garbages">3.16 垃圾 (Garbages)</a></li>
+<li><a class="reference internal" href="#chapter-3-summary">Chapter 3 總結 (Summary)</a></li>
+<li><a class="reference internal" href="#chapter-3-exercises">Chapter 3 練習 (Exercises)</a></li>
+</ul>
+</li>
+</ul>
+
+  
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      
+      
+        <li><a href="https://github.com/acl-translation/acl-chinese/blob/redirect-to-new-domain/zhTW/ch3.rst">
+          Show on GitHub</a></li>
+        <li><a href="https://github.com/acl-translation/acl-chinese/edit/redirect-to-new-domain/zhTW/ch3.rst">
+          Edit on GitHub</a></li>
+      
+    </ul>
+  
+</div>
+    </div>
+              </div></div>
+      </div>
+<footer class="container-fluid">
+        <hr />&copy; 版权所有 2012, Juanito Fatas Huang.最后更新日期是 Apr 22, 2013.使用 <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.</footer>
+ <!-- End original user content -->
+
+
+<br>
+<br>
+<br>
+
+
+<style type="text/css">
+  .rtd-badge {
+    position: fixed;
+    display: block;
+    bottom: 5px;
+    height: 40px;
+    text-indent: -9999em;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -moz-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  }
+  #version_menu {
+    position: fixed;
+    display: none;
+    bottom: 11px;
+    right: 166px;
+    list-style-type: none;
+    margin: 0;
+  }
+  .footer_popout:hover #version_menu {
+    display: block;
+  }
+  #version_menu li {
+    display: block;
+    float: right;
+  }
+  #version_menu li a {
+    display: block;
+    padding: 6px 10px 4px 10px;
+    margin: 7px 7px 0 0;
+    font-weight: bold;
+    font-size: 14px;
+    height: 20px;
+    line-height: 17px;
+    text-decoration: none;
+    color: #fff;
+    background: #8ca1af url(../images/gradient-light.png) bottom left repeat-x;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 1px #465158;
+    -moz-box-shadow: 0 1px 1px #465158;
+    -webkit-box-shadow: 0 1px 1px #465158;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+  }
+  #version_menu li a:hover {
+    text-decoration: none;
+    background-color: #697983;
+    box-shadow: 0 1px 0px #465158;
+    -moz-box-shadow: 0 1px 0px #465158;
+    -webkit-box-shadow: 0 1px 0px #465158;
+  }
+  .rtd-badge.rtd {
+    background: #3b4449 url(//media.readthedocs.org//images/badge-rtd.png) scroll 0px -46px no-repeat;
+    border: 1px solid #282E32;
+    width: 41px;
+    right: 5px;
+  }
+  .footer_popout:hover .rtd-badge.rtd {
+    background-position: top left;
+    width: 160px;
+  }
+  .rtd-badge.revsys { background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline-sponsored {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys-sm.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 205px;
+    right: 173px;
+  }
+
+</style>
+<div class="rtd_doc_footer">
+  <div class="footer_popout">
+    <a href="//readthedocs.org/projects/ansi-common-lisp/?fromdocs=ansi-common-lisp" class="rtd-badge rtd"> Brought to you by Read the Docs</a>
+    <ul id="version_menu">
+      
+        <li><a href="/en/latest/">latest</a></li>
+      
+    </ul>
+  </div>
+</div>
+<!-- RTD Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-17997319-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+<!-- User Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-26995626-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+</body>
+</html>

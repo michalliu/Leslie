@@ -1,0 +1,1129 @@
+<!DOCTYPE HTML>
+
+  <html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+<title>第二章：欢迎来到 Lisp &mdash; ANSI Common Lisp 中文版</title>
+    
+<!-- RTD <head> -->
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/underscore.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/doctools.js"></script>
+
+<script type="text/javascript">
+  // This is included here for Javascript that doesn't have access to the templates.
+  var doc_version = "latest";
+  var doc_slug = "ansi-common-lisp";
+</script>
+
+<script type="text/javascript" src="//media.readthedocs.org/javascript/rtd.js"></script>
+<!-- end RTD <head> -->
+
+    <link rel="stylesheet" href="../_static/han.min.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/rosefinch.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/main.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:       '../',
+        VERSION:        '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX:    '.html',
+        HAS_SOURCE:     true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/han.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  <script type="text/javascript" src=../_static/jquery.dimensions.js"></script>
+  <script type="text/javascript" src="../_static/main.js"></script><link rel="top" title="ANSI Common Lisp 中文版" href="../index.html" /></head>
+
+  <body><div class="navbar navbar-static-top navbar-inverse">
+        <div id="top-bar" class="navbar-inner">
+
+          <h1 id="logo">ANSI Common Lisp 中文版<a href="../index.html" class="brand">ANSI Common Lisp 中文版</a></h1>
+          <ul class="nav"></ul><a href="https://github.com/acl-translation/acl-chinese"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
+        </div>
+      </div><div class="content container-fluid">
+        <div class="row-fluid"><div class="document span9"><article >
+                <div class="documentwrapper"><div class="body"><blockquote>
+<div></div></blockquote>
+<div class="section" id="lisp">
+<h1>第二章：欢迎来到 Lisp<a class="headerlink" href="#lisp" title="永久链接至标题">¶</a></h1>
+<p>本章的目的是让你尽快开始编程。本章结束时，你会掌握足够多的 Common Lisp 知识来开始写程序。</p>
+<div class="section" id="form">
+<h2>2.1 形式 (Form)<a class="headerlink" href="#form" title="永久链接至标题">¶</a></h2>
+<p>人可以通过实践来学习一件事，这对于 Lisp 来说特别有效，因为 Lisp 是一门交互式的语言。任何 Lisp 系统都含有一个交互式的前端，叫做<em>顶层</em>(toplevel)。你在顶层输入 Lisp 表达式，而系统会显示它们的值。</p>
+<p>Lisp 通常会打印一个提示符告诉你，它正在等待你的输入。许多 Common Lisp 的实现用 <tt class="docutils literal"><span class="pre">&gt;</span></tt> 作为顶层提示符。本书也沿用这个符号。</p>
+<p>一个最简单的 Lisp 表达式是整数。如果我们在提示符后面输入 <tt class="docutils literal"><span class="pre">1</span></tt> ，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="mi">1</span>
+<span class="mi">1</span>
+<span class="nb">&gt;</span>
+</pre></div>
+</td></tr></table></div>
+<p>系统会打印出它的值，接著印出另一个提示符，告诉你它在等待更多的输入。</p>
+<p>在这个情况里，打印的值与输入的值相同。数字 <tt class="docutils literal"><span class="pre">1</span></tt> 称之为对自身求值。当我们输入需要做某些计算来求值的表达式时，生活变得更加有趣了。举例来说，如果我们想把两个数相加，我们输入像是：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">+</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">)</span>
+<span class="mi">5</span>
+</pre></div>
+</td></tr></table></div>
+<p>在表达式 <tt class="docutils literal"><span class="pre">(+</span> <span class="pre">2</span> <span class="pre">3)</span></tt> 里， <tt class="docutils literal"><span class="pre">+</span></tt> 称为操作符，而数字 <tt class="docutils literal"><span class="pre">2</span></tt> 跟 <tt class="docutils literal"><span class="pre">3</span></tt> 称为实参。</p>
+<p>在日常生活中，我们会把表达​​式写作 <tt class="docutils literal"><span class="pre">2</span> <span class="pre">+</span> <span class="pre">3</span></tt> ，但在 Lisp 里，我们把 <tt class="docutils literal"><span class="pre">+</span></tt> 操作符写在前面，接著写实参，再把整个表达式用一对括号包起来： <tt class="docutils literal"><span class="pre">(+</span> <span class="pre">2</span> <span class="pre">3)</span></tt> 。这称为<em>前序</em>表达式。一开始可能觉得这样写表达式有点怪，但事实上这种表示法是 Lisp 最美妙的东西之一。</p>
+<p>举例来说，我们想把三个数加起来，用日常生活的表示法，要写两次 <tt class="docutils literal"><span class="pre">+</span></tt> 号，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="mi">2</span> <span class="nb">+</span> <span class="mi">3</span> <span class="nb">+</span> <span class="mi">4</span>
+</pre></div>
+</td></tr></table></div>
+<p>而在 Lisp 里，只需要增加一个实参：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">+</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>日常生活中用 <tt class="docutils literal"><span class="pre">+</span></tt> 时，它必须有两个实参，一个在左，一个在右。前序表示法的灵活性代表著，在 Lisp 里， <tt class="docutils literal"><span class="pre">+</span></tt> 可以接受任意数量的实参，包含了没有实参：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">+</span><span class="p">)</span>
+<span class="mi">0</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">+</span> <span class="mi">2</span><span class="p">)</span>
+<span class="mi">2</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">+</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">)</span>
+<span class="mi">5</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">+</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">)</span>
+<span class="mi">9</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">+</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span><span class="p">)</span>
+<span class="mi">14</span>
+</pre></div>
+</td></tr></table></div>
+<p>由于操作符可接受不定数量的实参，我们需要用括号来标明表达式的开始与结束。</p>
+<p>表达式可以嵌套。即表达式里的实参，可以是另一个复杂的表达式：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">/</span> <span class="p">(</span><span class="nb">-</span> <span class="mi">7</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nb">-</span> <span class="mi">4</span> <span class="mi">2</span><span class="p">))</span>
+<span class="mi">3</span>
+</pre></div>
+</td></tr></table></div>
+<p>上面的表达式用中文来说是， (七减一) 除以 (四减二) 。</p>
+<p>Lisp 表示法另一个美丽的地方是：它就是如此简单。所有的 Lisp 表达式，要么是 <tt class="docutils literal"><span class="pre">1</span></tt> 这样的数原子，要么是包在括号里，由零个或多个表达式所构成的列表。以下是合法的 Lisp 表达式：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="mi">2</span> <span class="p">(</span><span class="nb">+</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">)</span> <span class="p">(</span><span class="nb">/</span> <span class="p">(</span><span class="nb">-</span> <span class="mi">7</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nb">-</span> <span class="mi">4</span> <span class="mi">2</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>稍后我们将理解到，所有的 Lisp 程序都采用这种形式。而像是 C 这种语言，有著更复杂的语法：算术表达式采用中序表示法；函数调用采用某种前序表示法，实参用逗号隔开；表达式用分号隔开；而一段程序用大括号隔开。</p>
+<p>在 Lisp 里，我们用单一的表示法，来表达所有的概念。</p>
+</div>
+<div class="section" id="evaluation">
+<h2>2.2 求值 (Evaluation)<a class="headerlink" href="#evaluation" title="永久链接至标题">¶</a></h2>
+<p>上一小节中，我们在顶层输入表达式，然后 Lisp 显示它们的值。在这节里我们深入理解一下表达式是如何被求值的。</p>
+<p>在 Lisp 里， <tt class="docutils literal"><span class="pre">+</span></tt> 是函数，然而如 <tt class="docutils literal"><span class="pre">(+</span> <span class="pre">2</span> <span class="pre">3)</span></tt> 的表达式，是函数调用。</p>
+<p>当 Lisp 对函数调用求值时，它做下列两个步骤：</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>首先从左至右对实参求值。在这个例子当中，实参对自身求值，所以实参的值分别是 <tt class="docutils literal"><span class="pre">2</span></tt> 跟 <tt class="docutils literal"><span class="pre">3</span></tt> 。</li>
+<li>实参的值传入以操作符命名的函数。在这个例子当中，将 <tt class="docutils literal"><span class="pre">2</span></tt> 跟 <tt class="docutils literal"><span class="pre">3</span></tt> 传给 <tt class="docutils literal"><span class="pre">+</span></tt> 函数，返回 <tt class="docutils literal"><span class="pre">5</span></tt> 。</li>
+</ol>
+</div></blockquote>
+<p>如果实参本身是函数调用的话，上述规则同样适用。以下是当 <tt class="docutils literal"><span class="pre">(/</span> <span class="pre">(-</span> <span class="pre">7</span> <span class="pre">1)</span> <span class="pre">(-</span> <span class="pre">4</span> <span class="pre">2))</span></tt> 表达式被求值时的情形：</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Lisp 对 <tt class="docutils literal"><span class="pre">(-</span> <span class="pre">7</span> <span class="pre">1)</span></tt> 求值: <tt class="docutils literal"><span class="pre">7</span></tt> 求值为 <tt class="docutils literal"><span class="pre">7</span></tt> ， <tt class="docutils literal"><span class="pre">1</span></tt> 求值为 <tt class="docutils literal"><span class="pre">1</span></tt> ，它们被传给函数 <tt class="docutils literal"><span class="pre">-</span></tt> ，返回 <tt class="docutils literal"><span class="pre">6</span></tt> 。</li>
+<li>Lisp 对 <tt class="docutils literal"><span class="pre">(-</span> <span class="pre">4</span> <span class="pre">2)</span></tt> 求值: <tt class="docutils literal"><span class="pre">4</span></tt> 求值为 <tt class="docutils literal"><span class="pre">4</span></tt> ， <tt class="docutils literal"><span class="pre">2</span></tt> 求值为 <tt class="docutils literal"><span class="pre">2</span></tt> ，它们被传给函数 <tt class="docutils literal"><span class="pre">-</span></tt> ，返回 <tt class="docutils literal"><span class="pre">2</span></tt> 。</li>
+<li>数值 <tt class="docutils literal"><span class="pre">6</span></tt> 与 <tt class="docutils literal"><span class="pre">2</span></tt> 被传入函数 <tt class="docutils literal"><span class="pre">/</span></tt> ，返回 <tt class="docutils literal"><span class="pre">3</span></tt> 。</li>
+</ol>
+</div></blockquote>
+<p>但不是所有的 Common Lisp 操作符都是函数，不过大部分是。函数调用都是这么求值。由左至右对实参求值，将它们的数值传入函数，来返回整个表达式的值。这称为 Common Lisp 的求值规则。</p>
+<div class="admonition note">
+<p class="first admonition-title">注解</p>
+<p>逃离麻烦</p>
+<p>如果你试着输入 Lisp 不能理解的东西，它会打印一个错误讯息，接著带你到一种叫做<em>中断循环</em>（b​​reak loop）的顶层。
+中断循环给予有经验的程序员一个机会，来找出错误的原因，不过最初你只会想知道如何从中断循环中跳出。
+如何返回顶层取决于你所使用的 Common Lisp 实现。在这个假定的实现环境中，输入 <tt class="docutils literal"><span class="pre">:abort</span></tt> 跳出：</p>
+<div class="highlight-cl"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">/</span> <span class="mi">1</span> <span class="mi">0</span><span class="p">)</span>
+<span class="nv">Error:</span> <span class="nv">Division</span> <span class="nv">by</span> <span class="nv">zero</span>
+      <span class="nv">Options:</span> <span class="ss">:abort,</span> <span class="ss">:backtrace</span>
+<span class="nv">&gt;&gt;</span> <span class="ss">:abort</span>
+<span class="nb">&gt;</span>
+</pre></div>
+</div>
+<p class="last">附录 A 演示了如何调试 Lisp 程序，并给出一些常见的错误例子。</p>
+</div>
+<p>一个不遵守 Common Lisp 求值规则的操作符是 <tt class="docutils literal"><span class="pre">quote</span></tt> 。 <tt class="docutils literal"><span class="pre">quote</span></tt> 是一个特殊的操作符，意味者它自己有一套特别的求值规则。这个规则就是：什么也不做。 <tt class="docutils literal"><span class="pre">quote</span></tt> 操作符接受一个实参，并完封不动地返回它。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">quote</span> <span class="p">(</span><span class="nb">+</span> <span class="mi">3</span> <span class="mi">5</span><span class="p">))</span>
+<span class="p">(</span><span class="nb">+</span> <span class="mi">3</span> <span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>为了方便起见，Common Lisp 定义 <tt class="docutils literal"><span class="pre">'</span></tt> 作为 <tt class="docutils literal"><span class="pre">quote</span></tt> 的缩写。你可以在任何的表达式前，贴上一个 <tt class="docutils literal"><span class="pre">'</span></tt> ，与调用 <tt class="docutils literal"><span class="pre">quote</span></tt> 是同样的效果：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="o">&#39;</span><span class="p">(</span><span class="nb">+</span> <span class="mi">3</span> <span class="mi">5</span><span class="p">)</span>
+<span class="p">(</span><span class="nb">+</span> <span class="mi">3</span> <span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>使用缩写 <tt class="docutils literal"><span class="pre">'</span></tt> 比使用整个 <tt class="docutils literal"><span class="pre">quote</span></tt> 表达式更常见。</p>
+<p>Lisp 提供 <tt class="docutils literal"><span class="pre">quote</span></tt> 作为一种<em>保护</em>表达式被求值的方式。下一节将解释为什么这种保护很有用。</p>
+</div>
+<div class="section" id="data">
+<h2>2.3 数据 (Data)<a class="headerlink" href="#data" title="永久链接至标题">¶</a></h2>
+<p>Lisp 提供了所有在其他语言找的到的，以及其他语言所找不到的数据类型。一个我们已经使用过的类型是<em>整数</em>（integer），整数用一系列的数字来表示，比如： <tt class="docutils literal"><span class="pre">256</span></tt> 。另一个 Common Lisp 与多数语言有关，并很常见的数据类型是<em>字串</em>（string），字串用一系列被双引号包住的字符串表示，比如： <tt class="docutils literal"><span class="pre">“ora</span> <span class="pre">et</span> <span class="pre">labora”</span></tt> <a class="footnote-reference" href="#id2" id="id1">[3]</a> 。整数与字串一样，都是对自身求值的。</p>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[3]</a></td><td>“ora et labora”是拉丁文，意思是祷告与工作。</td></tr>
+</tbody>
+</table>
+<p>有两个通常在别的语言所找不到的 Lisp 数据类型是<em>符号</em>（symbol）与<em>列表</em>（lists），<em>符号</em>是英语的单词 (words)。无论你怎么输入，通常会被转换为大写：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="ss">&#39;Artichoke</span>
+<span class="nv">ARTICHOKE</span>
+</pre></div>
+</td></tr></table></div>
+<p>符号（通常）不对自身求值，所以要是想引用一个符号，应该像上例那样用 <tt class="docutils literal"><span class="pre">'</span></tt> 引用它。</p>
+<p><em>列表</em>是由被括号包住的零个或多个元素来表示。元素可以是任何类型，包含列表本身。使用列表必须要引用，不然 Lisp 会以为这是一个函数调用：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">my</span> <span class="mi">3</span> <span class="s">&quot;Sons&quot;</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">MY</span> <span class="mi">3</span> <span class="nv">SONS</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="o">&#39;</span><span class="p">(</span><span class="k">the</span> <span class="nb">list</span> <span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">)</span> <span class="nv">has</span> <span class="mi">3</span> <span class="nv">elements</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">THE</span> <span class="nv">LIST</span> <span class="p">(</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span><span class="p">)</span> <span class="nv">HAS</span> <span class="mi">3</span> <span class="nv">ELEMENTS</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>注意一个引号保护了整个表达式，以及里面的表达式被求值。</p>
+<p>你可以调用 <tt class="docutils literal"><span class="pre">list</span></tt> 来创建列表。由于 <tt class="docutils literal"><span class="pre">list</span></tt> 是函数，所以它的实参会被求值。这里我们看一个在函数 <tt class="docutils literal"><span class="pre">list</span></tt> 调用里面，调用 <tt class="docutils literal"><span class="pre">+</span></tt> 函数的例子：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">list</span> <span class="ss">&#39;my</span> <span class="p">(</span><span class="nb">+</span> <span class="mi">2</span> <span class="mi">1</span><span class="p">)</span> <span class="s">&quot;Sons&quot;</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">MY</span> <span class="mi">3</span> <span class="s">&quot;Sons&quot;</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>我们现在来到领悟 Lisp 最卓越特性的地方之一。<em>Lisp的程序是用列表来表示的</em>。如果实参的优雅与弹性不能说服你 Lisp 表示法是无价的工具，这里应该能使你信服。这代表着 Lisp 程序可以写出 Lisp 代码。 Lisp 程序员可以（并且经常）写出能为自己写程序的程序。</p>
+<p>不过得到第 10 章，我们才来考虑这种程序，但现在了解到列表和表达式的关系是非常重要的，而不是被它们搞混。这也就是为什么我们需要 <tt class="docutils literal"><span class="pre">quote</span></tt> 。如果一个列表被引用了，则求值规则对列表自身来求值；如果没有被引用，则列表被视为是代码，依求值规则对列表求值后，返回它的值。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">list</span> <span class="o">&#39;</span><span class="p">(</span><span class="nb">+</span> <span class="mi">2</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="mi">2</span> <span class="mi">1</span><span class="p">))</span>
+<span class="p">((</span><span class="nb">+</span> <span class="mi">2</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>这里第一个实参被引用了，所以产生一个列表。第二个实参没有被引用，视为函数调用，经求值后得到一个数字。</p>
+<p>在 Common Lisp 里有两种方法来表示空列表。你可以用一对不包括任何东西的括号来表示，或用符号 <tt class="docutils literal"><span class="pre">nil</span></tt> 来表示空表。你用哪种表示法来表示空表都没关系，但它们都会被显示为 <tt class="docutils literal"><span class="pre">nil</span></tt> ：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">()</span>
+<span class="no">NIL</span>
+<span class="nb">&gt;</span> <span class="no">nil</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>你不需要引用 <tt class="docutils literal"><span class="pre">nil</span></tt> （但引用也无妨），因为 <tt class="docutils literal"><span class="pre">nil</span></tt> 是对自身求值的。</p>
+</div>
+<div class="section" id="list-operations">
+<h2>2.4 列表操作 (List Operations)<a class="headerlink" href="#list-operations" title="永久链接至标题">¶</a></h2>
+<p>用函数 <tt class="docutils literal"><span class="pre">cons</span></tt> 来构造列表。如果传入的第二个实参是一个列表，则返回一个由第二个实参所构成的新列表，其中，新列表的第一个元素是先前传入的第一个实参：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">cons</span> <span class="ss">&#39;a</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">b</span> <span class="nv">c</span> <span class="nv">d</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span> <span class="nv">D</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>可以通过把新元素建立在空表之上，来构造一个新列表。上一节所看到的函数 <tt class="docutils literal"><span class="pre">list</span></tt> ，不过就是一个把几个元素加到 <tt class="docutils literal"><span class="pre">nil</span></tt> 上的快捷方式：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">cons</span> <span class="ss">&#39;a</span> <span class="p">(</span><span class="nb">cons</span> <span class="ss">&#39;b</span> <span class="no">nil</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">list</span> <span class="nv">a</span> <span class="nv">b</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>取出列表元素的基本函数是 <tt class="docutils literal"><span class="pre">car</span></tt> 和 <tt class="docutils literal"><span class="pre">cdr</span></tt> 。列表的 <tt class="docutils literal"><span class="pre">car</span></tt> 是第一个元素，而列表的 <tt class="docutils literal"><span class="pre">cdr</span></tt> 是第一个元素之后的所有元素：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">car</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">))</span>
+<span class="nv">A</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">cdr</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>你可以把 <tt class="docutils literal"><span class="pre">car</span></tt> 与 <tt class="docutils literal"><span class="pre">cdr</span></tt> 混合使用来取得列表中的任何元素。如果我们想要取得第三个元素，我们可以：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">car</span> <span class="p">(</span><span class="nb">cdr</span> <span class="p">(</span><span class="nb">cdr</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span> <span class="nv">d</span><span class="p">))))</span>
+<span class="nv">C</span>
+</pre></div>
+</td></tr></table></div>
+<p>不过，你可以用更简单的 <tt class="docutils literal"><span class="pre">third</span></tt> 来做到同样的事情：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">third</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span> <span class="nv">d</span><span class="p">))</span>
+<span class="nv">C</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<div class="section" id="truth">
+<h2>2.5 真与假 (Truth)<a class="headerlink" href="#truth" title="永久链接至标题">¶</a></h2>
+<p>在 Common Lisp 里，符号 <tt class="docutils literal"><span class="pre">t</span></tt> 是表示逻辑 <tt class="docutils literal"><span class="pre">真</span></tt> 的缺省值。与 <tt class="docutils literal"><span class="pre">nil</span></tt> 相同， <tt class="docutils literal"><span class="pre">t</span></tt>  也是对自身求值的。如果实参是一个列表，则函数 <tt class="docutils literal"><span class="pre">listp</span></tt> 返回 <tt class="docutils literal"><span class="pre">真</span></tt> ：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">listp</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">))</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+<p>函数的返回值将会被解释成逻辑 <tt class="docutils literal"><span class="pre">真</span></tt> 或逻辑 <tt class="docutils literal"><span class="pre">假</span></tt> 时，则称此函数为谓词（<em>predicate</em>）。在 Common Lisp 里，谓词的名字通常以 <tt class="docutils literal"><span class="pre">p</span></tt> 结尾。</p>
+<p>逻辑 <tt class="docutils literal"><span class="pre">假</span></tt> 在 Common Lisp 里，用 <tt class="docutils literal"><span class="pre">nil</span></tt> ，即空表来表示。如果我们传给 <tt class="docutils literal"><span class="pre">listp</span></tt> 的实参不是列表，则返回 <tt class="docutils literal"><span class="pre">nil</span></tt> 。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">listp</span> <span class="mi">27</span><span class="p">)</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>由于 <tt class="docutils literal"><span class="pre">nil</span></tt> 在 Common Lisp 里扮演两个角色，如果实参是一个空表，则函数 <tt class="docutils literal"><span class="pre">null</span></tt> 返回 <tt class="docutils literal"><span class="pre">真</span></tt> 。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">null</span> <span class="no">nil</span><span class="p">)</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+<p>而如果实参是逻辑 <tt class="docutils literal"><span class="pre">假</span></tt> ，则函数 <tt class="docutils literal"><span class="pre">not</span></tt> 返回 <tt class="docutils literal"><span class="pre">真</span></tt> ：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">not</span> <span class="no">nil</span><span class="p">)</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+<p><tt class="docutils literal"><span class="pre">null</span></tt> 与 <tt class="docutils literal"><span class="pre">not</span></tt> 做的是一样的事情。</p>
+<p>在 Common Lisp 里，最简单的条件式是 <tt class="docutils literal"><span class="pre">if</span></tt> 。通常接受三个实参：一个 <em>test</em> 表达式，一个 <em>then</em> 表达式和一个 <em>else</em> 表达式。若 <tt class="docutils literal"><span class="pre">test</span></tt> 表达式求值为逻辑 <tt class="docutils literal"><span class="pre">真</span></tt> ，则对 <tt class="docutils literal"><span class="pre">then</span></tt> 表达式求值，并返回这个值。若 <tt class="docutils literal"><span class="pre">test</span></tt> 表达式求值为逻辑 <tt class="docutils literal"><span class="pre">假</span></tt> ，则对 <tt class="docutils literal"><span class="pre">else</span></tt> 表达式求值，并返回这个值：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">listp</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">))</span>
+      <span class="p">(</span><span class="nb">+</span> <span class="mi">1</span> <span class="mi">2</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">+</span> <span class="mi">5</span> <span class="mi">6</span><span class="p">))</span>
+<span class="mi">3</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">listp</span> <span class="mi">27</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">+</span> <span class="mi">1</span> <span class="mi">2</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">+</span> <span class="mi">5</span> <span class="mi">6</span><span class="p">))</span>
+<span class="mi">11</span>
+</pre></div>
+</td></tr></table></div>
+<p>与 <tt class="docutils literal"><span class="pre">quote</span></tt> 相同， <tt class="docutils literal"><span class="pre">if</span></tt> 是特殊的操作符。不能用函数来实现，因为实参在函数调用时永远会被求值，而 <tt class="docutils literal"><span class="pre">if</span></tt> 的特点是，只有最后两个实参的其中一个会被求值。 <tt class="docutils literal"><span class="pre">if</span></tt> 的最后一个实参是选择性的。如果忽略它的话，缺省值是 <tt class="docutils literal"><span class="pre">nil</span></tt> ：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">listp</span> <span class="mi">27</span><span class="p">)</span>
+     <span class="p">(</span><span class="nb">+</span> <span class="mi">1</span> <span class="mi">2</span><span class="p">))</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>虽然 <tt class="docutils literal"><span class="pre">t</span></tt> 是逻辑 <tt class="docutils literal"><span class="pre">真</span></tt> 的缺省表示法，任何非 <tt class="docutils literal"><span class="pre">nil</span></tt> 的东西，在逻辑的上下文里通通被​​视为 <tt class="docutils literal"><span class="pre">真</span></tt> 。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">if</span> <span class="mi">27</span> <span class="mi">1</span> <span class="mi">2</span><span class="p">)</span>
+<span class="mi">1</span>
+</pre></div>
+</td></tr></table></div>
+<p>逻辑操作符 <strong>and</strong> 和 <strong>or</strong> 与条件式类似。两者都接受任意数量的实参，但仅对能影响返回值的几个实参求值。如果所有的实参都为 <tt class="docutils literal"><span class="pre">真</span></tt> （即非 <tt class="docutils literal"><span class="pre">nil</span></tt> ），那么 <tt class="docutils literal"><span class="pre">and</span></tt> 会返回最后一个实参的值：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">and</span> <span class="no">t</span> <span class="p">(</span><span class="nb">+</span> <span class="mi">1</span> <span class="mi">2</span><span class="p">))</span>
+<span class="mi">3</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果其中一个实参为 <tt class="docutils literal"><span class="pre">假</span></tt> ，那之后的所有实参都不会被求值。 <tt class="docutils literal"><span class="pre">or</span></tt> 也是如此，只要碰到一个为 <tt class="docutils literal"><span class="pre">真</span></tt> 的实参，就停止对之后所有的实参求值。</p>
+<p>以上这两个操作符称为<em>宏</em>。宏和特殊的操作符一样，可以绕过一般的求值规则。第十章解释了如何编写你自己的宏。</p>
+</div>
+<div class="section" id="functions">
+<h2>2.6 函数 (Functions)<a class="headerlink" href="#functions" title="永久链接至标题">¶</a></h2>
+<p>你可以用 <tt class="docutils literal"><span class="pre">defun</span></tt> 来定义新函数。通常接受三个以上的实参：一个名字，一组用列表表示的实参，以及一个或多个组成函数体的表达式。我们可能会这样定义 <tt class="docutils literal"><span class="pre">third</span></tt> ：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">defun</span> <span class="nv">our-third</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+   <span class="p">(</span><span class="nb">car</span> <span class="p">(</span><span class="nb">cdr</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">x</span><span class="p">))))</span>
+<span class="nv">OUR-THIRD</span>
+</pre></div>
+</td></tr></table></div>
+<p>第一个实参说明此函数的名称将是 <tt class="docutils literal"><span class="pre">our-third</span></tt> 。第二个实参，一个列表 <tt class="docutils literal"><span class="pre">(x)</span></tt> ，说明这个函数会接受一个形参： <tt class="docutils literal"><span class="pre">x</span></tt> 。这样使用的占位符符号叫做<em>变量</em>。当变量代表了传入函数的实参时，如这里的 <tt class="docutils literal"><span class="pre">x</span></tt> ，又被叫做<em>形参</em>。</p>
+<p>定义的剩馀部分， <tt class="docutils literal"><span class="pre">(car</span> <span class="pre">(cdr</span> <span class="pre">(cdr</span> <span class="pre">x)))</span></tt> ，即所谓的函数主体。它告诉 Lisp 该怎么计算此函数的返回值。所以调用一个 <tt class="docutils literal"><span class="pre">our-third</span></tt> 函数，对于我们作为实参传入的任何 <tt class="docutils literal"><span class="pre">x</span></tt> ，会返回  <tt class="docutils literal"><span class="pre">(car</span> <span class="pre">(cdr</span> <span class="pre">(cdr</span> <span class="pre">x)))</span></tt>  ：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">our-third</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span> <span class="nv">d</span><span class="p">))</span>
+<span class="nv">C</span>
+</pre></div>
+</td></tr></table></div>
+<p>既然我们已经看过了变量，理解符号是什么就更简单了。符号是变量的名字，符号本身就是以对象的方式存在。这也是为什么符号，必须像列表一样被引用。列表必须被引用，不然会被视为代码。符号必须要被引用，不然会被当作变量。</p>
+<p>你可以把函数定义想成广义版的 Lisp 表达式。下面的表达式测试 <tt class="docutils literal"><span class="pre">1</span></tt> 和 <tt class="docutils literal"><span class="pre">4</span></tt> 的和是否大于 <tt class="docutils literal"><span class="pre">3</span></tt> ：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">+</span> <span class="mi">1</span> <span class="mi">4</span><span class="p">)</span> <span class="mi">3</span><span class="p">)</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+<p>通过将这些数字替换为变量，我们可以写个函数，测试任两数之和是否大于第三个数：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">defun</span> <span class="nv">sum-greater</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">y</span> <span class="nv">z</span><span class="p">)</span>
+   <span class="p">(</span><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">)</span> <span class="nv">z</span><span class="p">))</span>
+<span class="nv">SUM-GREATER</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nv">sum-greater</span> <span class="mi">1</span> <span class="mi">4</span> <span class="mi">3</span><span class="p">)</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+<p>Lisp 不对程序、过程以及函数作区别。函数做了所有的事情（事实上，函数是语言的主要部分）。如果你想要把你的函数之一作为主函数（<em>main</em> function），可以这么做，但平常你就能在顶层中调用任何函数。这表示当你编程时，你可以把程序拆分成一小块一小块地来做调试。</p>
+</div>
+<div class="section" id="recursion">
+<h2>2.7 递归 (Recursion)<a class="headerlink" href="#recursion" title="永久链接至标题">¶</a></h2>
+<p>上一节我们所定义的函数，调用了别的函数来帮它们做事。比如 <tt class="docutils literal"><span class="pre">sum-greater</span></tt> 调用了 <tt class="docutils literal"><span class="pre">+</span></tt> 和 <tt class="docutils literal"><span class="pre">&gt;</span></tt> 。函数可以调用任何函数，包括自己。自己调用自己的函数是<em>递归</em>的。 Common Lisp 函数 <tt class="docutils literal"><span class="pre">member</span></tt> ，测试某个东西是否为列表的成员。下面是定义成递归函数的简化版：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">defun</span> <span class="nv">our-member</span> <span class="p">(</span><span class="nv">obj</span> <span class="nv">lst</span><span class="p">)</span>
+   <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">lst</span><span class="p">)</span>
+       <span class="no">nil</span>
+   <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">eql</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">lst</span><span class="p">)</span> <span class="nv">obj</span><span class="p">)</span>
+       <span class="nv">lst</span>
+       <span class="p">(</span><span class="nv">our-member</span> <span class="nv">obj</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">)))))</span>
+<span class="nv">OUR-MEMBER</span>
+</pre></div>
+</td></tr></table></div>
+<p>谓词 <tt class="docutils literal"><span class="pre">eql</span></tt> 测试它的两个实参是否相等；此外，这个定义的所有东西我们之前都学过了。下面是运行的情形：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">our-member</span> <span class="ss">&#39;b</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nv">our-member</span> <span class="ss">&#39;z</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">))</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>下面是 <tt class="docutils literal"><span class="pre">our-member</span></tt> 的定义对应到英语的描述。为了知道一个对象 <tt class="docutils literal"><span class="pre">obj</span></tt> 是否为列表 <tt class="docutils literal"><span class="pre">lst</span></tt> 的成员，我们</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>首先检查 <tt class="docutils literal"><span class="pre">lst</span></tt> 列表是否为空列表。如果是空列表，那 <tt class="docutils literal"><span class="pre">obj</span></tt> 一定不是它的成员，结束。</li>
+<li>否则，若 <tt class="docutils literal"><span class="pre">obj</span></tt> 是列表的第一个元素时，则它是列表的成员。</li>
+<li>不然只有当 <tt class="docutils literal"><span class="pre">obj</span></tt> 是列表其余部分的元素时，它才是列表的成员。</li>
+</ol>
+</div></blockquote>
+<p>当你想要了解递归函数是怎么工作时，把它翻成这样的叙述有助于你理解。</p>
+<p>起初，许多人觉得递归函数很难理解。大部分的理解难处，来自于对函数使用了错误的比喻。人们倾向于把函数理解为某种机器。原物料像实参一样抵达；某些工作委派给其它函数；最后组装起来的成品，被作为返回值运送出去。如果我们用这种比喻来理解函数，那递归就自相矛盾了。机器怎可以把工作委派给自己？它已经在忙碌中了。</p>
+<p>较好的比喻是，把函数想成一个处理的过程。在过程里，递归是在自然不过的事情了。日常生活中我们经常看到递归的过程。举例来说，假设一个历史学家，对欧洲历史上的人口变化感兴趣。研究文献的过程很可能是：</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>取得一个文献的复本</li>
+<li>寻找关于人口变化的资讯</li>
+<li>如果这份文献提到其它可能有用的文献，研究它们。</li>
+</ol>
+</div></blockquote>
+<p>过程是很容易理解的，而且它是递归的，因为第三个步骤可能带出一个或多个同样的过程。</p>
+<p>所以，别把 <tt class="docutils literal"><span class="pre">our-member</span></tt> 想成是一种测试某个东西是否为列表成员的机器。而是把它想成是，决定某个东西是否为列表成员的规则。如果我们从这个角度来考虑函数，那么递归的矛盾就不复存在了。</p>
+</div>
+<div class="section" id="lisp-reading-lisp">
+<h2>2.8 阅读 Lisp (Reading Lisp)<a class="headerlink" href="#lisp-reading-lisp" title="永久链接至标题">¶</a></h2>
+<p>上一节我们所定义的 <tt class="docutils literal"><span class="pre">our-member</span></tt> 以五个括号结尾。更复杂的函数定义更可能以七、八个括号结尾。刚学 Lisp 的人看到这么多括号会感到气馁。这叫人怎么读这样的程序，更不用说编了？怎么知道哪个括号该跟哪个匹配？</p>
+<p>答案是，你不需要这么做。 Lisp 程序员用缩排来阅读及编写程序，而不是括号。当他们在写程序时，他们让文字编辑器显示哪个括号该与哪个匹配。任一个好的文字编辑器，特别是 Lisp 系统自带的，都应该能做到括号匹配（paren-matching）。在这种编辑器中，当你输入一个括号时，编辑器指出与其匹配的那一个。如果你的编辑器不能匹配括号，别用了，想想如何让它做到，因为没有这个功能，你根本不可能编 Lisp 程序 <a class="footnote-reference" href="#id5" id="id3">[1]</a> 。</p>
+<p>有了好的编辑器之后，括号匹配不再会是问题。而且由于 Lisp 缩排有通用的惯例，阅读程序也不是个问题。因为所有人都使用一样的习惯，你可以忽略那些括号，通过缩排来阅读程序。</p>
+<p>任何有经验的 Lisp 黑客，会发现如果是这样的 <tt class="docutils literal"><span class="pre">our-member</span></tt> 的定义很难阅读：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">our-member</span> <span class="p">(</span><span class="nv">obj</span> <span class="nv">lst</span><span class="p">)</span> <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">lst</span><span class="p">)</span> <span class="no">nil</span> <span class="p">(</span><span class="k">if</span>
+<span class="p">(</span><span class="nb">eql</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">lst</span><span class="p">)</span> <span class="nv">obj</span><span class="p">)</span> <span class="nv">lst</span> <span class="p">(</span><span class="nv">our-member</span> <span class="nv">obj</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">)))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>但如果程序适当地缩排时，他就没有问题了。可以忽略大部分的括号而仍能读懂它：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">defun</span> <span class="nv">our-member</span> <span class="p">(</span><span class="nv">obj</span> <span class="nv">lst</span><span class="p">)</span>
+ <span class="k">if</span> <span class="nb">null</span> <span class="nv">lst</span>
+    <span class="no">nil</span>
+    <span class="k">if</span> <span class="nb">eql</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">lst</span><span class="p">)</span> <span class="nv">obj</span>
+       <span class="nv">lst</span>
+       <span class="nv">our-member</span> <span class="nv">obj</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>事实上，这是你在纸上写 Lisp 程序的实用方法。等输入程序至计算机的时候，可以利用编辑器匹配括号的功能。</p>
+</div>
+<div class="section" id="input-and-output">
+<h2>2.9 输入输出 (Input and Output)<a class="headerlink" href="#input-and-output" title="永久链接至标题">¶</a></h2>
+<p>到目前为止，我们已经利用顶层偷偷使用了 I/O​​ 。对实际的交互程序来说，这似乎还是不太够。在这一节，我们来看几个输入输出的函数。</p>
+<p>最普遍的 Common Lisp 输出函数是 <tt class="docutils literal"><span class="pre">format</span></tt> 。接受两个或两个以上的实参，第一个实参决定输出要打印到哪里，第二个实参是字串模版，而剩馀的实参，通常是要插入到字串模版，用打印表示法（printed representation）所表示的对象。下面是一个典型的例子：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;~A plus ~A equals ~A. ~%&quot;</span> <span class="mi">2</span> <span class="mi">3</span> <span class="p">(</span><span class="nb">+</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">))</span>
+<span class="mi">2</span> <span class="nv">PLUS</span> <span class="mi">3</span> <span class="nv">EQUALS</span> <span class="mi">5</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>注意到有两个东西被打印出来。第一行是 <tt class="docutils literal"><span class="pre">format</span></tt> 印出来的。第二行是调用 <tt class="docutils literal"><span class="pre">format</span></tt> 函数的返回值，就像平常顶层会打印出来的一样。通常像 <tt class="docutils literal"><span class="pre">format</span></tt> 这种函数不会直接在顶层调用，而是在程序内部里使用，所以返回值不会被看到。</p>
+<p><tt class="docutils literal"><span class="pre">format</span></tt> 的第一个实参 <tt class="docutils literal"><span class="pre">t</span></tt> ，表示输出被送到缺省的地方去。通常是顶层。第二个实参是一个用作输出模版的字串。在这字串里，每一个 <tt class="docutils literal"><span class="pre">~A</span></tt> 表示了被填入的位置，而 <tt class="docutils literal"><span class="pre">~%</span></tt> 表示一个换行。这些被填入的位置依序由后面的实参填入。</p>
+<p>标准的输入函数是 <tt class="docutils literal"><span class="pre">read</span></tt> 。当没有实参时，会读取缺省的位置，通常是顶层。下面这个函数，提示使用者输入，并返回任何输入的东西：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">askem</span> <span class="p">(</span><span class="nb">string</span><span class="p">)</span>
+ <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;~A&quot;</span> <span class="nb">string</span><span class="p">)</span>
+ <span class="p">(</span><span class="nb">read</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>它的行为如下：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">askem</span> <span class="s">&quot;How old are you?&quot;</span><span class="p">)</span>
+<span class="nv">How</span> <span class="nv">old</span> <span class="nv">are</span> <span class="nv">you?</span> <span class="mi">29</span>
+<span class="mi">29</span>
+</pre></div>
+</td></tr></table></div>
+<p>记住 <tt class="docutils literal"><span class="pre">read</span></tt> 会一直永远等在这里，直到你输入了某些东西，并且（通常要）按下回车。因此，不印出明确的提示信息是很不明智的，程序会给人已经死机的印象，但其实它是在等待输入。</p>
+<p>第二件关于 <tt class="docutils literal"><span class="pre">read</span></tt> 所需要知道的事是，它很强大： <tt class="docutils literal"><span class="pre">read</span></tt> 是一个完整的 Lisp 解析器（parser）。不仅是可以读入字符，然后当作字串返回它们。它解析它所读入的东西，并返回产生出来的 Lisp 对象。在上述的例子，它返回一个数字。</p>
+<p><tt class="docutils literal"><span class="pre">askem</span></tt> 的定义虽然很短，但体现出一些我们在之前的函数没看过的东西。函数主体可以有不只一个表达式。函数主体可以有任意数量的表达式。当函数被调用时，会依序求值，函数会返回最后一个的值。</p>
+<p>在之前的每一节中，我们坚持所谓“纯粹的” Lisp –––– 即没有副作用的 Lisp 。副作用是指，表达式被求值后，对外部世界的状态做了某些改变。当我们对一个如 <tt class="docutils literal"><span class="pre">(+</span> <span class="pre">1</span> <span class="pre">2)</span></tt> 这样纯粹的 Lisp 表达式求值时，没有产生副作用。它只返回一个值。但当我们调用 <tt class="docutils literal"><span class="pre">format</span></tt> 时，它不仅返回值，还印出了某些东西。这就是一种副作用。</p>
+<p>当我们想要写没有副作用的程序时，则定义多个表达式的函数主体就没有意义了。最后一个表达式的值，会被当成函数的返回值，而之前表达式的值都被舍弃了。如果这些表达式没有副作用，你没有任何理由告诉 Lisp ，为什么要去对它们求值。</p>
+</div>
+<div class="section" id="variables">
+<h2>2.10 变量 (Variables)<a class="headerlink" href="#variables" title="永久链接至标题">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">let</span></tt> 是一个最常用的 Common Lisp 的操作符之一，它让你引入新的局部变量（local variable）：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">x</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nv">y</span> <span class="mi">2</span><span class="p">))</span>
+     <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">))</span>
+<span class="mi">3</span>
+</pre></div>
+</td></tr></table></div>
+<p>一个 <tt class="docutils literal"><span class="pre">let</span></tt> 表达式有两个部分。第一个部分是一组创建新变量的指令，指令的形式为 <em>(variable expression)</em> 。每一个变量会被赋予相对应表达式的值。上述的例子中，我们创造了两个变量， <tt class="docutils literal"><span class="pre">x</span></tt> 和 <tt class="docutils literal"><span class="pre">y</span></tt> ，分别被赋予初始值 <tt class="docutils literal"><span class="pre">1</span></tt> 和 <tt class="docutils literal"><span class="pre">2</span></tt> 。这些变量只在 <tt class="docutils literal"><span class="pre">let</span></tt> 的函数体内有效。</p>
+<p>一组变量与数值之后，是一个有表达式的函数体，表达式依序被求值。但这个例子里，只有一个表达式，调用 <tt class="docutils literal"><span class="pre">+</span></tt> 函数。最后一个表达式的求值结果作为 <tt class="docutils literal"><span class="pre">let</span></tt> 的返回值。以下是一个用 <tt class="docutils literal"><span class="pre">let</span></tt> 所写的，更有选择性的 <tt class="docutils literal"><span class="pre">askem</span></tt> 函数：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">ask-number</span> <span class="p">()</span>
+ <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;Please enter a number. &quot;</span><span class="p">)</span>
+ <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">val</span> <span class="p">(</span><span class="nb">read</span><span class="p">)))</span>
+   <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">numberp</span> <span class="nv">val</span><span class="p">)</span>
+       <span class="nv">val</span>
+       <span class="p">(</span><span class="nv">ask-number</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>这个函数创建了变量 <tt class="docutils literal"><span class="pre">val</span></tt> 来储存 <tt class="docutils literal"><span class="pre">read</span></tt> 所返回的对象。因为它知道该如何处理这个对象，函数可以先观察你的输入，再决定是否返回它。你可能猜到了， <tt class="docutils literal"><span class="pre">numberp</span></tt> 是一个谓词，测试它的实参是否为数字。</p>
+<p>如果使用者输入的数字，不是一个数字， <tt class="docutils literal"><span class="pre">ask-number</span></tt> 调用它自己。结果是我们得到一个坚持要数字的函数：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">ask-number</span><span class="p">)</span>
+<span class="nv">Please</span> <span class="nv">enter</span> <span class="nv">a</span> <span class="nv">number.</span> <span class="nv">a</span>
+<span class="nv">Please</span> <span class="nv">enter</span> <span class="nv">a</span> <span class="nv">number.</span> <span class="p">(</span><span class="nv">ho</span> <span class="nv">hum</span><span class="p">)</span>
+<span class="nv">Please</span> <span class="nv">enter</span> <span class="nv">a</span> <span class="nv">number.</span> <span class="mi">52</span>
+<span class="mi">52</span>
+</pre></div>
+</td></tr></table></div>
+<p>我们已经看过的这些变量都叫做局部变量。它们只在特定的上下文里有效。另外还有一种变量叫做全局变量（global variable），是在任何地方都是可视的。 <a class="footnote-reference" href="#id6" id="id4">[2]</a></p>
+<p>你可以给 <tt class="docutils literal"><span class="pre">defparameter</span></tt> 传入符号和值，来创建一个全局变量：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">defparameter</span> <span class="vg">*glob*</span> <span class="mi">99</span><span class="p">)</span>
+<span class="vg">*GLOB*</span>
+</pre></div>
+</td></tr></table></div>
+<p>全局变量在任何地方都可以存取，除了在定义了相同名字的区域变量的表达式里。为了避免这种情形发生，通常我们在给全局变量命名时，以星号作开始与结束。刚才我们创造的变量可以念作 “星​​-glob-星” (star-glob-star)。</p>
+<p>你也可以用 <tt class="docutils literal"><span class="pre">defconstant</span></tt> 来定义一个全局的常量：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defconstant</span> <span class="nv">limit</span> <span class="p">(</span><span class="nb">+</span> <span class="vg">*glob*</span> <span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>我们不需要给常量一个独一无二的名字，因为如果有相同名字存在，就会有错误产生 (error)。如果你想要检查某些符号，是否为一个全局变量或常量，使用 <tt class="docutils literal"><span class="pre">boundp</span></tt> 函数：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">boundp</span> <span class="ss">&#39;*glob*</span><span class="p">)</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<div class="section" id="assignment">
+<h2>2.11 赋值 (Assignment)<a class="headerlink" href="#assignment" title="永久链接至标题">¶</a></h2>
+<p>在 Common Lisp 里，最普遍的赋值操作符（assignment operator）是 <tt class="docutils literal"><span class="pre">setf</span></tt> 。可以用来给全局或局部变量赋值：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="vg">*glob*</span> <span class="mi">98</span><span class="p">)</span>
+<span class="mi">98</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">n</span> <span class="mi">10</span><span class="p">))</span>
+   <span class="p">(</span><span class="nb">setf</span> <span class="nv">n</span> <span class="mi">2</span><span class="p">)</span>
+   <span class="nv">n</span><span class="p">)</span>
+<span class="mi">2</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果 <tt class="docutils literal"><span class="pre">setf</span></tt> 的第一个实参是一个符号（symbol），且这个符号不是某个局部变量的名字，那么 <tt class="docutils literal"><span class="pre">setf</span></tt> 将设置这个符号为全局变量：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">x</span> <span class="p">(</span><span class="nb">list</span> <span class="ss">&#39;a</span> <span class="ss">&#39;b</span> <span class="ss">&#39;c</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>也就是说，通过赋值，你可以隐式地创建全局变量。
+不过，一般来说，还是使用 <tt class="docutils literal"><span class="pre">defparameter</span></tt> 明确地创建全局变量比较好。</p>
+<p>你不仅可以给变量赋值。传入 <tt class="docutils literal"><span class="pre">setf</span></tt> 的第一个实参，还可以是表达式或变量名。在这种情况下，第二个实参的值被插入至第一个实参所引用的位置：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">x</span><span class="p">)</span> <span class="ss">&#39;n</span><span class="p">)</span>
+<span class="nv">N</span>
+<span class="nb">&gt;</span> <span class="nv">x</span>
+<span class="p">(</span><span class="nv">N</span> <span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p><tt class="docutils literal"><span class="pre">setf</span></tt> 的第一个实参几乎可以是任何引用到特定位置的表达式。所有这样的操作符在附录 D 中被标注为 “可设置的”（“settable”）。你可以给 <tt class="docutils literal"><span class="pre">setf</span></tt> 传入（偶数）个实参。一个这样的表达式</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">setf</span> <span class="nv">a</span> <span class="nv">b</span>
+     <span class="nv">c</span> <span class="nv">d</span>
+     <span class="nv">e</span> <span class="nv">f</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>等同于依序调用三个单独的 <tt class="docutils literal"><span class="pre">setf</span></tt> 函数：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">setf</span> <span class="nv">a</span> <span class="nv">b</span><span class="p">)</span>
+<span class="p">(</span><span class="nb">setf</span> <span class="nv">c</span> <span class="nv">d</span><span class="p">)</span>
+<span class="p">(</span><span class="nb">setf</span> <span class="nv">e</span> <span class="nv">f</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<div class="section" id="functional-programming">
+<h2>2.12 函数式编程 (Functional Programming)<a class="headerlink" href="#functional-programming" title="永久链接至标题">¶</a></h2>
+<p>函数式编程意味着撰写利用返回值而工作的程序，而不是修改东西。它是 Lisp 的主流范式。大部分 Lisp 的内置函数被调用是为了取得返回值，而不是副作用。</p>
+<p>举例来说，函数 <tt class="docutils literal"><span class="pre">remove</span></tt> 接受一个对象和一个列表，返回不含这个对象的新列表：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">lst</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">c</span> <span class="nv">a</span> <span class="nv">r</span> <span class="nv">a</span> <span class="no">t</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">C</span> <span class="nv">A</span> <span class="nv">R</span> <span class="nv">A</span> <span class="no">T</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">remove</span> <span class="ss">&#39;a</span> <span class="nv">lst</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">C</span> <span class="nv">R</span> <span class="no">T</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>为什么不干脆说 <tt class="docutils literal"><span class="pre">remove</span></tt> 从列表里移除一个对象？因为它不是这么做的。原来的表没有被改变：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="nv">lst</span>
+<span class="p">(</span><span class="nv">C</span> <span class="nv">A</span> <span class="nv">R</span> <span class="nv">A</span> <span class="no">T</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>若你真的想从列表里移除某些东西怎么办？在 Lisp 通常你这么做，把这个列表当作实参，传入某个函数，并使用 <tt class="docutils literal"><span class="pre">setf</span></tt> 来处理返回值。要移除所有在列表 <tt class="docutils literal"><span class="pre">x</span></tt> 的 <tt class="docutils literal"><span class="pre">a</span></tt> ，我们可以说：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">setf</span> <span class="nv">x</span> <span class="p">(</span><span class="nb">remove</span> <span class="ss">&#39;a</span> <span class="nv">x</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>函数式编程本质上意味者避免使用如 <tt class="docutils literal"><span class="pre">setf</span></tt> 的函数。起初可能觉得这根本不可能，更遑论去做了。怎么可以只凭返回值来建立程序？</p>
+<p>完全不用到副作用是很不方便的。然而，随着你进一步阅读，会惊讶地发现需要用到副作用的地方很少。副作用用得越少，你就更上一层楼。</p>
+<p>函数式编程最重要的优点之一是，它允许交互式测试（interactive testing）。在纯函数式的程序里，你可以测试每个你写的函数。如果它返回你预期的值，你可以有信心它是对的。这额外的信心，集结起来，会产生巨大的差别。当你改动了程序里的任何一个地方，会得到即时的改变。而这种即时的改变，使我们有一种新的编程风格。类比于电话与信件，让我们有一种新的通讯方式。</p>
+</div>
+<div class="section" id="iteration">
+<h2>2.13 迭代 (Iteration)<a class="headerlink" href="#iteration" title="永久链接至标题">¶</a></h2>
+<p>当我们想作一些重复的事情时，迭代比递归来得更自然。典型的例子是用迭代来产生某种表格。这个函数</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">show-squares</span> <span class="p">(</span><span class="nv">start</span> <span class="nv">end</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">do</span> <span class="p">((</span><span class="nv">i</span> <span class="nv">start</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">i</span> <span class="mi">1</span><span class="p">)))</span>
+      <span class="p">((</span><span class="nb">&gt;</span> <span class="nv">i</span> <span class="nv">end</span><span class="p">)</span> <span class="ss">&#39;done</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;~A ~A~%&quot;</span> <span class="nv">i</span> <span class="p">(</span><span class="nb">*</span> <span class="nv">i</span> <span class="nv">i</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>列印从 <tt class="docutils literal"><span class="pre">start</span></tt> 到 <tt class="docutils literal"><span class="pre">end</span></tt> 之间的整数的平方：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">show-squares</span> <span class="mi">2</span> <span class="mi">5</span><span class="p">)</span>
+<span class="mi">2</span> <span class="mi">4</span>
+<span class="mi">3</span> <span class="mi">9</span>
+<span class="mi">4</span> <span class="mi">16</span>
+<span class="mi">5</span> <span class="mi">25</span>
+<span class="nv">DONE</span>
+</pre></div>
+</td></tr></table></div>
+<p><tt class="docutils literal"><span class="pre">do</span></tt> 宏是 Common Lisp 里最基本的迭代操作符。与 <tt class="docutils literal"><span class="pre">let</span></tt> 相同， <tt class="docutils literal"><span class="pre">do</span></tt> 可以创建变量，而第一个实参是一组变量的规格说明。在这个列表的每一个元素可以是以下的形式</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">variable</span> <span class="nv">initial</span> <span class="nv">update</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>其中 <em>variable</em> 是一个符号， <em>initial</em> 和 <em>update</em> 是表达式。最初每个变量会被赋予相应的 <em>initial</em> 的值；每一次迭代时，会被赋予相应的 <em>update</em> 的值。在 <tt class="docutils literal"><span class="pre">show-squares</span></tt> 函数里， <tt class="docutils literal"><span class="pre">do</span></tt> 只创建了一个变量 <tt class="docutils literal"><span class="pre">i</span></tt> 。第一次迭代时， <tt class="docutils literal"><span class="pre">i</span></tt> 被赋与 <tt class="docutils literal"><span class="pre">start</span></tt> 的值，在之后的迭代中，它的值会被增加 <tt class="docutils literal"><span class="pre">1</span></tt> 。</p>
+<p>第二个传给 <tt class="docutils literal"><span class="pre">do</span></tt> 的时参包含了一个或多个表达式。第一个表达式用来测试迭代是否结束。在上面的例子中，测试表达式是 <tt class="docutils literal"><span class="pre">(&gt;</span> <span class="pre">i</span> <span class="pre">end)</span></tt> 。剩下来在列表中的表达式会依序被求值，直到迭代结束，而最后一个值会被当作 <tt class="docutils literal"><span class="pre">do</span></tt> 的返回值来返回。所以 <tt class="docutils literal"><span class="pre">show-squares</span></tt> 总是返回 <tt class="docutils literal"><span class="pre">done</span></tt> 。</p>
+<p><tt class="docutils literal"><span class="pre">do</span></tt> 的其馀实参组成了循环的函数主体。会在每次迭代时，依序被求值。在每一次迭代过程中，变量被更新，检查终止测试条件，接著（若测试失败）求值函数主体。</p>
+<p>作为对比，以下是递归版本的 <tt class="docutils literal"><span class="pre">show-squares</span></tt> ：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">show-squares</span> <span class="p">(</span><span class="nv">i</span> <span class="nv">end</span><span class="p">)</span>
+   <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">&gt;</span> <span class="nv">i</span> <span class="nv">end</span><span class="p">)</span>
+     <span class="ss">&#39;done</span>
+     <span class="p">(</span><span class="k">progn</span>
+       <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;~A ~A~%&quot;</span> <span class="nv">i</span> <span class="p">(</span><span class="nb">*</span> <span class="nv">i</span> <span class="nv">i</span><span class="p">))</span>
+       <span class="p">(</span><span class="nv">show-squares</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">i</span> <span class="mi">1</span><span class="p">)</span> <span class="nv">end</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>唯一的新东西是 <tt class="docutils literal"><span class="pre">progn</span></tt> 。接受任意数量的表达式，依序对它们求值，并返回最后一个值。</p>
+<p>为了处理某些特殊情况， Common Lisp 有更简单的迭代操作符。举例来说，要遍历列表的元素，你可能会使用 <tt class="docutils literal"><span class="pre">dolist</span></tt>  。以下是一个返回列表长度的函数：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">our-length</span> <span class="p">(</span><span class="nv">lst</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">len</span> <span class="mi">0</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">dolist</span> <span class="p">(</span><span class="nv">obj</span> <span class="nv">lst</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">setf</span> <span class="nv">len</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">len</span> <span class="mi">1</span><span class="p">)))</span>
+    <span class="nv">len</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>这里 <tt class="docutils literal"><span class="pre">dolist</span></tt> 接受这样形式的实参<em>(variable expression)</em>，跟着一个具有表达式的函数主体。函数主体会被求值，而变量相继与表达式所返回的列表元素绑定。因此上面的循环说，对于列表 <tt class="docutils literal"><span class="pre">lst</span></tt> 里的每一个 <tt class="docutils literal"><span class="pre">obj</span></tt> ，递增 <tt class="docutils literal"><span class="pre">len</span></tt> 。很显然的这个函数的递归版本是：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">our-length</span> <span class="p">(</span><span class="nv">lst</span><span class="p">)</span>
+ <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">lst</span><span class="p">)</span>
+     <span class="mi">0</span>
+     <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nv">our-length</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">))</span> <span class="mi">1</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>也就是说，如果这个列表是空表，它的长度是 <tt class="docutils literal"><span class="pre">0</span></tt> ；否则它的长度就是 <tt class="docutils literal"><span class="pre">cdr</span></tt> 列表的长度加一。递归版本的 <tt class="docutils literal"><span class="pre">our-length</span></tt> 比较易懂，但因为它不是尾递归 (tail-recursive)的形式 (見 13.2 节)，效率不是那么高。</p>
+</div>
+<div class="section" id="functions-as-objects">
+<h2>2.14 函数作为对象 (Functions as Objects)<a class="headerlink" href="#functions-as-objects" title="永久链接至标题">¶</a></h2>
+<p>函数在 Lisp 里，如同符号、字串或列表那样，是稀松平常的对象。如果我们把函数的名字传给 <tt class="docutils literal"><span class="pre">function</span></tt> ，它会返回相关联的对象。与 <tt class="docutils literal"><span class="pre">quote</span></tt> 相同， <tt class="docutils literal"><span class="pre">function</span></tt> 是一个特殊操作符，所以我们不需引用 (quote)它的實參：</p>
+<div class="highlight-cl"><pre>&gt; (function +)
+#&lt;Compiled-Function + 17BA4E&gt;</pre>
+</div>
+<p>这看起来很奇怪的返回值是在典型的 Common Lisp 实现里，函数可能的显示方法。</p>
+<p>到目前为止，我们仅讨论过， Lisp 显示它们与我们输入它们，看起来都是一样的对象。这个惯例对函数不适用。一个内建函数像是 <tt class="docutils literal"><span class="pre">+</span></tt> ，在内部可能是一段机器语言代码（machine language code）。一个 Common Lisp 实现，可能选择任何它所喜欢的外部表示法（external representation）。</p>
+<p>如同我们可以用 <tt class="docutils literal"><span class="pre">'</span></tt> 作为 <tt class="docutils literal"><span class="pre">quote</span></tt> 的缩写，可以用 <tt class="docutils literal"><span class="pre">#'</span></tt> 作为 <tt class="docutils literal"><span class="pre">function</span></tt> 的缩写：</p>
+<div class="highlight-cl"><pre>&gt; #'+
+#&lt;Compiled-Function + 17BA4E&gt;</pre>
+</div>
+<p>这个缩写称之为升引号（sharp-quote）。</p>
+<p>与别种对象相同，我们可以把函数当作实参传入。一个接受函数作为实参的函数是 <tt class="docutils literal"><span class="pre">apply</span></tt> 。它接受函数和实参列表，并返回把传入函数应用在后面实参的结果：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">apply</span> <span class="nf">#&#39;</span><span class="nb">+</span> <span class="o">&#39;</span><span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">))</span>
+<span class="mi">6</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">+</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">)</span>
+<span class="mi">6</span>
+</pre></div>
+</td></tr></table></div>
+<p>它可以接受任意数量的实参，只要最后一个实参是列表即可：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">apply</span> <span class="nf">#&#39;</span><span class="nb">+</span> <span class="mi">1</span> <span class="mi">2</span> <span class="o">&#39;</span><span class="p">(</span><span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span><span class="p">))</span>
+<span class="mi">15</span>
+</pre></div>
+</td></tr></table></div>
+<p>函数 <tt class="docutils literal"><span class="pre">funcall</span></tt> 做一样的事情，但实参不需要包装成列表。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">funcall</span> <span class="nf">#&#39;</span><span class="nb">+</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">)</span>
+<span class="mi">6</span>
+</pre></div>
+</td></tr></table></div>
+<div class="admonition note">
+<p class="first admonition-title">注解</p>
+<p>什么是 <tt class="docutils literal"><span class="pre">lambda</span></tt> ？</p>
+<p><tt class="docutils literal"><span class="pre">lambda</span></tt> 表达式里的 <tt class="docutils literal"><span class="pre">lambda</span></tt> 不是一个操作符。只是一个符号。
+在早期的 Lisp 方言里， <tt class="docutils literal"><span class="pre">lambda</span></tt> 有一个目的：由于函数在内部是用列表来表示，
+因此辨别列表与函数的方法，是检查第一个元素是否为符号 <tt class="docutils literal"><span class="pre">lambda</span></tt> 。</p>
+<p>在 Common Lisp 里，你可以用列表来表达函数，
+函数在内部会被表示成独特的函数对象。因此不再需要 <cite>lambda</cite> 了。
+如果需要把函数记为</p>
+<blockquote>
+<div><div class="highlight-cl"><div class="highlight"><pre><span class="p">((</span><span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="mi">100</span><span class="p">))</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>而不是</p>
+<blockquote>
+<div><div class="highlight-cl"><div class="highlight"><pre><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="mi">100</span><span class="p">))</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>也是可以的。</p>
+<p class="last">但 Lisp 程序员习惯用符号 <tt class="docutils literal"><span class="pre">lambda</span></tt> ，来撰写函数，
+因此 Common Lisp 为了传统，而保留了 <tt class="docutils literal"><span class="pre">lambda</span></tt> 。</p>
+</div>
+<p><tt class="docutils literal"><span class="pre">defun</span></tt> 宏，创建一个函数并给函数命名。但函数不需要有名字，而且我们不需要 <tt class="docutils literal"><span class="pre">defun</span></tt> 来定义他们。和大多数的 Lisp 对象一样，我们可以直接引用函数。</p>
+<p>要直接引用整数，我们使用一系列的数字；要直接引用一个函数，我们使用所谓的<em>lambda 表达式</em>。一个 <tt class="docutils literal"><span class="pre">lambda</span></tt> 表达式是一个列表，列表包含符号 <tt class="docutils literal"><span class="pre">lambda</span></tt> ，接著是实参列表，以及由零个或多个表达式所组成的函数主体。</p>
+<p>下面的 <tt class="docutils literal"><span class="pre">lambda</span></tt> 表达式，代表一个接受两个数字并返回两者之和的函数：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">y</span><span class="p">)</span>
+ <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>列表 <tt class="docutils literal"><span class="pre">(x</span> <span class="pre">y)</span></tt> 是实参列表，跟在它后面的是函数主体。</p>
+<p>一个 <tt class="docutils literal"><span class="pre">lambda</span></tt> 表达式可以作为函数名。就像普通的函数名称， lambda 表达式可以是函数调用的第一个元素，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">((</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="mi">100</span><span class="p">))</span> <span class="mi">1</span><span class="p">)</span>
+<span class="mi">101</span>
+</pre></div>
+</td></tr></table></div>
+<p>而通过在 <tt class="docutils literal"><span class="pre">lambda</span></tt> 表达式前面贴上 <tt class="docutils literal"><span class="pre">#'</span></tt> ，我们得到对应的函数，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">funcall</span> <span class="nf">#&#39;</span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="mi">100</span><span class="p">))</span>
+          <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p><tt class="docutils literal"><span class="pre">lambda</span></tt> 表示法除前述用途以外，还允许我们使用匿名函数。</p>
+</div>
+<div class="section" id="types">
+<h2>2.15 类型 (Types)<a class="headerlink" href="#types" title="永久链接至标题">¶</a></h2>
+<p>Lisp 处理类型的方法非常灵活。在很多语言里，变量是有类型的，你得声明变量的类型才能使用它。在 Common Lisp 里，数值才有类型，而变量没有。你可以想像每个对象都贴有一个标明其类型的标签。这种方法叫做<em>显式类型</em>（<em>manifest typing</em>）。你不需要声明变量的类型，因为任​变量可以存放任何类型的对象。</p>
+<p>虽然从来不需要声明类型，出于效率的考量，你可能会想要声明类型。类型声明在第 13.3 节时讨论。</p>
+<p>Common Lisp 的内建类型，组成了一个子类父类的结构。对象总是属于不止一个类型。举例来说，数字 27 的类型，依普遍性的增加排列，依序是 <tt class="docutils literal"><span class="pre">fixnum</span></tt> 、 <tt class="docutils literal"><span class="pre">integer</span></tt> 、 <tt class="docutils literal"><span class="pre">rational</span></tt> 、 <tt class="docutils literal"><span class="pre">real</span></tt> 、 <tt class="docutils literal"><span class="pre">number</span></tt> 、 <tt class="docutils literal"><span class="pre">atom</span></tt> 和 <tt class="docutils literal"><span class="pre">t</span></tt> 类型。 (数值类型在第 9 章讨论。)类型 <tt class="docutils literal"><span class="pre">t</span></tt> 是所有类型的基类（supertype）。所以每个对象都属于 <tt class="docutils literal"><span class="pre">t</span></tt> 类型。</p>
+<p>函数 <tt class="docutils literal"><span class="pre">typep</span></tt> 接受一个对象和一个类型，然后判定对象是否为该类型，是的话就返回真：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">typep</span> <span class="mi">27</span> <span class="ss">&#39;integer</span><span class="p">)</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+<p>我们会在遇到各式内置类型时来讨论它们。</p>
+</div>
+<div class="section" id="looking-forward">
+<h2>2.16 展望 (Looking Forward)<a class="headerlink" href="#looking-forward" title="永久链接至标题">¶</a></h2>
+<p>本章仅谈到 Lisp 的表面。然而一种非比寻常的语言的形象开始出现了。首先，这个语言用一种语法来表达所有的程序结构。语法基于列表，列表是一种 Lisp 对象。函数本身也是 Lisp 对象，函数能用列表来表示。而 Lisp 本身就是 Lisp 程序。几乎所有你定义的函数，与内置的 Lisp 函数没有任何区别。</p>
+<p>不用担心如果你对这些概念还不太了解。 Lisp 介绍了这么多新颖的概念，在你能驾驭它们之前，得花时间去熟悉。不过至少要了解一件事：在这些概念当中，有著优雅到令人吃惊的概念。</p>
+<p><a class="reference external" href="http://en.wikipedia.org/wiki/Richard_P._Gabriel">Richard Gabriel</a> 曾经半开玩笑地描述说， C 是拿来写 Unix 的语言。我们也可以说， Lisp 是拿来写 Lisp 的语言。但这是两种不同的论述。一个可以用自己编写的语言和一种适合编写某些特定类型的应用的语言，是本质上不同的。开创了新的编程方法：你不但在语言之中编程，还把语言改善成适合你程序的语言。如果你想了解 Lisp 编程的本质，这个概念是一个好的开始。</p>
+</div>
+<div class="section" id="chapter-2-summary">
+<h2>Chapter 2 总结 (Summary)<a class="headerlink" href="#chapter-2-summary" title="永久链接至标题">¶</a></h2>
+<ol class="arabic simple">
+<li>Lisp 是一种交互式语言。如果你在顶层输入一个表达式， Lisp 会显示它的值。</li>
+<li>Lisp 程序由表达式组成。表达式可以是原子，或一个由操作符跟着零个或多个实参的列表。前序表示法代表操作符可以有任意数量的实参。</li>
+<li>Common Lisp 函数调用的求值规则： 依序对实参从左至右求值，接著把它们的值传入由操作符表示的函数。 <tt class="docutils literal"><span class="pre">quote</span></tt> 操作符有自己的求值规则，它完封不动地返回实参。</li>
+<li>除了一般的数据类型， Lisp 还有符号跟列表。由于 Lisp 程序是用列表来表示的，很轻松就能写出能编程的程序。</li>
+<li>三个基本的​​列表函数是 <tt class="docutils literal"><span class="pre">cons</span></tt> ，它创建一个列表； <tt class="docutils literal"><span class="pre">car</span></tt> ，它返回列表的第一个元素；以及 <tt class="docutils literal"><span class="pre">cdr</span></tt> ，它返回第一个元素之后的所有东西。</li>
+<li>在 Common Lisp 里， <tt class="docutils literal"><span class="pre">t</span></tt> 表示逻辑 <tt class="docutils literal"><span class="pre">真</span></tt> ，而 <tt class="docutils literal"><span class="pre">nil</span></tt> 表示逻辑 <tt class="docutils literal"><span class="pre">假</span></tt> 。在逻辑的上下文里，任何非 <tt class="docutils literal"><span class="pre">nil</span></tt> 的东西都视为 <tt class="docutils literal"><span class="pre">真</span></tt> 。基本的条件式是 <tt class="docutils literal"><span class="pre">if</span></tt> 。 <tt class="docutils literal"><span class="pre">and</span></tt> 与 <tt class="docutils literal"><span class="pre">or</span></tt> 是相似的条件式。</li>
+<li>Lisp 主要由函数所组成。可以用 <tt class="docutils literal"><span class="pre">defun</span></tt> 来定义新的函数。</li>
+<li>自己调用自己的函数是递归的。一个递归函数应该要被想成是过程，而不是机器。</li>
+<li>括号不是问题，因为程序员通过缩排来阅读与编写 Lisp 程序。</li>
+<li>基本的 I/O 函数是 <tt class="docutils literal"><span class="pre">read</span></tt> ，它包含了一个完整的 Lisp 语法分析器，以及 <tt class="docutils literal"><span class="pre">format</span></tt> ，它基由字串模版来产生输出。</li>
+<li>你可以用 <tt class="docutils literal"><span class="pre">let</span></tt> 来创造新的局部变量，用 <tt class="docutils literal"><span class="pre">defparameter</span></tt> 来创造全局变量。</li>
+<li>赋值操作符是 <tt class="docutils literal"><span class="pre">setf</span></tt> 。它的第一个实参可以是一个表达式。</li>
+<li>函数式编程代表避免产生副作用，也是 Lisp 的主导思维。</li>
+<li>基本的迭代操作符是 <tt class="docutils literal"><span class="pre">do</span></tt> 。</li>
+<li>函数是 Lisp 的对象。可以被当成实参传入，并且可以用 lambda 表达式来表示。</li>
+<li>在 Lisp 里，是数值才有类型，而不是变量。</li>
+</ol>
+</div>
+<div class="section" id="chapter-2-exercises">
+<h2>Chapter 2 习题 (Exercises)<a class="headerlink" href="#chapter-2-exercises" title="永久链接至标题">¶</a></h2>
+<ol class="arabic simple">
+<li>描述下列表达式求值之后的结果：</li>
+</ol>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">a</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nb">-</span> <span class="mi">5</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="mi">3</span> <span class="mi">7</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nv">b</span><span class="p">)</span> <span class="p">(</span><span class="nb">list</span> <span class="mi">1</span> <span class="p">(</span><span class="nb">+</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nv">c</span><span class="p">)</span> <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">listp</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="mi">1</span> <span class="mi">2</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nv">d</span><span class="p">)</span> <span class="p">(</span><span class="nb">list</span> <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nb">listp</span> <span class="mi">3</span><span class="p">)</span> <span class="no">t</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="mi">1</span> <span class="mi">2</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<ol class="arabic simple" start="2">
+<li>给出 3 种不同表示 <tt class="docutils literal"><span class="pre">(abc)</span></tt> 的 <tt class="docutils literal"><span class="pre">cons</span> <span class="pre">表达式</span></tt> 。</li>
+<li>使用 <tt class="docutils literal"><span class="pre">car</span></tt> 与 <tt class="docutils literal"><span class="pre">cdr</span></tt> 来定义一个函数，返回一个列表的第四个元素。</li>
+<li>定义一个函数，接受两个实参，返回两者当中较大的那个。</li>
+<li>这些函数做了什么？</li>
+</ol>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">a</span><span class="p">)</span> <span class="p">(</span><span class="nb">defun</span> <span class="nv">enigma</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">and</span> <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">x</span><span class="p">))</span>
+           <span class="p">(</span><span class="nb">or</span> <span class="p">(</span><span class="nb">null</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">x</span><span class="p">))</span>
+               <span class="p">(</span><span class="nv">enigma</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">x</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="nv">b</span><span class="p">)</span> <span class="p">(</span><span class="nb">defun</span> <span class="nv">mystery</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">y</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">y</span><span class="p">)</span>
+          <span class="no">nil</span>
+          <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">eql</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">y</span><span class="p">)</span> <span class="nv">x</span><span class="p">)</span>
+              <span class="mi">0</span>
+              <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">z</span> <span class="p">(</span><span class="nv">mystery</span> <span class="nv">x</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">y</span><span class="p">))))</span>
+                <span class="p">(</span><span class="nb">and</span> <span class="nv">z</span> <span class="p">(</span><span class="nb">+</span> <span class="nv">z</span> <span class="mi">1</span><span class="p">))))))</span>
+</pre></div>
+</td></tr></table></div>
+<ol class="arabic simple" start="6">
+<li>下列表达式， <tt class="docutils literal"><span class="pre">x</span></tt> 该是什么，才会得到相同的结果？</li>
+</ol>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">a</span><span class="p">)</span> <span class="nb">&gt;</span> <span class="p">(</span><span class="nb">car</span> <span class="p">(</span><span class="nv">x</span> <span class="p">(</span><span class="nb">cdr</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="p">(</span><span class="nv">b</span> <span class="nv">c</span><span class="p">)</span> <span class="nv">d</span><span class="p">))))</span>
+    <span class="nv">B</span>
+<span class="p">(</span><span class="nv">b</span><span class="p">)</span> <span class="nb">&gt;</span> <span class="p">(</span><span class="nv">x</span> <span class="mi">13</span> <span class="p">(</span><span class="nb">/</span> <span class="mi">1</span> <span class="mi">0</span><span class="p">))</span>
+    <span class="mi">13</span>
+<span class="p">(</span><span class="nv">c</span><span class="p">)</span> <span class="nb">&gt;</span> <span class="p">(</span><span class="nv">x</span> <span class="nf">#&#39;</span><span class="nb">list</span> <span class="mi">1</span> <span class="no">nil</span><span class="p">)</span>
+    <span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<ol class="arabic simple" start="7">
+<li>只使用本章所介绍的操作符，定义一个函数，它接受一个列表作为实参，如果有一个元素是列表时，就返回真。</li>
+<li>给出函数的迭代与递归版本：</li>
+</ol>
+<ol class="loweralpha simple">
+<li>接受一个正整数，并打印出数字数量的点。</li>
+<li>接受一个列表，并返回 <tt class="docutils literal"><span class="pre">a</span></tt> 在列表里所出现的次数。</li>
+</ol>
+<ol class="arabic simple" start="9">
+<li>一位朋友想写一个函数，返回列表里所有非 <tt class="docutils literal"><span class="pre">nil</span></tt> 元素的和。他写了此函数的两个版本，但两个都不能工作。请解释每一个的错误在哪里，并给出正确的版本。</li>
+</ol>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">a</span><span class="p">)</span> <span class="p">(</span><span class="nb">defun</span> <span class="nv">summit</span> <span class="p">(</span><span class="nv">lst</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">remove</span> <span class="no">nil</span> <span class="nv">lst</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">apply</span> <span class="nf">#&#39;</span><span class="nb">+</span> <span class="nv">lst</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nv">b</span><span class="p">)</span> <span class="p">(</span><span class="nb">defun</span> <span class="nv">summit</span> <span class="p">(</span><span class="nv">lst</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">x</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">lst</span><span class="p">)))</span>
+        <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">x</span><span class="p">)</span>
+            <span class="p">(</span><span class="nv">summit</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">))</span>
+            <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="p">(</span><span class="nv">summit</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">))))))</span>
+</pre></div>
+</td></tr></table></div>
+<p class="rubric">脚注</p>
+<table class="docutils footnote" frame="void" id="id5" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[1]</a></td><td>在 vi，你可以用 :set sm 来启用括号匹配。在 Emacs，M-x lisp-mode 是一个启用的好方法。</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id6" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[2]</a></td><td>真正的区别是词法 (lexical)与特殊变量 (special variable)，但我们到第六章才讨论这个主题。</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'acl-chinese';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+                  </div></div>
+              </article><div class="clearer"></div>
+          </div><div class="span3">
+                <div class="sphinxsidebar">
+      <div id="sidenav" class="box sphinxsidebarwrapper">
+
+
+<h4><a href="../index.html">內容目录</a></h4>
+  <ul>
+<li><a class="reference internal" href="#">第二章：欢迎来到 Lisp</a><ul>
+<li><a class="reference internal" href="#form">2.1 形式 (Form)</a></li>
+<li><a class="reference internal" href="#evaluation">2.2 求值 (Evaluation)</a></li>
+<li><a class="reference internal" href="#data">2.3 数据 (Data)</a></li>
+<li><a class="reference internal" href="#list-operations">2.4 列表操作 (List Operations)</a></li>
+<li><a class="reference internal" href="#truth">2.5 真与假 (Truth)</a></li>
+<li><a class="reference internal" href="#functions">2.6 函数 (Functions)</a></li>
+<li><a class="reference internal" href="#recursion">2.7 递归 (Recursion)</a></li>
+<li><a class="reference internal" href="#lisp-reading-lisp">2.8 阅读 Lisp (Reading Lisp)</a></li>
+<li><a class="reference internal" href="#input-and-output">2.9 输入输出 (Input and Output)</a></li>
+<li><a class="reference internal" href="#variables">2.10 变量 (Variables)</a></li>
+<li><a class="reference internal" href="#assignment">2.11 赋值 (Assignment)</a></li>
+<li><a class="reference internal" href="#functional-programming">2.12 函数式编程 (Functional Programming)</a></li>
+<li><a class="reference internal" href="#iteration">2.13 迭代 (Iteration)</a></li>
+<li><a class="reference internal" href="#functions-as-objects">2.14 函数作为对象 (Functions as Objects)</a></li>
+<li><a class="reference internal" href="#types">2.15 类型 (Types)</a></li>
+<li><a class="reference internal" href="#looking-forward">2.16 展望 (Looking Forward)</a></li>
+<li><a class="reference internal" href="#chapter-2-summary">Chapter 2 总结 (Summary)</a></li>
+<li><a class="reference internal" href="#chapter-2-exercises">Chapter 2 习题 (Exercises)</a></li>
+</ul>
+</li>
+</ul>
+
+  
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      
+      
+        <li><a href="https://github.com/acl-translation/acl-chinese/blob/redirect-to-new-domain/zhCN/ch2-cn.rst">
+          Show on GitHub</a></li>
+        <li><a href="https://github.com/acl-translation/acl-chinese/edit/redirect-to-new-domain/zhCN/ch2-cn.rst">
+          Edit on GitHub</a></li>
+      
+    </ul>
+  
+</div>
+    </div>
+              </div></div>
+      </div>
+<footer class="container-fluid">
+        <hr />&copy; 版权所有 2012, Juanito Fatas Huang.最后更新日期是 Apr 22, 2013.使用 <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.</footer>
+ <!-- End original user content -->
+
+
+<br>
+<br>
+<br>
+
+
+<style type="text/css">
+  .rtd-badge {
+    position: fixed;
+    display: block;
+    bottom: 5px;
+    height: 40px;
+    text-indent: -9999em;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -moz-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  }
+  #version_menu {
+    position: fixed;
+    display: none;
+    bottom: 11px;
+    right: 166px;
+    list-style-type: none;
+    margin: 0;
+  }
+  .footer_popout:hover #version_menu {
+    display: block;
+  }
+  #version_menu li {
+    display: block;
+    float: right;
+  }
+  #version_menu li a {
+    display: block;
+    padding: 6px 10px 4px 10px;
+    margin: 7px 7px 0 0;
+    font-weight: bold;
+    font-size: 14px;
+    height: 20px;
+    line-height: 17px;
+    text-decoration: none;
+    color: #fff;
+    background: #8ca1af url(../images/gradient-light.png) bottom left repeat-x;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 1px #465158;
+    -moz-box-shadow: 0 1px 1px #465158;
+    -webkit-box-shadow: 0 1px 1px #465158;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+  }
+  #version_menu li a:hover {
+    text-decoration: none;
+    background-color: #697983;
+    box-shadow: 0 1px 0px #465158;
+    -moz-box-shadow: 0 1px 0px #465158;
+    -webkit-box-shadow: 0 1px 0px #465158;
+  }
+  .rtd-badge.rtd {
+    background: #3b4449 url(//media.readthedocs.org//images/badge-rtd.png) scroll 0px -46px no-repeat;
+    border: 1px solid #282E32;
+    width: 41px;
+    right: 5px;
+  }
+  .footer_popout:hover .rtd-badge.rtd {
+    background-position: top left;
+    width: 160px;
+  }
+  .rtd-badge.revsys { background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline-sponsored {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys-sm.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 205px;
+    right: 173px;
+  }
+
+</style>
+<div class="rtd_doc_footer">
+  <div class="footer_popout">
+    <a href="//readthedocs.org/projects/ansi-common-lisp/?fromdocs=ansi-common-lisp" class="rtd-badge rtd"> Brought to you by Read the Docs</a>
+    <ul id="version_menu">
+      
+        <li><a href="/en/latest/">latest</a></li>
+      
+    </ul>
+  </div>
+</div>
+<!-- RTD Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-17997319-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+<!-- User Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-26995626-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,807 @@
+<!DOCTYPE HTML>
+
+  <html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+<title>第七章：輸入與輸出 &mdash; ANSI Common Lisp 中文版</title>
+    
+<!-- RTD <head> -->
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/underscore.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/doctools.js"></script>
+
+<script type="text/javascript">
+  // This is included here for Javascript that doesn't have access to the templates.
+  var doc_version = "latest";
+  var doc_slug = "ansi-common-lisp";
+</script>
+
+<script type="text/javascript" src="//media.readthedocs.org/javascript/rtd.js"></script>
+<!-- end RTD <head> -->
+
+    <link rel="stylesheet" href="../_static/han.min.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/rosefinch.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/main.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:       '../',
+        VERSION:        '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX:    '.html',
+        HAS_SOURCE:     true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/han.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  <script type="text/javascript" src=../_static/jquery.dimensions.js"></script>
+  <script type="text/javascript" src="../_static/main.js"></script><link rel="top" title="ANSI Common Lisp 中文版" href="../index.html" /></head>
+
+  <body><div class="navbar navbar-static-top navbar-inverse">
+        <div id="top-bar" class="navbar-inner">
+
+          <h1 id="logo">ANSI Common Lisp 中文版<a href="../index.html" class="brand">ANSI Common Lisp 中文版</a></h1>
+          <ul class="nav"></ul><a href="https://github.com/acl-translation/acl-chinese"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
+        </div>
+      </div><div class="content container-fluid">
+        <div class="row-fluid"><div class="document span9"><article >
+                <div class="documentwrapper"><div class="body"><div class="section" id="id1">
+<h1>第七章：輸入與輸出<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h1>
+<p>Common Lisp 有著威力強大的 I/O 工具。針對輸入以及一些普遍讀取字元的函數，我們有 <tt class="docutils literal"><span class="pre">read</span></tt> ，包含了一個完整的解析器 (parser)。針對輸出以及一些普遍寫出字元的函數，我們有 <tt class="docutils literal"><span class="pre">format</span></tt> ，它自己幾乎就是一個語言。本章介紹了所有基本的概念。</p>
+<p>Common Lisp 有兩種流 (streams)，字元流與二進制流。本章描述了字元流的操作；二進制流的操作涵蓋在 14.2 節。</p>
+<div class="section" id="streams">
+<h2>7.1 流 (Streams)<a class="headerlink" href="#streams" title="永久链接至标题">¶</a></h2>
+<p>流是用來表示字元來源與/或終點的 Lisp 物件。要從檔案讀取或寫入，你將檔案作為流打開。但流與檔案是不一樣的。當你在頂層讀入或印出時，你也可以使用流。你甚至可以創造可以讀取或寫入字串的流。</p>
+<p>輸入預設是從 <tt class="docutils literal"><span class="pre">*standard-input*</span></tt> 流讀取。輸出預設是在 <tt class="docutils literal"><span class="pre">*standard-output*</span></tt> 流。最初它們大概會在相同的地方：一個表示頂層的流。</p>
+<p>我們已經看過 <tt class="docutils literal"><span class="pre">read</span></tt> 與 <tt class="docutils literal"><span class="pre">format</span></tt> 是如何在頂層讀取與印出。前者接受一個應是流的選擇性參數，預設是 <tt class="docutils literal"><span class="pre">*standard-input*</span></tt> 。 <tt class="docutils literal"><span class="pre">format</span></tt> 的第一個參數也可以是一個流，但當它是 <tt class="docutils literal"><span class="pre">t</span></tt> 時，輸出被送到 <tt class="docutils literal"><span class="pre">*standard-output*</span></tt> 。所以我們目前為止都只用到預設的流而已。我們可以在任何流上面做同樣的 I/O 操作。</p>
+<p>一個路徑名 (pathname) 是一種可攜的方式來指定一個檔案。一個路徑名有六個部分：host, device, directory, name, type 及 version。你可以透過呼叫 <tt class="docutils literal"><span class="pre">make-pathname</span></tt> 搭配一個或多個對應的關鍵字參數來產生一個路徑。在最簡單的情況下，你可以只指明名字，讓其他的部分為預設：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">path</span> <span class="p">(</span><span class="nb">make-pathname</span> <span class="ss">:name</span> <span class="s">&quot;myfile&quot;</span><span class="p">))</span>
+      <span class="l-Other">#P&quot;myfile&quot;</span>
+</pre></div>
+</td></tr></table></div>
+<p>開啟一個檔案的基本函數是 <tt class="docutils literal"><span class="pre">open</span></tt> 。它接受一個路徑名 <a class="footnote-reference" href="#id5" id="id2">[1]</a> 以及大量的選擇性關鍵字參數，而若是開啟成功時，回傳一個指向檔案的流。</p>
+<p>你可以在創造流時，指定你想要怎麼使用它。 無論你是要寫入流、從流讀取或是兩者皆是，``direction`` 參數都會偵測到。三個對應的數值是 <tt class="docutils literal"><span class="pre">:input</span></tt> , <tt class="docutils literal"><span class="pre">output</span></tt> , <tt class="docutils literal"><span class="pre">:io</span></tt> 。如果是用來輸出的流， <tt class="docutils literal"><span class="pre">if-exists</span></tt> 參數說明了如果檔案已經存在時該怎麼做；通常它應該是 <tt class="docutils literal"><span class="pre">:supercede</span></tt> (譯註: 取代)。所以要創造一個可以寫至 <tt class="docutils literal"><span class="pre">&quot;myfile&quot;</span></tt> 檔案的流，你可以：</p>
+<div class="highlight-cl"><pre>&gt; (setf str (open path :direction :output
+                       :if-exists :supercede))
+#&lt;Stream C017E6&gt;</pre>
+</div>
+<p>流的印出表示法 (printed-representation) 因實現而異 (implementation-dependent)。</p>
+<p>現在我們可以把這個流作為第一個參數傳給 <tt class="docutils literal"><span class="pre">format</span></tt> ，它會在流印出，而不是頂層：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">format</span> <span class="nv">str</span> <span class="s">&quot;Something~%&quot;</span><span class="p">)</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果我們在此時檢視這個檔案，輸出也許會、也許不會在那裡。某些實現會將輸出儲存成一塊 (chunks)再寫出。它也許不會出現，直到我們將流關閉：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">close</span> <span class="nv">str</span><span class="p">)</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>當你使用完時，永遠記得關閉檔案；在你還沒關閉之前，內容是不保證會出現的。現在如果我們檢視檔案 &#8220;myfile&#8221; ，應該有一行：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="nv">Something</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果我們只想從一個檔案讀取，我們可以開啟一個具有 <tt class="docutils literal"><span class="pre">:direction</span> <span class="pre">:input</span></tt> 的流 ：</p>
+<div class="highlight-cl"><pre>&gt; (setf str (open path :direction :input))
+#&lt;Stream C01C86&gt;</pre>
+</div>
+<p>我們可以對一個檔案使用任何輸入函數。7.2 節會更詳細的描述輸入。這裡作為一個範例，我們將使用 <tt class="docutils literal"><span class="pre">read-line</span></tt> 從檔案來讀取一行文字：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">read-line</span> <span class="nv">str</span><span class="p">)</span>
+<span class="s">&quot;Something&quot;</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">close</span> <span class="nv">str</span><span class="p">)</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>當你讀取完畢時，記得關閉檔案。</p>
+<p>大部分時間我們不使用 <tt class="docutils literal"><span class="pre">open</span></tt> 與 <tt class="docutils literal"><span class="pre">close</span></tt> 來操作檔案的 I/O 。 <tt class="docutils literal"><span class="pre">with-open-file</span></tt> 巨集通常更方便。它的第一個參數應該是一個列表，包含了變數名、伴隨著你想傳給 <tt class="docutils literal"><span class="pre">open</span></tt> 的參數。在這之後，它接受一個程式碼主體，它會被綁定至流的變數一起被求值，其中流是通過將剩餘的參數傳給 <tt class="docutils literal"><span class="pre">open</span></tt> 來創造的。之後這個流會被自動關閉。所以整個檔案寫入動作可以表示為：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">with-open-file</span> <span class="p">(</span><span class="nv">str</span> <span class="nv">path</span> <span class="ss">:direction</span> <span class="ss">:output</span>
+                          <span class="ss">:if-exists</span> <span class="ss">:supercede</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">format</span> <span class="nv">str</span> <span class="s">&quot;Something~%&quot;</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p><tt class="docutils literal"><span class="pre">with-open-file</span></tt> 巨集將 <tt class="docutils literal"><span class="pre">close</span></tt> 放在 <tt class="docutils literal"><span class="pre">unwind-protect</span></tt> 裡 (參見 92 頁，譯註: 5.6 節)，即使一個錯誤打斷了主體的求值，檔案是保證會被關閉的。</p>
+</div>
+<div class="section" id="input">
+<h2>7.2 輸入 (Input)<a class="headerlink" href="#input" title="永久链接至标题">¶</a></h2>
+<p>兩個最受歡迎的輸入函數是 <tt class="docutils literal"><span class="pre">read-line</span></tt> 及 <tt class="docutils literal"><span class="pre">read</span></tt> 。前者讀入換行符 (newline)之前的所有字元，並用字串回傳它們。它接受一個選擇性流參數 (optional stream argument)；若流忽略時，預設為 <tt class="docutils literal"><span class="pre">*standard-input*</span></tt> :</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">progn</span>
+    <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;Please enter your name: &quot;</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">read-line</span><span class="p">))</span>
+<span class="nv">Please</span> <span class="nv">enter</span> <span class="nv">your</span> <span class="nv">name:</span> <span class="nv">Rodrigo</span> <span class="nv">de</span> <span class="nv">Bivar</span>
+<span class="s">&quot;Rodrigo de Bivar&quot;</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>譯註: Rodrigo de Bivar 人稱熙德 (El cid)，十一世紀的西班牙民族英雄。</p>
+<p>如果你想要原封不動的輸出，這是你該用的函數。(第二個回傳值只在 <tt class="docutils literal"><span class="pre">read-line</span></tt> 在遇到換行符之前，用盡輸入時回傳真。)</p>
+<p>在一般情況下， <tt class="docutils literal"><span class="pre">read-line</span></tt> 接受四個選擇性參數: 一個流；一個參數用來決定遇到 <tt class="docutils literal"><span class="pre">end-of-file</span></tt> 時，是否產生錯誤；若前一個參數為 <tt class="docutils literal"><span class="pre">nil</span></tt> 時，該回傳什麼；第四個參數 (在 235 頁討論)通常可以省略。</p>
+<p>所以要在頂層顯示一個檔案的內容，我們可以使用下面這個函數：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">pseudo-cat</span> <span class="p">(</span><span class="nv">file</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">with-open-file</span> <span class="p">(</span><span class="nv">str</span> <span class="nv">file</span> <span class="ss">:direction</span> <span class="ss">:input</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">do</span> <span class="p">((</span><span class="nv">line</span> <span class="p">(</span><span class="nb">read-line</span> <span class="nv">str</span> <span class="no">nil</span> <span class="ss">&#39;eof</span><span class="p">)</span>
+               <span class="p">(</span><span class="nb">read-line</span> <span class="nv">str</span> <span class="no">nil</span> <span class="ss">&#39;eof</span><span class="p">)))</span>
+        <span class="p">((</span><span class="nb">eql</span> <span class="nv">line</span> <span class="ss">&#39;eof</span><span class="p">))</span>
+      <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;~A~%&quot;</span> <span class="nv">line</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>如果我們想要把輸入解析為 Lisp 物件，使用 <tt class="docutils literal"><span class="pre">read</span></tt> 。這個函數恰好讀取一個表達式，在表達式結束時停止讀取。所以可以讀取多於或少於一行。而當然它所讀取的內容必須是合法的 Lisp 語法。</p>
+<p>如果我們在頂層使用 <tt class="docutils literal"><span class="pre">read</span></tt> ，它會讓我們在表達式裡面，想用幾個換行符就用幾個：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">read</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">a</span>
+<span class="nv">b</span>
+<span class="nv">c</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span> <span class="nv">C</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>換句話說，如果我們在一行裡面輸入許多表達式， <tt class="docutils literal"><span class="pre">read</span></tt> 會在第一個表達式之後，停止處理字元，留下剩餘的字元給之後讀取這個流的函數處理。所以如果我們在一行輸入多個表達式，來回應 <tt class="docutils literal"><span class="pre">ask-number</span></tt> (20 頁。譯註：2.10 小節)所印出提示符，會發生如下情形:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">ask-number</span><span class="p">)</span>
+<span class="nv">Please</span> <span class="nv">enter</span> <span class="nv">a</span> <span class="nv">number.</span> <span class="nv">a</span> <span class="nv">b</span>
+<span class="nv">Please</span> <span class="nv">enter</span> <span class="nv">a</span> <span class="nv">number.</span> <span class="nv">Please</span> <span class="nv">enter</span> <span class="nv">a</span> <span class="nv">number.</span> <span class="mi">43</span>
+<span class="mi">43</span>
+</pre></div>
+</td></tr></table></div>
+<p>兩個連續的提示符 (successive prompts)在第二行被印出。第一個 <tt class="docutils literal"><span class="pre">read</span></tt> 呼叫會回傳 <tt class="docutils literal"><span class="pre">a</span></tt> ，而它不是一個數字，所以函數再次要求一個數字。但第一個 <tt class="docutils literal"><span class="pre">read</span></tt>      只讀取到 <tt class="docutils literal"><span class="pre">a</span></tt> 的結尾。所以下一個 <tt class="docutils literal"><span class="pre">read</span></tt> 呼叫回傳 <tt class="docutils literal"><span class="pre">b</span></tt> ，導致了下一個提示符。</p>
+<p>你或許想要避免使用 <tt class="docutils literal"><span class="pre">read</span></tt> 來直接處理使用者的輸入。前述的函數若使用 <tt class="docutils literal"><span class="pre">read-line</span></tt> 來獲得使用者輸入會比較好，然後對結果字串呼叫 <tt class="docutils literal"><span class="pre">read-from-string</span></tt> 。這個函數接受一個字串，並回傳第一個讀取的表達式:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">read-from-string</span> <span class="s">&quot;a b c&quot;</span><span class="p">)</span>
+<span class="nv">A</span>
+<span class="mi">2</span>
+</pre></div>
+</td></tr></table></div>
+<p>它同時回傳第二個值，一個指出停止讀取字串時的位置的數字。</p>
+<p>在一般情況下， <tt class="docutils literal"><span class="pre">read-from-string</span></tt> 可以接受兩個選擇性參數與三個關鍵字參數。兩個選擇性參數是 <tt class="docutils literal"><span class="pre">read</span></tt> 的第三、第四個參數: 一個 end-of-file (這個情況是字串) 決定是否產生錯誤，若不報錯該回傳什麼。關鍵字參數 <tt class="docutils literal"><span class="pre">:start</span></tt> 及 <tt class="docutils literal"><span class="pre">:end</span></tt> 可以用來劃分從字串的哪裡開始讀。</p>
+<p>所有的這些輸入函數是由基本函數 (primitive) <tt class="docutils literal"><span class="pre">read-char</span></tt> 所定義的，它讀取一個字元。它接受四個與 <tt class="docutils literal"><span class="pre">read</span></tt> 及 <tt class="docutils literal"><span class="pre">read-line</span></tt> 一樣的選擇性參數。Common Lisp 也定義一個函數叫做 <tt class="docutils literal"><span class="pre">peek-char</span></tt> ，跟 <tt class="docutils literal"><span class="pre">read-char</span></tt> 類似，但不會將字元從流中移除。</p>
+</div>
+<div class="section" id="output">
+<h2>7.3 輸出 (Output)<a class="headerlink" href="#output" title="永久链接至标题">¶</a></h2>
+<p>三個最簡單的輸出函數是 <tt class="docutils literal"><span class="pre">prin1</span></tt> , <tt class="docutils literal"><span class="pre">princ</span></tt> 以及 <tt class="docutils literal"><span class="pre">terpri</span></tt> 。這三個函數的最後一個參數皆為選擇性的流參數，預設是 <tt class="docutils literal"><span class="pre">*standard-output*</span></tt> 。</p>
+<p><tt class="docutils literal"><span class="pre">princ1</span></tt> 與 <tt class="docutils literal"><span class="pre">princ</span></tt> 的差別大致在於 <tt class="docutils literal"><span class="pre">prin1</span></tt> 給程式產生輸出，而 <tt class="docutils literal"><span class="pre">princ</span></tt> 給人類產生輸出。所以舉例來說， <tt class="docutils literal"><span class="pre">prin1</span></tt> 會印出字串左右的雙引號，而 <tt class="docutils literal"><span class="pre">princ</span></tt> 不會:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">prin1</span> <span class="s">&quot;Hello&quot;</span><span class="p">)</span>
+<span class="s">&quot;Hello&quot;</span>
+<span class="s">&quot;Hello&quot;</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">princ</span> <span class="s">&quot;Hello&quot;</span><span class="p">)</span>
+<span class="nv">Hello</span>
+<span class="s">&quot;Hello&quot;</span>
+</pre></div>
+</td></tr></table></div>
+<p>兩者皆回傳它們的第一個參數 (譯註: 第二個值是回傳值) –– 順道一提，是用 <tt class="docutils literal"><span class="pre">prin1</span></tt> 印出。 <tt class="docutils literal"><span class="pre">terpri</span></tt> 僅印出一新行。</p>
+<p>有這些函數的背景知識在解釋更為通用的 <tt class="docutils literal"><span class="pre">format</span></tt> 是很有用的。這個函數幾乎可以用在所有的輸出。他接受一個流 (或 <tt class="docutils literal"><span class="pre">t</span></tt> 或 <tt class="docutils literal"><span class="pre">nil</span></tt> )、一個格式化字串 (format string)以及零個或多個額外的參數。格式化字串可以包含特定的格式化指令 (format directives)，這些指令前面有波浪號 <tt class="docutils literal"><span class="pre">~</span></tt> 。某些格式化指令作為字串的佔位符 (placeholder)使用。這些位置會被格式化字串之後，所給入參數的表示法所取代。</p>
+<p>如果我們把 <tt class="docutils literal"><span class="pre">t</span></tt> 作為第一個參數，輸出會被送至 <tt class="docutils literal"><span class="pre">*standard-output*</span></tt> 。如果我們給 <tt class="docutils literal"><span class="pre">nil</span></tt> ， <tt class="docutils literal"><span class="pre">format</span></tt> 會回傳一個它會如何印出的字串。為了保持簡短，我們會在所有的範例裡示範怎麼做。</p>
+<p>由於每人的觀點不同， <tt class="docutils literal"><span class="pre">format</span></tt> 可以是令人驚訝的強大或是極為可怕的複雜。有大量的格式化指令可用，而只有少部分會被大多數程式設計師使用。兩個最常用的格式化指令是 <tt class="docutils literal"><span class="pre">~A</span></tt> 以及 <tt class="docutils literal"><span class="pre">~%</span></tt> 。(你使用 <tt class="docutils literal"><span class="pre">~a</span></tt> 或 <tt class="docutils literal"><span class="pre">~A</span></tt> 都沒關係，但後者較常見，因為它讓格式化指令看起來一目瞭然。) 一個 <tt class="docutils literal"><span class="pre">~A</span></tt> 是一個值的佔位符，它會像是用 <tt class="docutils literal"><span class="pre">princ</span></tt> 印出一般。一個 <tt class="docutils literal"><span class="pre">~%</span></tt> 代表著一個換行符 (newline)。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">format</span> <span class="no">nil</span> <span class="s">&quot;Dear ~A, ~% Our records indicate...&quot;</span>
+                                                        <span class="s">&quot;Mr. Malatesta&quot;</span><span class="p">)</span>
+<span class="s">&quot;Dear Mr. Malatesta,</span>
+<span class="s">   Our records indicate...&quot;</span>
+</pre></div>
+</td></tr></table></div>
+<p>這裡 <tt class="docutils literal"><span class="pre">format</span></tt> 回傳了一個值，由一個含有換行符的字串組成。</p>
+<p><tt class="docutils literal"><span class="pre">~S</span></tt> 格式化指令像是 <tt class="docutils literal"><span class="pre">~A</span></tt> ，但它使用 <tt class="docutils literal"><span class="pre">prin1</span></tt> 印出物件，而不是 <tt class="docutils literal"><span class="pre">princ</span></tt> 印出:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;~S  ~A&quot;</span> <span class="s">&quot;z&quot;</span> <span class="s">&quot;z&quot;</span><span class="p">)</span>
+<span class="s">&quot;z&quot;</span> <span class="nv">z</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>格式化指令可以接受參數。 <tt class="docutils literal"><span class="pre">~F</span></tt> 用來印出向右對齊 (right-justified)的浮點數，可接受五個參數:</p>
+<ol class="arabic simple">
+<li>要印出字元的總數。預設是數字的長度。</li>
+<li>小數之後要印幾位數。預設是全部。</li>
+<li>小數點要往左移幾位 (即等同於將數字乘 10)。預設是沒有。</li>
+<li>若數字太長無法滿足第一個參數時，所要印出的字元。如果沒有指定字元，一個過長的數字會盡可能使用它所需的空間被印出。</li>
+<li>數字開始印之前左邊的字元。預設是空白。</li>
+</ol>
+<p>下面是一個有五個參數的罕見例子:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nv">?</span> <span class="p">(</span><span class="nb">format</span> <span class="no">nil</span> <span class="s">&quot;~10,2,0,&#39;*,&#39; F&quot;</span> <span class="mf">26.21875</span><span class="p">)</span>
+<span class="s">&quot;     26.22&quot;</span>
+</pre></div>
+</td></tr></table></div>
+<p>這是原本的數字取至小數點第二位、(小數點向左移 0 位)、在 10 個字元的空間裡向右對齊，左邊補滿空白。注意作為參數給入是寫成 <tt class="docutils literal"><span class="pre">'*</span></tt> 而不是 <tt class="docutils literal"><span class="pre">#\*</span></tt> 。由於數字塞得下 10 個字元，不需要使用第四個參數。</p>
+<p>所有的這些參數都是選擇性的。要使用預設值你可以直接忽略對應的參數。如果我們想要做的是，印出一個小數點取至第二位的數字，我們可以說:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">format</span> <span class="no">nil</span> <span class="s">&quot;~,2,,,F&quot;</span> <span class="mf">26.21875</span><span class="p">)</span>
+<span class="s">&quot;26.22&quot;</span>
+</pre></div>
+</td></tr></table></div>
+<p>你也可以忽略一系列的尾隨逗號 (trailing commas)，前面指令更常見的寫法會是:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">format</span> <span class="no">nil</span> <span class="s">&quot;~,2F&quot;</span> <span class="mf">26.21875</span><span class="p">)</span>
+<span class="s">&quot;26.22&quot;</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>警告:</strong> 當 <tt class="docutils literal"><span class="pre">format</span></tt> 取整數時，它不保證會向上進位或向下捨入。就是說 <tt class="docutils literal"><span class="pre">(format</span> <span class="pre">nil</span> <span class="pre">&quot;~,1F&quot;</span> <span class="pre">1.25)</span></tt> 可能會是 <tt class="docutils literal"><span class="pre">&quot;1.2&quot;</span></tt> 或 <tt class="docutils literal"><span class="pre">&quot;1.3&quot;</span></tt> 。所以如果你使用 <tt class="docutils literal"><span class="pre">format</span></tt> 來顯示資訊時，而使用者期望看到某種特定取整數方式的數字 (如: 金額數量)，你應該在印出之前先顯式地取好整數。</p>
+</div>
+<div class="section" id="example-string-substitution">
+<h2>7.4 範例：字串替換 (Example: String Substitution)<a class="headerlink" href="#example-string-substitution" title="永久链接至标题">¶</a></h2>
+<p>作為一個 I/O 的範例，本節示範如何寫一個簡單的程式來對文字檔案做字串替換。我們即將寫一個可以將一個檔案中，舊的字串 <tt class="docutils literal"><span class="pre">old</span></tt> 換成某個新的字串 <tt class="docutils literal"><span class="pre">new</span></tt> 的函數。最簡單的實現方式是將輸入檔案裡的每一個字元與 <tt class="docutils literal"><span class="pre">old</span></tt> 的第一個字元比較。如果沒有匹配，我們可以直接印出該字元至輸出。如果匹配了，我們可以將輸入的下一個字元與 <tt class="docutils literal"><span class="pre">old</span></tt> 的第二個字元比較，等等。如果輸入字元與 <tt class="docutils literal"><span class="pre">old</span></tt> 完全相等時，我們有一個成功的匹配，則我們印出 <tt class="docutils literal"><span class="pre">new</span></tt> 至檔案。</p>
+<p>而要是 <tt class="docutils literal"><span class="pre">old</span></tt> 在匹配途中失敗了，會發生什麼事呢？舉例來說，假設我們要找的模式 (pattern)是 <tt class="docutils literal"><span class="pre">&quot;abac&quot;</span></tt> ，而輸入檔案包含的是 <tt class="docutils literal"><span class="pre">&quot;ababac&quot;</span></tt> 。輸入會一直到第四個字元才發現不匹配，也就是在模式中的 <tt class="docutils literal"><span class="pre">c</span></tt> 以及輸入的 <tt class="docutils literal"><span class="pre">b</span></tt> 才發現。在此時我們可以將原本的 <tt class="docutils literal"><span class="pre">a</span></tt> 寫至輸出檔案，因為我們已經知道這裡沒有匹配。但有些我們從輸入讀入的字元還是需要留著: 舉例來說，第三個 <tt class="docutils literal"><span class="pre">a</span></tt> ，確實是成功匹配的開始。所以在我們要實現這個算法之前，我們需要一個地方來儲存，我們已經從輸入讀入的字元，但之後仍然需要的字元。</p>
+<p>一個暫時儲存輸入的佇列 (queue)稱作緩衝區 (buffer)。在這個情況裡，因為我們知道我們不需要儲存超過一個預定的字元量，我們可以使用一個叫做環狀緩衝區 <tt class="docutils literal"><span class="pre">ring</span> <span class="pre">buffer</span></tt> 的資料結構。一個環狀緩衝區實際上是一個向量。是使用的方式使其成為環狀: 我們將之後的元素所輸入進來的值儲存起來，而當我們到達向量結尾時，我們重頭開始。如果我們不需要儲存超過 <tt class="docutils literal"><span class="pre">n</span></tt> 個值，則我們只需要一個長度為 <tt class="docutils literal"><span class="pre">n</span></tt> 或是大於 <tt class="docutils literal"><span class="pre">n</span></tt> 的向量，這樣我們就不需要覆寫正在用的值。</p>
+<p>在圖 7.1 的程式碼，實現了環狀緩衝區的操作。 <tt class="docutils literal"><span class="pre">buf</span></tt> 有五個欄位 (field): 一個包含存入緩衝區的向量，四個其它欄位用來放指向向量的索引 (indices)。兩個索引是 <tt class="docutils literal"><span class="pre">start</span></tt> 與 <tt class="docutils literal"><span class="pre">end</span></tt> ，任何環狀緩衝區的使用都會需要這兩個索引: <tt class="docutils literal"><span class="pre">start</span></tt> 指向緩衝區的第一個值，當我們取出一個值時， <tt class="docutils literal"><span class="pre">start</span></tt> 會遞增 (incremented)； <tt class="docutils literal"><span class="pre">end</span></tt> 指向緩衝區的最後一個值，當我們插入一個新值時， <tt class="docutils literal"><span class="pre">end</span></tt> 會遞增。</p>
+<p>另外兩個索引， <tt class="docutils literal"><span class="pre">used</span></tt> 以及 <tt class="docutils literal"><span class="pre">new</span></tt> ，是我們需要給這個應用的基本環狀緩衝區所加入的東西。它們會介於 <tt class="docutils literal"><span class="pre">start</span></tt> 與 <tt class="docutils literal"><span class="pre">end</span></tt> 之間。實際上，它總是符合</p>
+<div class="highlight-cl"><pre>start ≤ used ≤ new ≤ end</pre>
+</div>
+<p>你可以把 <tt class="docutils literal"><span class="pre">used</span></tt> 與 <tt class="docutils literal"><span class="pre">new</span></tt> 想成是當前匹配 (current match) 的 <tt class="docutils literal"><span class="pre">start</span></tt> 與 <tt class="docutils literal"><span class="pre">end</span></tt> 。當我們開始一輪匹配時， <tt class="docutils literal"><span class="pre">used</span></tt> 會等於 <tt class="docutils literal"><span class="pre">start</span></tt> 而 <tt class="docutils literal"><span class="pre">new</span></tt> 會等於 <tt class="docutils literal"><span class="pre">end</span></tt> 。當下一個字元 (successive character)匹配時，我們需要遞增 <tt class="docutils literal"><span class="pre">used</span></tt> 。當 <tt class="docutils literal"><span class="pre">used</span></tt> 與 <tt class="docutils literal"><span class="pre">new</span></tt> 相等時，我們將開始匹配時，所有存在緩衝區的字元讀入。我們不想要使用超過從匹配時所存在緩衝區的字元，或是重複使用同樣的字元。因此這個 <tt class="docutils literal"><span class="pre">new</span></tt> 索引，開始等於 <tt class="docutils literal"><span class="pre">end</span></tt> ，但它不會在一輪匹配我們插入新字元至緩衝區一起遞增。</p>
+<p>函數 <tt class="docutils literal"><span class="pre">bref</span></tt> 接受一個緩衝區與一個索引，並回傳索引所在位置的元素。藉由使用 <tt class="docutils literal"><span class="pre">index</span></tt> 對向量的長度取 <tt class="docutils literal"><span class="pre">mod</span></tt> ，我們可以假裝我們有一個任意長的緩衝區。呼叫 <tt class="docutils literal"><span class="pre">(new-buf</span> <span class="pre">n)</span></tt> 會產生一個新的緩衝區，能夠容納 <tt class="docutils literal"><span class="pre">n</span></tt> 個物件。</p>
+<p>要插入一個新值至緩衝區，我們將使用 <tt class="docutils literal"><span class="pre">buf-insert</span></tt> 。它將 <tt class="docutils literal"><span class="pre">end</span></tt> 遞增，並把新的值放在那個位置 (譯註: 遞增完的位置)。相反的 <tt class="docutils literal"><span class="pre">buf-pop</span></tt> 回傳一個緩衝區的第一個數值，接著將 <tt class="docutils literal"><span class="pre">start</span></tt> 遞增。任何環狀緩衝區都會有這兩個函數。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defstruct</span> <span class="nv">buf</span>
+  <span class="nv">vec</span> <span class="p">(</span><span class="nv">start</span> <span class="mi">-1</span><span class="p">)</span> <span class="p">(</span><span class="nv">used</span> <span class="mi">-1</span><span class="p">)</span> <span class="p">(</span><span class="nv">new</span> <span class="mi">-1</span><span class="p">)</span> <span class="p">(</span><span class="nv">end</span> <span class="mi">-1</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">bref</span> <span class="p">(</span><span class="nv">buf</span> <span class="nv">n</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">svref</span> <span class="p">(</span><span class="nv">buf-vec</span> <span class="nv">buf</span><span class="p">)</span>
+         <span class="p">(</span><span class="nb">mod</span> <span class="nv">n</span> <span class="p">(</span><span class="nb">length</span> <span class="p">(</span><span class="nv">buf-vec</span> <span class="nv">buf</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">bref</span><span class="p">)</span> <span class="p">(</span><span class="nv">val</span> <span class="nv">buf</span> <span class="nv">n</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">svref</span> <span class="p">(</span><span class="nv">buf-vec</span> <span class="nv">buf</span><span class="p">)</span>
+               <span class="p">(</span><span class="nb">mod</span> <span class="nv">n</span> <span class="p">(</span><span class="nb">length</span> <span class="p">(</span><span class="nv">buf-vec</span> <span class="nv">buf</span><span class="p">))))</span>
+        <span class="nv">val</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">new-buf</span> <span class="p">(</span><span class="nv">len</span><span class="p">)</span>
+  <span class="p">(</span><span class="nv">make-buf</span> <span class="ss">:vec</span> <span class="p">(</span><span class="nb">make-array</span> <span class="nv">len</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">buf-insert</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">b</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nv">bref</span> <span class="nv">b</span> <span class="p">(</span><span class="nb">incf</span> <span class="p">(</span><span class="nv">buf-end</span> <span class="nv">b</span><span class="p">)))</span> <span class="nv">x</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">buf-pop</span> <span class="p">(</span><span class="nv">b</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">prog1</span>
+    <span class="p">(</span><span class="nv">bref</span> <span class="nv">b</span> <span class="p">(</span><span class="nb">incf</span> <span class="p">(</span><span class="nv">buf-start</span> <span class="nv">b</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nv">buf-used</span> <span class="nv">b</span><span class="p">)</span> <span class="p">(</span><span class="nv">buf-start</span> <span class="nv">b</span><span class="p">)</span>
+          <span class="p">(</span><span class="nv">buf-new</span>  <span class="nv">b</span><span class="p">)</span> <span class="p">(</span><span class="nv">buf-end</span>   <span class="nv">b</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">buf-next</span> <span class="p">(</span><span class="nv">b</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">when</span> <span class="p">(</span><span class="nb">&lt;</span> <span class="p">(</span><span class="nv">buf-used</span> <span class="nv">b</span><span class="p">)</span> <span class="p">(</span><span class="nv">buf-new</span> <span class="nv">b</span><span class="p">))</span>
+    <span class="p">(</span><span class="nv">bref</span> <span class="nv">b</span> <span class="p">(</span><span class="nb">incf</span> <span class="p">(</span><span class="nv">buf-used</span> <span class="nv">b</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">buf-reset</span> <span class="p">(</span><span class="nv">b</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nv">buf-used</span> <span class="nv">b</span><span class="p">)</span> <span class="p">(</span><span class="nv">buf-start</span> <span class="nv">b</span><span class="p">)</span>
+        <span class="p">(</span><span class="nv">buf-new</span>  <span class="nv">b</span><span class="p">)</span> <span class="p">(</span><span class="nv">buf-end</span>   <span class="nv">b</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">buf-clear</span> <span class="p">(</span><span class="nv">b</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nv">buf-start</span> <span class="nv">b</span><span class="p">)</span> <span class="mi">-1</span> <span class="p">(</span><span class="nv">buf-used</span>  <span class="nv">b</span><span class="p">)</span> <span class="mi">-1</span>
+        <span class="p">(</span><span class="nv">buf-new</span>   <span class="nv">b</span><span class="p">)</span> <span class="mi">-1</span> <span class="p">(</span><span class="nv">buf-end</span>   <span class="nv">b</span><span class="p">)</span> <span class="mi">-1</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">buf-flush</span> <span class="p">(</span><span class="nv">b</span> <span class="nv">str</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">do</span> <span class="p">((</span><span class="nv">i</span> <span class="p">(</span><span class="nb">1+</span> <span class="p">(</span><span class="nv">buf-used</span> <span class="nv">b</span><span class="p">))</span> <span class="p">(</span><span class="nb">1+</span> <span class="nv">i</span><span class="p">)))</span>
+      <span class="p">((</span><span class="nb">&gt;</span> <span class="nv">i</span> <span class="p">(</span><span class="nv">buf-end</span> <span class="nv">b</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nb">princ</span> <span class="p">(</span><span class="nv">bref</span> <span class="nv">b</span> <span class="nv">i</span><span class="p">)</span> <span class="nv">str</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>圖 7.1 環狀緩衝區的操作</strong></p>
+<p>接下來我們需要兩個特別為這個應用所寫的函數: <tt class="docutils literal"><span class="pre">buf-next</span></tt> 從緩衝區讀取一個值而不取出，而 <tt class="docutils literal"><span class="pre">buf-reset</span></tt> 重置 <tt class="docutils literal"><span class="pre">used</span></tt> 與 <tt class="docutils literal"><span class="pre">new</span></tt> 到初始值，分別是 <tt class="docutils literal"><span class="pre">start</span></tt> 與 <tt class="docutils literal"><span class="pre">end</span></tt> 。如果我們已經把至 <tt class="docutils literal"><span class="pre">new</span></tt> 的值全部讀取完畢時， <tt class="docutils literal"><span class="pre">buf-next</span></tt> 回傳 <tt class="docutils literal"><span class="pre">nil</span></tt> 。區別這個值與實際的值不會產生問題，因為我們只把值存在緩衝區。</p>
+<p>最後 <tt class="docutils literal"><span class="pre">buf-flush</span></tt> 透過將所有作用的元素，寫至由第二個參數所給入的流，而 <tt class="docutils literal"><span class="pre">buf-clear</span></tt> 通過重置所有的索引至 <tt class="docutils literal"><span class="pre">-1</span></tt> 將緩衝區清空。</p>
+<p>在圖 7.1 定義的函數被圖 7.2 所使用，包含了字串替換的程式碼。函數 <tt class="docutils literal"><span class="pre">file-subst</span></tt> 接受四個參數；一個查詢字串，一個替換字串，一個輸入檔案以及一個輸出檔案。它創造了代表每個檔案的流，然後呼叫 <tt class="docutils literal"><span class="pre">stream-subst</span></tt> 來完成實際的工作。</p>
+<p>第二個函數 <tt class="docutils literal"><span class="pre">stream-subst</span></tt> 使用本節開始所勾勒的算法。它一次從輸入流讀一個字元。直到輸入字元匹配要尋找的字串時，直接寫至輸出流 (1)。當一個匹配開始時，有關字元在緩衝區 <tt class="docutils literal"><span class="pre">buf</span></tt> 排隊等候 (2)。</p>
+<p>變數 <tt class="docutils literal"><span class="pre">pos</span></tt> 指向我們想要匹配的字元在尋找字串的所在位置。如果 <tt class="docutils literal"><span class="pre">pos</span></tt> 等於這個字串的長度，我們有一個完整的匹配，則我們將替換字串寫至輸出流，並清空緩衝區 (3)。如果在這之前匹配失敗，我們可以將緩衝區的第一個元素取出，並寫至輸出流，之後我們重置緩衝區，並從 <tt class="docutils literal"><span class="pre">pos</span></tt> 等於 0 重新開始 (4)。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">file-subst</span> <span class="p">(</span><span class="nv">old</span> <span class="nv">new</span> <span class="nv">file1</span> <span class="nv">file2</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">with-open-file</span> <span class="p">(</span><span class="nv">in</span> <span class="nv">file1</span> <span class="ss">:direction</span> <span class="ss">:input</span><span class="p">)</span>
+     <span class="p">(</span><span class="nb">with-open-file</span> <span class="p">(</span><span class="nv">out</span> <span class="nv">file2</span> <span class="ss">:direction</span> <span class="ss">:output</span>
+                                <span class="ss">:if-exists</span> <span class="ss">:supercede</span><span class="p">)</span>
+       <span class="p">(</span><span class="nv">stream-subst</span> <span class="nv">old</span> <span class="nv">new</span> <span class="nv">in</span> <span class="nv">out</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">stream-subst</span> <span class="p">(</span><span class="nv">old</span> <span class="nv">new</span> <span class="nv">in</span> <span class="nv">out</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let*</span> <span class="p">((</span><span class="nv">pos</span> <span class="mi">0</span><span class="p">)</span>
+         <span class="p">(</span><span class="nv">len</span> <span class="p">(</span><span class="nb">length</span> <span class="nv">old</span><span class="p">))</span>
+         <span class="p">(</span><span class="nv">buf</span> <span class="p">(</span><span class="nv">new-buf</span> <span class="nv">len</span><span class="p">))</span>
+         <span class="p">(</span><span class="nv">from-buf</span> <span class="no">nil</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">do</span> <span class="p">((</span><span class="nv">c</span> <span class="p">(</span><span class="nb">read-char</span> <span class="nv">in</span> <span class="no">nil</span> <span class="ss">:eof</span><span class="p">)</span>
+            <span class="p">(</span><span class="nb">or</span> <span class="p">(</span><span class="nb">setf</span> <span class="nv">from-buf</span> <span class="p">(</span><span class="nv">buf-next</span> <span class="nv">buf</span><span class="p">))</span>
+                <span class="p">(</span><span class="nb">read-char</span> <span class="nv">in</span> <span class="no">nil</span> <span class="ss">:eof</span><span class="p">))))</span>
+        <span class="p">((</span><span class="nb">eql</span> <span class="nv">c</span> <span class="ss">:eof</span><span class="p">))</span>
+      <span class="p">(</span><span class="nb">cond</span> <span class="p">((</span><span class="nb">char=</span> <span class="nv">c</span> <span class="p">(</span><span class="nb">char</span> <span class="nv">old</span> <span class="nv">pos</span><span class="p">))</span>
+             <span class="p">(</span><span class="nb">incf</span> <span class="nv">pos</span><span class="p">)</span>
+             <span class="p">(</span><span class="nb">cond</span> <span class="p">((</span><span class="nb">=</span> <span class="nv">pos</span> <span class="nv">len</span><span class="p">)</span>            <span class="c1">; 3</span>
+                    <span class="p">(</span><span class="nb">princ</span> <span class="nv">new</span> <span class="nv">out</span><span class="p">)</span>
+                    <span class="p">(</span><span class="nb">setf</span> <span class="nv">pos</span> <span class="mi">0</span><span class="p">)</span>
+                    <span class="p">(</span><span class="nv">buf-clear</span> <span class="nv">buf</span><span class="p">))</span>
+                   <span class="p">((</span><span class="nb">not</span> <span class="nv">from-buf</span><span class="p">)</span>         <span class="c1">; 2</span>
+                    <span class="p">(</span><span class="nv">buf-insert</span> <span class="nv">c</span> <span class="nv">buf</span><span class="p">))))</span>
+            <span class="p">((</span><span class="nb">zerop</span> <span class="nv">pos</span><span class="p">)</span>                   <span class="c1">; 1</span>
+             <span class="p">(</span><span class="nb">princ</span> <span class="nv">c</span> <span class="nv">out</span><span class="p">)</span>
+             <span class="p">(</span><span class="nb">when</span> <span class="nv">from-buf</span>
+               <span class="p">(</span><span class="nv">buf-pop</span> <span class="nv">buf</span><span class="p">)</span>
+               <span class="p">(</span><span class="nv">buf-reset</span> <span class="nv">buf</span><span class="p">)))</span>
+            <span class="p">(</span><span class="no">t</span>                             <span class="c1">; 4</span>
+             <span class="p">(</span><span class="nb">unless</span> <span class="nv">from-buf</span>
+               <span class="p">(</span><span class="nv">buf-insert</span> <span class="nv">c</span> <span class="nv">buf</span><span class="p">))</span>
+             <span class="p">(</span><span class="nb">princ</span> <span class="p">(</span><span class="nv">buf-pop</span> <span class="nv">buf</span><span class="p">)</span> <span class="nv">out</span><span class="p">)</span>
+             <span class="p">(</span><span class="nv">buf-reset</span> <span class="nv">buf</span><span class="p">)</span>
+             <span class="p">(</span><span class="nb">setf</span> <span class="nv">pos</span> <span class="mi">0</span><span class="p">))))</span>
+    <span class="p">(</span><span class="nv">buf-flush</span> <span class="nv">buf</span> <span class="nv">out</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>圖 7.2 字串替換</strong></p>
+<p>下列表格展示了當我們將檔案中的 <tt class="docutils literal"><span class="pre">&quot;baro&quot;</span></tt> 替換成 <tt class="docutils literal"><span class="pre">&quot;baric&quot;</span></tt> 所發生的事，其中檔案只有一個單字 <tt class="docutils literal"><span class="pre">&quot;barbarous&quot;</span></tt> :</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%" />
+<col width="19%" />
+<col width="13%" />
+<col width="11%" />
+<col width="15%" />
+<col width="22%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">CHARACTER</th>
+<th class="head">SOURCE</th>
+<th class="head">MATCH</th>
+<th class="head">CASE</th>
+<th class="head">OUTPUT</th>
+<th class="head">BUFFER</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>b</td>
+<td>file</td>
+<td>b</td>
+<td>2</td>
+<td>&nbsp;</td>
+<td>b</td>
+</tr>
+<tr class="row-odd"><td>a</td>
+<td>file</td>
+<td>a</td>
+<td>2</td>
+<td>&nbsp;</td>
+<td>b a</td>
+</tr>
+<tr class="row-even"><td>r</td>
+<td>file</td>
+<td>r</td>
+<td>2</td>
+<td>&nbsp;</td>
+<td>b a r</td>
+</tr>
+<tr class="row-odd"><td>b</td>
+<td>file</td>
+<td>o</td>
+<td>4</td>
+<td>b</td>
+<td>b.a r b.</td>
+</tr>
+<tr class="row-even"><td>a</td>
+<td>buffer</td>
+<td>b</td>
+<td>1</td>
+<td>a</td>
+<td>a.r b.</td>
+</tr>
+<tr class="row-odd"><td>r</td>
+<td>buffer</td>
+<td>b</td>
+<td>1</td>
+<td>r</td>
+<td>r.b.</td>
+</tr>
+<tr class="row-even"><td>b</td>
+<td>buffer</td>
+<td>b</td>
+<td>1</td>
+<td>&nbsp;</td>
+<td>r b:</td>
+</tr>
+<tr class="row-odd"><td>a</td>
+<td>file</td>
+<td>a</td>
+<td>2</td>
+<td>&nbsp;</td>
+<td>r b:a</td>
+</tr>
+<tr class="row-even"><td>r</td>
+<td>file</td>
+<td>r</td>
+<td>2</td>
+<td>&nbsp;</td>
+<td>r b:a</td>
+</tr>
+<tr class="row-odd"><td>o</td>
+<td>file</td>
+<td>o</td>
+<td>3</td>
+<td>baric</td>
+<td>r b:a r</td>
+</tr>
+<tr class="row-even"><td>u</td>
+<td>file</td>
+<td>b</td>
+<td>1</td>
+<td>u</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>a</td>
+<td>file</td>
+<td>b</td>
+<td>1</td>
+<td>s</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p>第一欄是當前字元 –– <tt class="docutils literal"><span class="pre">c</span></tt> 的值；第二欄顯示是從緩衝區或是直接從輸入流讀取；第三欄顯示需要匹配的字元 –– <tt class="docutils literal"><span class="pre">old</span></tt> 的第 <strong>posth</strong> 字元；第四欄顯示那一個條件式 (case)被求值作為結果；第五欄顯示被寫至輸出流的字元；而最後一欄顯示緩衝區之後的內容。在最後一欄裡， <tt class="docutils literal"><span class="pre">used</span></tt> 與 <tt class="docutils literal"><span class="pre">new</span></tt> 的位置一樣，由一個冒號 ( <tt class="docutils literal"><span class="pre">:</span></tt> colon)表示。</p>
+<p>在檔案 <tt class="docutils literal"><span class="pre">&quot;test1&quot;</span></tt> 裡有如下文字：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nv">The</span> <span class="nv">struggle</span> <span class="nv">between</span> <span class="nv">Liberty</span> <span class="nb">and</span> <span class="nv">Authority</span> <span class="nv">is</span> <span class="k">the</span> <span class="nv">most</span> <span class="nv">conspicuous</span> <span class="nv">feature</span>
+<span class="nv">in</span> <span class="k">the</span> <span class="nv">portions</span> <span class="nv">of</span> <span class="nv">history</span> <span class="nv">with</span> <span class="nv">which</span> <span class="nv">we</span> <span class="nv">are</span> <span class="nv">earliest</span> <span class="nv">familiar,</span> <span class="nv">particularly</span>
+<span class="nv">in</span> <span class="nv">that</span> <span class="nv">of</span> <span class="nv">Greece,</span> <span class="nv">Rome,</span> <span class="nb">and</span> <span class="nv">England.</span>
+</pre></div>
+</td></tr></table></div>
+<p>在我們對 <tt class="docutils literal"><span class="pre">(file-subst</span> <span class="pre">&quot;</span> <span class="pre">th&quot;</span> <span class="pre">&quot;</span> <span class="pre">z&quot;</span> <span class="pre">&quot;test1&quot;</span> <span class="pre">&quot;test2&quot;)</span></tt> 求值之後，讀取檔案 <tt class="docutils literal"><span class="pre">&quot;test2&quot;</span></tt> 為:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nv">The</span> <span class="nv">struggle</span> <span class="nv">between</span> <span class="nv">Liberty</span> <span class="nb">and</span> <span class="nv">Authority</span> <span class="nv">is</span> <span class="nv">ze</span> <span class="nv">most</span> <span class="nv">conspicuous</span> <span class="nv">feature</span>
+<span class="nv">in</span> <span class="nv">ze</span> <span class="nv">portions</span> <span class="nv">of</span> <span class="nv">history</span> <span class="nv">with</span> <span class="nv">which</span> <span class="nv">we</span> <span class="nv">are</span> <span class="nv">earliest</span> <span class="nv">familiar,</span> <span class="nv">particularly</span>
+<span class="nv">in</span> <span class="nv">zat</span> <span class="nv">of</span> <span class="nv">Greece,</span> <span class="nv">Rome,</span> <span class="nb">and</span> <span class="nv">England.</span>
+</pre></div>
+</td></tr></table></div>
+<p>為了使這個例子盡可能的簡單，圖 7.2 的程式碼只將一個字串換成另一個字串。很容易擴展為搜索一個模式而不是一個字面字串。你只需要做的是，將 <tt class="docutils literal"><span class="pre">char=</span></tt> 呼叫換成一個你想要的更通用的匹配函數呼叫。</p>
+</div>
+<div class="section" id="macro-characters">
+<h2>7.5 巨集字元 (Macro Characters)<a class="headerlink" href="#macro-characters" title="永久链接至标题">¶</a></h2>
+<p>一個巨集字元 (macro character)是獲得 <tt class="docutils literal"><span class="pre">read</span></tt> 特別待遇的字元。比如小寫的 <tt class="docutils literal"><span class="pre">a</span></tt> ，通常與小寫 <tt class="docutils literal"><span class="pre">b</span></tt> 一樣處理，但一個左括號就不同了: 它告訴 Lisp 開始讀入一個列表。</p>
+<p>一個巨集字元或巨集字元組合也稱作 <tt class="docutils literal"><span class="pre">read-macro</span></tt> (讀取巨集) 。許多 Common Lisp 預定義的讀取巨集是縮寫。比如說引用 (Quote): 讀入一個像是 <tt class="docutils literal"><span class="pre">'a</span></tt> 的表達式時，它被讀取器展開成 <tt class="docutils literal"><span class="pre">(quote</span> <span class="pre">a)</span></tt> 。當你輸入引用的表達式 (quoted expression)至頂層時，它們在讀入之時就會被求值，所以一般來說你看不到這樣的轉換。你可以透過顯式呼叫 <tt class="docutils literal"><span class="pre">read</span></tt> 使其現形:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">car</span> <span class="p">(</span><span class="nb">read-from-string</span> <span class="s">&quot;&#39;a&quot;</span><span class="p">))</span>
+<span class="nv">QUOTE</span>
+</pre></div>
+</td></tr></table></div>
+<p>引用對於讀取巨集來說是不尋常的，因為它用單一字元表示。有了一個有限的字元集，你可以在 Common Lisp 裡有許多單一字元的讀取巨集，來表示一個或更多字元。</p>
+<p>這樣的讀取巨集叫做派發 (dispatching)讀取巨集，而第一個字元叫做派發字元 (dispatching character)。所有預定義的派發讀取宏使用井號 ( <tt class="docutils literal"><span class="pre">#</span></tt> )作為派發字元。我們已經見過好幾個。舉例來說， <tt class="docutils literal"><span class="pre">#'</span></tt> 是 <tt class="docutils literal"><span class="pre">(function</span> <span class="pre">...)</span></tt> 的縮寫，同樣的 <tt class="docutils literal"><span class="pre">'</span></tt> 是 <tt class="docutils literal"><span class="pre">(quote</span> <span class="pre">...)</span></tt> 的縮寫。</p>
+<p>其它我們見過的派發讀取巨集包括 <tt class="docutils literal"><span class="pre">#(...)</span></tt> ，產生一個向量； <tt class="docutils literal"><span class="pre">#nA(...)</span></tt> 產生陣列； <tt class="docutils literal"><span class="pre">#\</span></tt> 產生一個字元； <tt class="docutils literal"><span class="pre">#S(n</span> <span class="pre">...)</span></tt> 產生一個結構。當這些型別的每個物件被 <tt class="docutils literal"><span class="pre">prin1</span></tt> 顯示時 (或是 <tt class="docutils literal"><span class="pre">format</span></tt> 搭配 <tt class="docutils literal"><span class="pre">~S</span></tt>)，它們使用對應的讀取巨集 <a class="footnote-reference" href="#id6" id="id3">[2]</a> 。這表示著你可以寫出或讀回這樣的物件:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="vg">*print-array*</span> <span class="no">t</span><span class="p">))</span>
+    <span class="p">(</span><span class="nb">vectorp</span> <span class="p">(</span><span class="nb">read-from-string</span> <span class="p">(</span><span class="nb">format</span> <span class="no">nil</span> <span class="s">&quot;~S&quot;</span>
+                                       <span class="p">(</span><span class="nb">vector</span> <span class="mi">1</span> <span class="mi">2</span><span class="p">)))))</span>
+<span class="no">T</span>
+</pre></div>
+</td></tr></table></div>
+<p>當然我們拿回來的不是同一個向量，而是具有同樣元素的新向量。</p>
+<p>不是所有物件被顯示時都有著清楚 (distinct)、可讀的形式。舉例來說，函數與雜湊表，傾向於這樣 <tt class="docutils literal"><span class="pre">#&lt;...&gt;</span></tt> 被顯示。實際上 <tt class="docutils literal"><span class="pre">#&lt;...&gt;</span></tt> 也是一個讀取巨集，但是特別用來產生當遇到 <tt class="docutils literal"><span class="pre">read</span></tt> 的錯誤。函數與雜湊表不能被寫出與讀回來，而這個讀取宏確保使用者不會有這樣的幻覺。 <a class="footnote-reference" href="#id7" id="id4">[3]</a></p>
+<p>當你定義你自己的事物表示法時 (舉例來說，結構的印出函數)，你要將此準則記住。要不使用一個可以被讀回來的表示法，或是使用 <tt class="docutils literal"><span class="pre">#&lt;...&gt;</span></tt> 。</p>
+</div>
+<div class="section" id="chapter-7-summary">
+<h2>Chapter 7 總結 (Summary)<a class="headerlink" href="#chapter-7-summary" title="永久链接至标题">¶</a></h2>
+<ol class="arabic simple">
+<li>流是輸入的來源或終點。在字元流裡，輸入輸出是由字元組成。</li>
+<li>預設的流指向頂層。新的流可以由開啟檔案產生。</li>
+<li>你可以解析物件、字元組成的字串、或是單獨的字元。</li>
+<li><tt class="docutils literal"><span class="pre">format</span></tt> 函數提供了完整的輸出控制。</li>
+<li>為了要替換文本檔案中的字串，你需要將字元讀入緩衝區。</li>
+<li>當 <tt class="docutils literal"><span class="pre">read</span></tt> 遇到一個巨集字元像是 <tt class="docutils literal"><span class="pre">'</span></tt> ，它呼叫相關的函數。</li>
+</ol>
+</div>
+<div class="section" id="chapter-7-exercises">
+<h2>Chapter 7 練習 (Exercises)<a class="headerlink" href="#chapter-7-exercises" title="永久链接至标题">¶</a></h2>
+<ol class="arabic simple">
+<li>定義一個函數，接受一個檔案名並回傳一個由字串組成的列表，來表示檔案裡的每一行。</li>
+<li>定義一個函數，接受一個檔案名並回傳一個由表達式組成的列表，來表示檔案裡的每一行。</li>
+<li>假設有某種格式的文件檔案，註解是由 <tt class="docutils literal"><span class="pre">%</span></tt> 字元表示。從這個字元開始直到行尾都會被忽略。定義一個函數，接受兩個檔案名稱，並拷貝第一個檔案的內容去掉註解，寫至第二個檔案。</li>
+<li>定義一個函數，接受一個二維浮點陣列，將其用簡潔的欄位顯示。每個元素應印至小數點二位，一欄十個字元寬。（假設所有的字元可以容納）。你會需要 <tt class="docutils literal"><span class="pre">array-dimensions</span></tt> (參見 361 頁，譯註: Appendix D)。</li>
+<li>修改 <tt class="docutils literal"><span class="pre">stream-subst</span></tt> 來允許萬用字元 (wildcard) 可以在模式中使用。若字元 <tt class="docutils literal"><span class="pre">+</span></tt> 出現在 <tt class="docutils literal"><span class="pre">old</span></tt> 裡，它應該匹配任何輸入字元。</li>
+<li>修改 <tt class="docutils literal"><span class="pre">stream-subst</span></tt> 來允許模式可以包含一個用來匹配任何數字的元素，以及一個可以匹配任何英文字元的元素或是一個可以匹配任何字元的元素。模式必須可以匹配任何特定的輸入字元。(提示: <tt class="docutils literal"><span class="pre">old</span></tt> 可以不是一個字串。)</li>
+</ol>
+<p class="rubric">腳註</p>
+<table class="docutils footnote" frame="void" id="id5" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[1]</a></td><td>你可以給一個字串取代路徑名，但這樣就不可攜了 (portable)。</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id6" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[2]</a></td><td>要讓向量與陣列這樣被顯示，將 <tt class="docutils literal"><span class="pre">*print-array*</span></tt> 設為真。</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id7" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[3]</a></td><td>Lisp 不能只用 <tt class="docutils literal"><span class="pre">#'</span></tt> 來表示函數，因為 <tt class="docutils literal"><span class="pre">#'</span></tt> 本身無法提供表示閉包的方式。</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'acl-chinese';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+                  </div></div>
+              </article><div class="clearer"></div>
+          </div><div class="span3">
+                <div class="sphinxsidebar">
+      <div id="sidenav" class="box sphinxsidebarwrapper">
+
+
+<h4><a href="../index.html">內容目录</a></h4>
+  <ul>
+<li><a class="reference internal" href="#">第七章：輸入與輸出</a><ul>
+<li><a class="reference internal" href="#streams">7.1 流 (Streams)</a></li>
+<li><a class="reference internal" href="#input">7.2 輸入 (Input)</a></li>
+<li><a class="reference internal" href="#output">7.3 輸出 (Output)</a></li>
+<li><a class="reference internal" href="#example-string-substitution">7.4 範例：字串替換 (Example: String Substitution)</a></li>
+<li><a class="reference internal" href="#macro-characters">7.5 巨集字元 (Macro Characters)</a></li>
+<li><a class="reference internal" href="#chapter-7-summary">Chapter 7 總結 (Summary)</a></li>
+<li><a class="reference internal" href="#chapter-7-exercises">Chapter 7 練習 (Exercises)</a></li>
+</ul>
+</li>
+</ul>
+
+  
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      
+      
+        <li><a href="https://github.com/acl-translation/acl-chinese/blob/redirect-to-new-domain/zhTW/ch7.rst">
+          Show on GitHub</a></li>
+        <li><a href="https://github.com/acl-translation/acl-chinese/edit/redirect-to-new-domain/zhTW/ch7.rst">
+          Edit on GitHub</a></li>
+      
+    </ul>
+  
+</div>
+    </div>
+              </div></div>
+      </div>
+<footer class="container-fluid">
+        <hr />&copy; 版权所有 2012, Juanito Fatas Huang.最后更新日期是 Apr 22, 2013.使用 <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.</footer>
+ <!-- End original user content -->
+
+
+<br>
+<br>
+<br>
+
+
+<style type="text/css">
+  .rtd-badge {
+    position: fixed;
+    display: block;
+    bottom: 5px;
+    height: 40px;
+    text-indent: -9999em;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -moz-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  }
+  #version_menu {
+    position: fixed;
+    display: none;
+    bottom: 11px;
+    right: 166px;
+    list-style-type: none;
+    margin: 0;
+  }
+  .footer_popout:hover #version_menu {
+    display: block;
+  }
+  #version_menu li {
+    display: block;
+    float: right;
+  }
+  #version_menu li a {
+    display: block;
+    padding: 6px 10px 4px 10px;
+    margin: 7px 7px 0 0;
+    font-weight: bold;
+    font-size: 14px;
+    height: 20px;
+    line-height: 17px;
+    text-decoration: none;
+    color: #fff;
+    background: #8ca1af url(../images/gradient-light.png) bottom left repeat-x;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 1px #465158;
+    -moz-box-shadow: 0 1px 1px #465158;
+    -webkit-box-shadow: 0 1px 1px #465158;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+  }
+  #version_menu li a:hover {
+    text-decoration: none;
+    background-color: #697983;
+    box-shadow: 0 1px 0px #465158;
+    -moz-box-shadow: 0 1px 0px #465158;
+    -webkit-box-shadow: 0 1px 0px #465158;
+  }
+  .rtd-badge.rtd {
+    background: #3b4449 url(//media.readthedocs.org//images/badge-rtd.png) scroll 0px -46px no-repeat;
+    border: 1px solid #282E32;
+    width: 41px;
+    right: 5px;
+  }
+  .footer_popout:hover .rtd-badge.rtd {
+    background-position: top left;
+    width: 160px;
+  }
+  .rtd-badge.revsys { background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline-sponsored {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys-sm.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 205px;
+    right: 173px;
+  }
+
+</style>
+<div class="rtd_doc_footer">
+  <div class="footer_popout">
+    <a href="//readthedocs.org/projects/ansi-common-lisp/?fromdocs=ansi-common-lisp" class="rtd-badge rtd"> Brought to you by Read the Docs</a>
+    <ul id="version_menu">
+      
+        <li><a href="/en/latest/">latest</a></li>
+      
+    </ul>
+  </div>
+</div>
+<!-- RTD Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-17997319-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+<!-- User Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-26995626-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+</body>
+</html>

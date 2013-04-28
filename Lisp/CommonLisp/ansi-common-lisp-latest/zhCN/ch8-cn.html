@@ -1,0 +1,553 @@
+<!DOCTYPE HTML>
+
+  <html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+<title>第八章：符号 &mdash; ANSI Common Lisp 中文版</title>
+    
+<!-- RTD <head> -->
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/underscore.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/doctools.js"></script>
+
+<script type="text/javascript">
+  // This is included here for Javascript that doesn't have access to the templates.
+  var doc_version = "latest";
+  var doc_slug = "ansi-common-lisp";
+</script>
+
+<script type="text/javascript" src="//media.readthedocs.org/javascript/rtd.js"></script>
+<!-- end RTD <head> -->
+
+    <link rel="stylesheet" href="../_static/han.min.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/rosefinch.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/main.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:       '../',
+        VERSION:        '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX:    '.html',
+        HAS_SOURCE:     true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/han.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  <script type="text/javascript" src=../_static/jquery.dimensions.js"></script>
+  <script type="text/javascript" src="../_static/main.js"></script><link rel="top" title="ANSI Common Lisp 中文版" href="../index.html" /></head>
+
+  <body><div class="navbar navbar-static-top navbar-inverse">
+        <div id="top-bar" class="navbar-inner">
+
+          <h1 id="logo">ANSI Common Lisp 中文版<a href="../index.html" class="brand">ANSI Common Lisp 中文版</a></h1>
+          <ul class="nav"></ul><a href="https://github.com/acl-translation/acl-chinese"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
+        </div>
+      </div><div class="content container-fluid">
+        <div class="row-fluid"><div class="document span9"><article >
+                <div class="documentwrapper"><div class="body"><div class="section" id="id1">
+<h1>第八章：符号<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h1>
+<p>我们一直在使用符号。在符号看似简单的表面之下，又好像没有那么简单。起初最好不要纠结于背後的实现机制。可以把符号当成数据对象与名字那样使用，而不需要理解两者是如何关联起来的。但到了某个时间点，停下来思考背後是究竟是如何工作会是很有用的。本章解释了背後实现的细节。</p>
+<div class="section" id="symbol-names">
+<h2>8.1 符号名 (Symbol Names)<a class="headerlink" href="#symbol-names" title="永久链接至标题">¶</a></h2>
+<p>第二章描述过，符号是变量的名字，符号本身以对象所存在。但 Lisp 符号的可能性，要比在多数语言仅允许作为变量名来得广泛许多。实际上，符号可以用任何字串当作名字。可以通过调用 <tt class="docutils literal"><span class="pre">symbol-name</span></tt> 来获得符号的名字：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">symbol-name</span> <span class="ss">&#39;abc</span><span class="p">)</span>
+<span class="s">&quot;ABC&quot;</span>
+</pre></div>
+</td></tr></table></div>
+<p>注意到这个符号的名字，打印出来都是大写字母。缺省情况下， Common Lisp 在读入时，会把符号名字所有的英文字母都转成大写。代表 Common Lisp 缺省是不分大小写的：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">eql</span> <span class="ss">&#39;abc</span> <span class="ss">&#39;Abc</span><span class="p">)</span>
+<span class="no">T</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nv">CaR</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">))</span>
+<span class="nv">A</span>
+</pre></div>
+</td></tr></table></div>
+<p>一个名字包含空白，或其它可能被读取器认为是重要的字符的符号，要用特殊的语法来引用。任何存在垂直杠 (vertical bar)之间的字符序列将被视为符号。可以如下这般在符号的名字中，放入任何字符：</p>
+<div class="highlight-cl"><pre>&gt; (list '|Lisp 1.5| '|| '|abc| '|ABC|)
+(|Lisp 1.5| || |abc| ABC)</pre>
+</div>
+<p>当这种符号被读入时，不会有大小写转换，而宏字符与其他的字符被视为一般字符。</p>
+<p>那什麽样的符号不需要使用垂直杠来参照呢？基本上任何不是数字，或不包含读取器视为重要的字符的符号。一个快速找出你是否可以不用垂直杠来引用符号的方法，是看看 Lisp 如何印出它的。如果 Lisp 没有用垂直杠表示一个符号，如上述列表的最後一个，那麽你也可以不用垂直杠。</p>
+<p>记得，垂直杠是一种表示符号的特殊语法。它们不是符号的名字之一：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">symbol-name</span> <span class="ss">&#39;|a b c|</span><span class="p">)</span>
+<span class="s">&quot;a b c&quot;</span>
+</pre></div>
+</td></tr></table></div>
+<p>(如果想要在符号名称内使用垂直杠，可以放一个反斜线在垂直杠的前面。)</p>
+<p>译注: 反斜线是 <tt class="docutils literal"><span class="pre">\</span></tt> (backslash)。</p>
+</div>
+<div class="section" id="property-lists">
+<h2>8.2 属性列表 (Property Lists)<a class="headerlink" href="#property-lists" title="永久链接至标题">¶</a></h2>
+<p>在 Common Lisp 里，每个符号都有一个属性列表（property-list）或称为 <tt class="docutils literal"><span class="pre">plist</span></tt> 。函数 <tt class="docutils literal"><span class="pre">get</span></tt> 接受符号及任何类型的键值，然後返回在符号的属性列表中，与键值相关的数值：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">get</span> <span class="ss">&#39;alizarin</span> <span class="ss">&#39;color</span><span class="p">)</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>它使用 <tt class="docutils literal"><span class="pre">eql</span></tt> 来比较各个键。若某个特定的属性没有找到时， <tt class="docutils literal"><span class="pre">get</span></tt> 返回 <tt class="docutils literal"><span class="pre">nil</span></tt> 。</p>
+<p>要将值与键关联起来时，你可以使用 <tt class="docutils literal"><span class="pre">setf</span></tt> 及 <tt class="docutils literal"><span class="pre">get</span></tt> :</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">get</span> <span class="ss">&#39;alizarin</span> <span class="ss">&#39;color</span><span class="p">)</span> <span class="ss">&#39;red</span><span class="p">)</span>
+<span class="nv">RED</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">get</span> <span class="ss">&#39;alizarin</span> <span class="ss">&#39;color</span><span class="p">)</span>
+<span class="nv">RED</span>
+</pre></div>
+</td></tr></table></div>
+<p>现在符号 <tt class="docutils literal"><span class="pre">alizarin</span></tt> 的 <tt class="docutils literal"><span class="pre">color</span></tt> 属性是 <tt class="docutils literal"><span class="pre">red</span></tt> 。</p>
+<div class="figure">
+<img alt="../_images/Figure-8.1.png" src="../_images/Figure-8.1.png" />
+</div>
+<p><strong>图 8.1 符号的结构</strong></p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">get</span> <span class="ss">&#39;alizarin</span> <span class="ss">&#39;transparency</span><span class="p">)</span> <span class="ss">&#39;high</span><span class="p">)</span>
+<span class="nv">HIGH</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">symbol-plist</span> <span class="ss">&#39;alizarin</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">TRANSPARENCY</span> <span class="nv">HIGH</span> <span class="nv">COLOR</span> <span class="nv">RED</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>注意，属性列表不以关联列表（assoc-lists）的形式表示，虽然用起来感觉是一样的。</p>
+<p>在 Common Lisp 里，属性列表用得不多。他们大部分被哈希表取代了（4.8 小节）。</p>
+</div>
+<div class="section" id="symbols-are-big">
+<h2>8.3 符号很不简单 (Symbols Are Big)<a class="headerlink" href="#symbols-are-big" title="永久链接至标题">¶</a></h2>
+<p>当我们输入名字时，符号就被悄悄地创建出来了，而当它们被显示时，我们只看的到符号的名字。某些情况下，把符号想成是表面所见的东西就好，别想太多。但有时候符号不像看起来那么简单。</p>
+<p>从我们如何使用以及检视符号，符号看起来像是整数那样的小对象。而符号实际上确实是一个对象，差不多像是由 <tt class="docutils literal"><span class="pre">defstruct</span></tt> 定义的那种结构。符号可以有名字、 主包（home package）、作为变量的值、作为函数的值以及带有一个属性列表。图 8.1 演示了符号在内部是如何表示的。</p>
+<p>很少有程序会使用很多符号，以致於值得用其它的东西来代替符号以节省空间。但需要记住的是，符号是实际的对象，不仅是名字而已。当两个变量设成相同的符号时，与两个变量设成相同列表一样：两个变量的指针都指向同样的对象。</p>
+</div>
+<div class="section" id="creating-symbols">
+<h2>8.4 创建符号 (Creating Symbols)<a class="headerlink" href="#creating-symbols" title="永久链接至标题">¶</a></h2>
+<p>8.1 节演示了如何取得符号的名字。另一方面，用字串生成符号也是有可能的。但比较复杂一点，因为我们需要先介绍包（package）。</p>
+<p>概念上来说，包是将名字映射到符号的符号表（symbol-tables）。每个普通的符号都属於一个特定的包。符号属於某个包，我们称为符号被包扣押（intern）了。函数与变量用符号作为名称。包藉由限制哪个符号可以访问来实现模组性（modularity），也是因为这样，我们才可以引用到函数与变量。</p>
+<p>大多数的符号在读取时就被扣押了。在第一次输入一个新符号的名字时，Lisp 会产生一个新的符号对象，并将它扣押到当下的包里（缺省是 <tt class="docutils literal"><span class="pre">common-lisp-user</span></tt> 包)。但也可以通过给入字串与选择性包参数给 <tt class="docutils literal"><span class="pre">intern</span></tt> 函数，来扣押一个名称为字串名的符号:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">intern</span> <span class="s">&quot;RANDOM-SYMBOL&quot;</span><span class="p">)</span>
+<span class="nv">RANDOM-SYMBOL</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>选择性包参数缺省是当前的包，所以前述的表达式，返回当前包里的一个符号，此符号的名字是 “RANDOM-SYMBOL”，若此符号尚未存在时，会创建一个这样的符号出来。第二个返回值告诉我们符号是否存在；在这个情况，它不存在。</p>
+<p>不是所有的符号都会被扣押。有时候有一个自由的（uninterned）符号是有用的，这和公用电话本是一样的原因。自由的符号叫做 <em>gensyms</em> 。我们将会在第 10 章讨论宏（Macro）时，理解 <tt class="docutils literal"><span class="pre">gensym</span></tt> 的作用。</p>
+</div>
+<div class="section" id="multiple-packages">
+<h2>8.5 多重包 (Multiple Packages)<a class="headerlink" href="#multiple-packages" title="永久链接至标题">¶</a></h2>
+<p>大的程序通常切分为多个包。如果程序的每个部分都是一个包，那麽开发程序另一个部分的某个人，将可以使用符号来作为函数名或变量名，而不必担心名字在别的地方已经被用过了。</p>
+<p>在没有提供定义多个命名空间的语言里，工作於大项目的程序员，通常需要想出某些规范（convention），来确保他们不会使用同样的名称。举例来说，程序员写显示相关的代码（display code）可能用 <tt class="docutils literal"><span class="pre">disp_</span></tt> 开头的名字，而写数学相关的代码（math code）的程序员仅使用由 <tt class="docutils literal"><span class="pre">math_</span></tt> 开始的代码。所以若是数学相关的代码里，包含一个做快速傅立叶转换的函数时，可能会叫做 <tt class="docutils literal"><span class="pre">math_fft</span></tt> 。</p>
+<p>包不过是提供了一种便捷方式来自动办到此事。如果你将函数定义在单独的包里，可以随意使用你喜欢的名字。只有你明确导出（ <tt class="docutils literal"><span class="pre">export</span></tt> ）的符号会被别的包看到，而通常前面会有包的名字(或修饰符)。</p>
+<p>举例来说，假设一个程序分为两个包， <tt class="docutils literal"><span class="pre">math</span></tt> 与 <tt class="docutils literal"><span class="pre">disp</span></tt> 。如果符号 <tt class="docutils literal"><span class="pre">fft</span></tt> 被 <tt class="docutils literal"><span class="pre">math</span></tt> 包导出，则 <tt class="docutils literal"><span class="pre">disp</span></tt> 包里可以用 <tt class="docutils literal"><span class="pre">math:fft</span></tt> 来参照它。在 <tt class="docutils literal"><span class="pre">math</span></tt> 包里，可以只用 <tt class="docutils literal"><span class="pre">fft</span></tt> 来参照。</p>
+<p>下面是你可能会放在文件最上方，包含独立包的代码：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defpackage</span> <span class="s">&quot;MY-APPLICATION&quot;</span>
+            <span class="p">(</span><span class="ss">:use</span> <span class="s">&quot;COMMON-LISP&quot;</span> <span class="s">&quot;MY-UTILITIES&quot;</span><span class="p">)</span>
+            <span class="p">(</span><span class="ss">:nicknames</span> <span class="s">&quot;APP&quot;</span><span class="p">)</span>
+            <span class="p">(</span><span class="ss">:export</span> <span class="s">&quot;WIN&quot;</span> <span class="s">&quot;LOSE&quot;</span> <span class="s">&quot;DRAW&quot;</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">in-package</span> <span class="nv">my-application</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p><tt class="docutils literal"><span class="pre">defpackage</span></tt> 定义一个新的包叫做 <tt class="docutils literal"><span class="pre">my-application</span></tt> <a class="footnote-reference" href="#id4" id="id2">[1]</a> 它使用了其他两个包， <tt class="docutils literal"><span class="pre">common-lisp</span></tt> 与 <tt class="docutils literal"><span class="pre">my-utilities</span></tt> ，这代表着可以不需要用包修饰符（package qualifiers）来存取这些包所导出的符号。许多包都使用了 <tt class="docutils literal"><span class="pre">common-lisp</span></tt> 包 –– 因为你不会想给 Lisp 自带的操作符与变量再加上修饰符。</p>
+<p><tt class="docutils literal"><span class="pre">my-application</span></tt> 包本身只输出三个符号: <tt class="docutils literal"><span class="pre">WIN</span></tt> 、 <tt class="docutils literal"><span class="pre">LOSE</span></tt> 以及 <tt class="docutils literal"><span class="pre">DRAW</span></tt> 。由於调用 <tt class="docutils literal"><span class="pre">defpackage</span></tt> 给了 <tt class="docutils literal"><span class="pre">my-application</span></tt> 一个匿称 <tt class="docutils literal"><span class="pre">app</span></tt> ，则别的包可以这样引用到这些符号，比如 <tt class="docutils literal"><span class="pre">app:win</span></tt> 。</p>
+<p><tt class="docutils literal"><span class="pre">defpackage</span></tt> 伴随着一个 <tt class="docutils literal"><span class="pre">in-package</span></tt> ，确保当前包是 <tt class="docutils literal"><span class="pre">my-application</span></tt> 。所有其它未修饰的符号会被扣押至 <tt class="docutils literal"><span class="pre">my-application</span></tt> –– 除非之後有别的 <tt class="docutils literal"><span class="pre">in-package</span></tt> 出现。当一个文件被载入时，当前的包总是被重置成载入之前的值。</p>
+</div>
+<div class="section" id="keywords">
+<h2>8.6 关键字 (Keywords)<a class="headerlink" href="#keywords" title="永久链接至标题">¶</a></h2>
+<p>在 <tt class="docutils literal"><span class="pre">keyword</span></tt> 包的符号 (称为关键字)有两个独特的性质：它们总是对自己求值，以及可以在任何地方引用它们，如 <tt class="docutils literal"><span class="pre">:x</span></tt> 而不是 <tt class="docutils literal"><span class="pre">keyword:x</span></tt> 。我们首次在 44 页 (译注: 3.10 小节）介绍关键字参数时， <tt class="docutils literal"><span class="pre">(member</span> <span class="pre">'(a)</span> <span class="pre">'((a)</span> <span class="pre">(z))</span> <span class="pre">test:</span> <span class="pre">#'equal)</span></tt> 比 <tt class="docutils literal"><span class="pre">(member</span> <span class="pre">'(a)</span> <span class="pre">'((a)</span> <span class="pre">(z))</span> <span class="pre">:test</span> <span class="pre">#'equal)</span></tt> 读起来更自然。现在我们知道为什麽第二个较别扭的形式才是对的。 <tt class="docutils literal"><span class="pre">test</span></tt> 前的冒号字首，是关键字的识别符。</p>
+<p>为什麽使用关键字而不用一般的符号？因为关键字在哪都可以存取。一个函数接受符号作为实参，应该要写成预期关键字的函数。举例来说，这个函数可以安全地在任何包里调用:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">noise</span> <span class="p">(</span><span class="nv">animal</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">case</span> <span class="nv">animal</span>
+    <span class="p">(</span><span class="ss">:dog</span> <span class="ss">:woof</span><span class="p">)</span>
+    <span class="p">(</span><span class="ss">:cat</span> <span class="ss">:meow</span><span class="p">)</span>
+    <span class="p">(</span><span class="ss">:pig</span> <span class="ss">:oink</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>但如果是用一般符号写成的话，它只在被定义的包内正常工作，除非关键字也被导出了。</p>
+</div>
+<div class="section" id="symbols-and-variables">
+<h2>8.7 符号与变量 (Symbols and Variables)<a class="headerlink" href="#symbols-and-variables" title="永久链接至标题">¶</a></h2>
+<p>Lisp 有一件可能会使你困惑的事情是，符号与变量的从两个非常不同的层面互相关联。当符号是特别变量（special variable）的名字时，变量的值存在符号的 value 栏位（图 8.1）。 <tt class="docutils literal"><span class="pre">symbol-value</span></tt> 函数引用到那个栏位，所以在符号与特殊变量的值之间，有直接的连接关系。</p>
+<p>而对於词法变量（lexical variables）来说，事情就完全不一样了。一个作为词法变量的符号只不过是个占位符（placeholder）。编译器会将其转为一个寄存器（register）或内存位置的引用位址。在最後编译出来的代码中，我们无法追踪这个符号 (除非它被保存在调试器「debugger」的某个地方)。因此符号与词法变量的值之间是没有连接的；只要一有值，符号就消失了。</p>
+</div>
+<div class="section" id="example-random-text">
+<h2>8.8 示例：随机文本 (Example: Random Text)<a class="headerlink" href="#example-random-text" title="永久链接至标题">¶</a></h2>
+<p>如果你要写一个操作单词的程序，通常使用符号会比字串来得好，因为符号概念上是原子性的（atomic）。符号可以用 <tt class="docutils literal"><span class="pre">eql</span></tt> 一步比较完成，而字串需要使用 <tt class="docutils literal"><span class="pre">string=</span></tt> 或 <tt class="docutils literal"><span class="pre">string-equal</span></tt> 逐一字符做比较。作为一个示例，本节将演示如何写一个程序来产生随机文本。程序的第一部分会读入一个示例文件（越大越好），用来累积之後所给入的相关单词的可能性（likeilhood）的信息。第二部分在每一个单词都根据原本的示例，产生一个随机的权重（weight）之後，随机走访根据第一部分所产生的网络。</p>
+<p>产生的文字将会是部分可信的（locally plausible），因为任两个出现的单词也是输入文件里，两个同时出现的单词。令人惊讶的是，获得看起来是 –– 有意义的整句 –– 甚至整个段落是的频率相当高。</p>
+<p>图 8.2 包含了程序的上半部，用来读取示例文件的代码。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defparameter</span> <span class="vg">*words*</span> <span class="p">(</span><span class="nb">make-hash-table</span> <span class="ss">:size</span> <span class="mi">10000</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defconstant</span> <span class="nv">maxword</span> <span class="mi">100</span><span class="p">)</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">read-text</span> <span class="p">(</span><span class="nb">pathname</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">with-open-file</span> <span class="p">(</span><span class="nv">s</span> <span class="nb">pathname</span> <span class="ss">:direction</span> <span class="ss">:input</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">buffer</span> <span class="p">(</span><span class="nb">make-string</span> <span class="nv">maxword</span><span class="p">))</span>
+          <span class="p">(</span><span class="nv">pos</span> <span class="mi">0</span><span class="p">))</span>
+      <span class="p">(</span><span class="nb">do</span> <span class="p">((</span><span class="nv">c</span> <span class="p">(</span><span class="nb">read-char</span> <span class="nv">s</span> <span class="no">nil</span> <span class="ss">:eof</span><span class="p">)</span>
+              <span class="p">(</span><span class="nb">read-char</span> <span class="nv">s</span> <span class="no">nil</span> <span class="ss">:eof</span><span class="p">)))</span>
+          <span class="p">((</span><span class="nb">eql</span> <span class="nv">c</span> <span class="ss">:eof</span><span class="p">))</span>
+        <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">or</span> <span class="p">(</span><span class="nb">alpha-char-p</span> <span class="nv">c</span><span class="p">)</span> <span class="p">(</span><span class="nb">char=</span> <span class="nv">c</span> <span class="sc">#\&#39;</span><span class="p">))</span>
+            <span class="p">(</span><span class="k">progn</span>
+              <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">aref</span> <span class="nv">buffer</span> <span class="nv">pos</span><span class="p">)</span> <span class="nv">c</span><span class="p">)</span>
+              <span class="p">(</span><span class="nb">incf</span> <span class="nv">pos</span><span class="p">))</span>
+            <span class="p">(</span><span class="k">progn</span>
+              <span class="p">(</span><span class="nb">unless</span> <span class="p">(</span><span class="nb">zerop</span> <span class="nv">pos</span><span class="p">)</span>
+                <span class="p">(</span><span class="nv">see</span> <span class="p">(</span><span class="nb">intern</span> <span class="p">(</span><span class="nb">string-downcase</span>
+                               <span class="p">(</span><span class="nb">subseq</span> <span class="nv">buffer</span> <span class="mi">0</span> <span class="nv">pos</span><span class="p">))))</span>
+                <span class="p">(</span><span class="nb">setf</span> <span class="nv">pos</span> <span class="mi">0</span><span class="p">))</span>
+              <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">p</span> <span class="p">(</span><span class="nv">punc</span> <span class="nv">c</span><span class="p">)))</span>
+                <span class="p">(</span><span class="k">if</span> <span class="nv">p</span> <span class="p">(</span><span class="nv">see</span> <span class="nv">p</span><span class="p">)))))))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">punc</span> <span class="p">(</span><span class="nv">c</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">case</span> <span class="nv">c</span>
+    <span class="p">(</span><span class="sc">#\.</span> <span class="ss">&#39;|.|</span><span class="p">)</span> <span class="p">(</span><span class="sc">#\,</span> <span class="ss">&#39;|,|</span><span class="p">)</span> <span class="p">(</span><span class="sc">#\;</span> <span class="ss">&#39;|;|</span><span class="p">)</span>
+    <span class="p">(</span><span class="sc">#\!</span> <span class="ss">&#39;|!|</span><span class="p">)</span> <span class="p">(</span><span class="sc">#\?</span> <span class="ss">&#39;|?|</span><span class="p">)</span> <span class="p">))</span>
+
+<span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">prev</span> <span class="o">`</span><span class="nv">|.|</span><span class="p">))</span>
+  <span class="p">(</span><span class="nb">defun</span> <span class="nv">see</span> <span class="p">(</span><span class="nv">symb</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">pair</span> <span class="p">(</span><span class="nb">assoc</span> <span class="nv">symb</span> <span class="p">(</span><span class="nb">gethash</span> <span class="nv">prev</span> <span class="vg">*words*</span><span class="p">))))</span>
+      <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">pair</span><span class="p">)</span>
+          <span class="p">(</span><span class="nb">push</span> <span class="p">(</span><span class="nb">cons</span> <span class="nv">symb</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nb">gethash</span> <span class="nv">prev</span> <span class="vg">*words*</span><span class="p">))</span>
+          <span class="p">(</span><span class="nb">incf</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">pair</span><span class="p">))))</span>
+    <span class="p">(</span><span class="nb">setf</span> <span class="nv">prev</span> <span class="nv">symb</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 8.2 读取示例文件</strong></p>
+<p>从图 8.2 所导出的数据，会被存在哈希表 <tt class="docutils literal"><span class="pre">*words*</span></tt> 里。这个哈希表的键是代表单词的符号，而值会像是下列的关联列表（assoc-lists）:</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">((</span><span class="nv">|sin|</span> <span class="o">.</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nv">|wide|</span> <span class="o">.</span> <span class="mi">2</span><span class="p">)</span> <span class="p">(</span><span class="nv">|sights|</span> <span class="o">.</span> <span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>使用<a class="reference external" href="http://zh.wikipedia.org/wiki/%E5%A4%B1%E6%A8%82%E5%9C%92">弥尔顿的失乐园</a>作为示例文件时，这是与键 <tt class="docutils literal"><span class="pre">|discover|</span></tt> 有关的值。它指出了 “discover” 这个单词，在诗里面用了四次，与 “wide” 用了两次，而 “sin” 与 ”sights” 各一次。(译注: 诗可以在这里找到 <a class="reference external" href="http://www.paradiselost.org/">http://www.paradiselost.org/</a> )</p>
+<p>函数 <tt class="docutils literal"><span class="pre">read-text</span></tt> 累积了这个信息。这个函数接受一个路径名（pathname），然後替每一个出现在文件中的单词，生成一个上面所展示的关联列表。它的工作方式是，逐字读取文件的每个字符，将累积的单词存在字串 <tt class="docutils literal"><span class="pre">buffer</span></tt> 。 <tt class="docutils literal"><span class="pre">maxword</span></tt> 设成 <tt class="docutils literal"><span class="pre">100</span></tt> ，程序可以读取至多 100 个单词，对英语来说足够了。</p>
+<p>只要下个字符是一个字（由 <tt class="docutils literal"><span class="pre">alpha-char-p</span></tt> 决定）或是一撇(
+apostrophe)
+，就持续累积字符。任何使单词停止累积的字符会送给 <tt class="docutils literal"><span class="pre">see</span></tt> 。数种标点符号（punctuation）也被视为是单词；函数 <tt class="docutils literal"><span class="pre">punc</span></tt> 返回标点字符的伪单词（pseudo-word）。</p>
+<p>函数 <tt class="docutils literal"><span class="pre">see</span></tt> 注册每一个我们看过的单词。它需要知道前一个单词，以及我们刚确认过的单词 –– 这也是为什麽要有变量 <tt class="docutils literal"><span class="pre">prev</span></tt> 存在。起初这个变量设为伪单词里的句点；在 <tt class="docutils literal"><span class="pre">see</span></tt> 函数被调用後， <tt class="docutils literal"><span class="pre">prev</span></tt> 变量包含了我们最後见过的单词。</p>
+<p>在 <tt class="docutils literal"><span class="pre">read-text</span></tt> 返回之後， <tt class="docutils literal"><span class="pre">*words*</span></tt> 会包含输入文件的每一个单词的条目（entry）。通过调用 <tt class="docutils literal"><span class="pre">hash-table-count</span></tt> 你可以了解有多少个不同的单词存在。鲜少有英文文件会超过 10000 个单词。</p>
+<p>现在来到了有趣的部份。图 8.3 包含了从图 8.2 所累积的数据来产生文字的代码。 <tt class="docutils literal"><span class="pre">generate-text</span></tt> 函数导出整个过程。它接受一个要产生几个单词的数字，以及选择性传入前一个单词。使用缺省值，会让产生出来的文件从句子的开头开始。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">generate-text</span> <span class="p">(</span><span class="nv">n</span> <span class="k">&amp;optional</span> <span class="p">(</span><span class="nv">prev</span> <span class="ss">&#39;|.|</span><span class="p">))</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">zerop</span> <span class="nv">n</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">terpri</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">next</span> <span class="p">(</span><span class="nv">random-next</span> <span class="nv">prev</span><span class="p">)))</span>
+        <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;~A &quot;</span> <span class="nv">next</span><span class="p">)</span>
+        <span class="p">(</span><span class="nv">generate-text</span> <span class="p">(</span><span class="nb">1-</span> <span class="nv">n</span><span class="p">)</span> <span class="nv">next</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">random-next</span> <span class="p">(</span><span class="nv">prev</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">let*</span> <span class="p">((</span><span class="nv">choices</span> <span class="p">(</span><span class="nb">gethash</span> <span class="nv">prev</span> <span class="vg">*words*</span><span class="p">))</span>
+         <span class="p">(</span><span class="nv">i</span> <span class="p">(</span><span class="nb">random</span> <span class="p">(</span><span class="nb">reduce</span> <span class="nf">#&#39;</span><span class="nb">+</span> <span class="nv">choices</span>
+                            <span class="ss">:key</span> <span class="nf">#&#39;</span><span class="nb">cdr</span><span class="p">))))</span>
+    <span class="p">(</span><span class="nb">dolist</span> <span class="p">(</span><span class="nv">pair</span> <span class="nv">choices</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">minusp</span> <span class="p">(</span><span class="nb">decf</span> <span class="nv">i</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">pair</span><span class="p">)))</span>
+          <span class="p">(</span><span class="nb">return</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">pair</span><span class="p">))))))</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 8.3 产生文字</strong></p>
+<p>要取得一个新的单词， <tt class="docutils literal"><span class="pre">generate-text</span></tt> 使用前一个单词，接著调用 <tt class="docutils literal"><span class="pre">random-next</span></tt> 。 <tt class="docutils literal"><span class="pre">random-next</span></tt> 函数根据每个单词出现的机率加上权重，随机选择伴随输入文本中 <tt class="docutils literal"><span class="pre">prev</span></tt> 之后的单词。</p>
+<p>现在会是测试运行下程序的好时机。但其实你早看过一个它所产生的示例： 就是本书开头的那首诗，是使用弥尔顿的失乐园作为输入文件所产生的。</p>
+<p>(译注: 诗可在这里看，或是浏览书的第 vi 页)</p>
+<p>Half lost on my firmness gains more glad heart,</p>
+<p>Or violent and from forage drives</p>
+<p>A glimmering of all sun new begun</p>
+<p>Both harp thy discourse they match&#8217;d,</p>
+<p>Forth my early, is not without delay;</p>
+<p>For their soft with whirlwind; and balm.</p>
+<p>Undoubtedly he scornful turn&#8217;d round ninefold,</p>
+<p>Though doubled now what redounds,</p>
+<p>And chains these a lower world devote, yet inflicted?</p>
+<p>Till body or rare, and best things else enjoy&#8217;d in heav&#8217;n</p>
+<p>To stand divided light at ev&#8217;n and poise their eyes,</p>
+<p>Or nourish, lik&#8217;ning spiritual, I have thou appear.</p>
+<p>–– Henley</p>
+</div>
+<div class="section" id="chapter-8-summary">
+<h2>Chapter 8 总结 (Summary)<a class="headerlink" href="#chapter-8-summary" title="永久链接至标题">¶</a></h2>
+<ol class="arabic simple">
+<li>符号的名字可以是任何字串，但由 <tt class="docutils literal"><span class="pre">read</span></tt> 创建的符号缺省会被转成大写。</li>
+<li>符号带有相关联的属性列表，虽然他们不需要是相同的形式，但行为像是 assoc-lists 。</li>
+<li>符号是实质的对象，比较像结构，而不是名字。</li>
+<li>包将字串映射至符号。要在包里给符号创造一个条目的方法是扣留它。符号不需要被扣留。</li>
+<li>包通过限制可以引用的名称增加模组性。缺省的包会是 user 包，但为了提高模组性，大的程序通常分成数个包。</li>
+<li>可以让符号在别的包被存取。关键字是自身求值并在所有的包里都可以存取。</li>
+<li>当一个程序用来操作单词时，用符号来表示单词是很方便的。</li>
+</ol>
+</div>
+<div class="section" id="chapter-8-exercises">
+<h2>Chapter 8 练习 (Exercises)<a class="headerlink" href="#chapter-8-exercises" title="永久链接至标题">¶</a></h2>
+<ol class="arabic simple">
+<li>可能有两个同名符号，但却不 <tt class="docutils literal"><span class="pre">eql</span></tt> 吗？</li>
+<li>估计一下用字串表示 &#8220;FOO&#8221; 与符号表示 foo 所使用内存空间的差异。</li>
+<li>只使用字串作为实参 来调用 137 页的 <tt class="docutils literal"><span class="pre">defpackage</span></tt> 。应该使用符号比较好。为什麽使用字串可能比较危险呢？</li>
+<li>加入需要的代码，使图 7.1 的代码可以放在一个叫做 <tt class="docutils literal"><span class="pre">&quot;RING&quot;</span></tt> 的包里，而图 7.2 的代码放在一个叫做 <tt class="docutils literal"><span class="pre">&quot;FILE&quot;</span></tt> 包里。不需要更动现有的代码。</li>
+<li>写一个确认引用的句子是否是由 Henley 生成的程序 (8.8 节)。</li>
+<li>写一版 Henley，接受一个单词，并产生一个句子，该单词在句子的中间。</li>
+</ol>
+<p class="rubric">脚注</p>
+<table class="docutils footnote" frame="void" id="id4" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[1]</a></td><td>调用 <tt class="docutils literal"><span class="pre">defpackage</span></tt> 里的名字全部大写的缘故在 8.1 节提到过，符号的名字缺省被转成大写。</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'acl-chinese';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+                  </div></div>
+              </article><div class="clearer"></div>
+          </div><div class="span3">
+                <div class="sphinxsidebar">
+      <div id="sidenav" class="box sphinxsidebarwrapper">
+
+
+<h4><a href="../index.html">內容目录</a></h4>
+  <ul>
+<li><a class="reference internal" href="#">第八章：符号</a><ul>
+<li><a class="reference internal" href="#symbol-names">8.1 符号名 (Symbol Names)</a></li>
+<li><a class="reference internal" href="#property-lists">8.2 属性列表 (Property Lists)</a></li>
+<li><a class="reference internal" href="#symbols-are-big">8.3 符号很不简单 (Symbols Are Big)</a></li>
+<li><a class="reference internal" href="#creating-symbols">8.4 创建符号 (Creating Symbols)</a></li>
+<li><a class="reference internal" href="#multiple-packages">8.5 多重包 (Multiple Packages)</a></li>
+<li><a class="reference internal" href="#keywords">8.6 关键字 (Keywords)</a></li>
+<li><a class="reference internal" href="#symbols-and-variables">8.7 符号与变量 (Symbols and Variables)</a></li>
+<li><a class="reference internal" href="#example-random-text">8.8 示例：随机文本 (Example: Random Text)</a></li>
+<li><a class="reference internal" href="#chapter-8-summary">Chapter 8 总结 (Summary)</a></li>
+<li><a class="reference internal" href="#chapter-8-exercises">Chapter 8 练习 (Exercises)</a></li>
+</ul>
+</li>
+</ul>
+
+  
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      
+      
+        <li><a href="https://github.com/acl-translation/acl-chinese/blob/redirect-to-new-domain/zhCN/ch8-cn.rst">
+          Show on GitHub</a></li>
+        <li><a href="https://github.com/acl-translation/acl-chinese/edit/redirect-to-new-domain/zhCN/ch8-cn.rst">
+          Edit on GitHub</a></li>
+      
+    </ul>
+  
+</div>
+    </div>
+              </div></div>
+      </div>
+<footer class="container-fluid">
+        <hr />&copy; 版权所有 2012, Juanito Fatas Huang.最后更新日期是 Apr 22, 2013.使用 <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.</footer>
+ <!-- End original user content -->
+
+
+<br>
+<br>
+<br>
+
+
+<style type="text/css">
+  .rtd-badge {
+    position: fixed;
+    display: block;
+    bottom: 5px;
+    height: 40px;
+    text-indent: -9999em;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -moz-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  }
+  #version_menu {
+    position: fixed;
+    display: none;
+    bottom: 11px;
+    right: 166px;
+    list-style-type: none;
+    margin: 0;
+  }
+  .footer_popout:hover #version_menu {
+    display: block;
+  }
+  #version_menu li {
+    display: block;
+    float: right;
+  }
+  #version_menu li a {
+    display: block;
+    padding: 6px 10px 4px 10px;
+    margin: 7px 7px 0 0;
+    font-weight: bold;
+    font-size: 14px;
+    height: 20px;
+    line-height: 17px;
+    text-decoration: none;
+    color: #fff;
+    background: #8ca1af url(../images/gradient-light.png) bottom left repeat-x;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 1px #465158;
+    -moz-box-shadow: 0 1px 1px #465158;
+    -webkit-box-shadow: 0 1px 1px #465158;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+  }
+  #version_menu li a:hover {
+    text-decoration: none;
+    background-color: #697983;
+    box-shadow: 0 1px 0px #465158;
+    -moz-box-shadow: 0 1px 0px #465158;
+    -webkit-box-shadow: 0 1px 0px #465158;
+  }
+  .rtd-badge.rtd {
+    background: #3b4449 url(//media.readthedocs.org//images/badge-rtd.png) scroll 0px -46px no-repeat;
+    border: 1px solid #282E32;
+    width: 41px;
+    right: 5px;
+  }
+  .footer_popout:hover .rtd-badge.rtd {
+    background-position: top left;
+    width: 160px;
+  }
+  .rtd-badge.revsys { background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline-sponsored {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys-sm.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 205px;
+    right: 173px;
+  }
+
+</style>
+<div class="rtd_doc_footer">
+  <div class="footer_popout">
+    <a href="//readthedocs.org/projects/ansi-common-lisp/?fromdocs=ansi-common-lisp" class="rtd-badge rtd"> Brought to you by Read the Docs</a>
+    <ul id="version_menu">
+      
+        <li><a href="/en/latest/">latest</a></li>
+      
+    </ul>
+  </div>
+</div>
+<!-- RTD Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-17997319-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+<!-- User Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-26995626-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+</body>
+</html>

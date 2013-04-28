@@ -1,0 +1,889 @@
+<!DOCTYPE HTML>
+
+  <html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+<title>第十一章：Common Lisp 对象系统 &mdash; ANSI Common Lisp 中文版</title>
+    
+<!-- RTD <head> -->
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/underscore.js"></script>
+<script type="text/javascript" src="//media.readthedocs.org/javascript/doctools.js"></script>
+
+<script type="text/javascript">
+  // This is included here for Javascript that doesn't have access to the templates.
+  var doc_version = "latest";
+  var doc_slug = "ansi-common-lisp";
+</script>
+
+<script type="text/javascript" src="//media.readthedocs.org/javascript/rtd.js"></script>
+<!-- end RTD <head> -->
+
+    <link rel="stylesheet" href="../_static/han.min.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/rosefinch.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/main.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:       '../',
+        VERSION:        '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX:    '.html',
+        HAS_SOURCE:     true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/han.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  <script type="text/javascript" src=../_static/jquery.dimensions.js"></script>
+  <script type="text/javascript" src="../_static/main.js"></script><link rel="top" title="ANSI Common Lisp 中文版" href="../index.html" /></head>
+
+  <body><div class="navbar navbar-static-top navbar-inverse">
+        <div id="top-bar" class="navbar-inner">
+
+          <h1 id="logo">ANSI Common Lisp 中文版<a href="../index.html" class="brand">ANSI Common Lisp 中文版</a></h1>
+          <ul class="nav"></ul><a href="https://github.com/acl-translation/acl-chinese"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
+        </div>
+      </div><div class="content container-fluid">
+        <div class="row-fluid"><div class="document span9"><article >
+                <div class="documentwrapper"><div class="body"><div class="section" id="common-lisp">
+<h1>第十一章：Common Lisp 对象系统<a class="headerlink" href="#common-lisp" title="永久链接至标题">¶</a></h1>
+<p>Common Lisp 对象系统，或称为 CLOS，是一组用来实作面向对象编程的操作集。由于它们有著同样的历史，通常将这些操作视为一个群组。`λ &lt;<a class="reference external" href="http://ansi-common-lisp.readthedocs.org/en/latest/zhCN/notes-cn.html#notes-176">http://ansi-common-lisp.readthedocs.org/en/latest/zhCN/notes-cn.html#notes-176</a>&gt;`_ 技术上来说，它们与其他部分的 Common Lisp 没有不同： <tt class="docutils literal"><span class="pre">defmethod</span></tt> 只不过和 <tt class="docutils literal"><span class="pre">defun</span></tt> 一样是语言中的一个整合部分。</p>
+<div class="section" id="object-oriented-programming">
+<h2>11.1 面向对象编程 Object-Oriented Programming<a class="headerlink" href="#object-oriented-programming" title="永久链接至标题">¶</a></h2>
+<p>面向对象编程意味著程序组织方式的改变。这个改变跟已经发生过的处理器运算处理能力分配的变化雷同。在 1970 年代，一个多用户的计算机系统代表著，一个或两个大型机连接到大量的<a class="reference external" href="http://zh.wikipedia.org/wiki/%E5%93%91%E7%BB%88%E7%AB%AF">哑终端</a>(dumb terminal)。现在更可能的是大量相互通过网络连接的工作站 (workstation)。系统的运算处理能力现在分布至个体用户上，而不是集中在一台大型的计算机上。</p>
+<p>面向对象编程所带来的变革与上例非常类似，前者打破了传统程序的组织方式。不再让单一的程序去操作那些数据，而是告诉数据自己该做什么，程序隐含在这些新的数据“对象”的交互过程之中。</p>
+<p>举例来说，假设我们要算出一个二维图形的面积。一个办法是写一个单独的函数，让它检查其参数的类型，然后视类型做处理，如图 11.1 所示。</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defstruct</span> <span class="nv">rectangle</span>
+  <span class="nv">height</span> <span class="nv">width</span><span class="p">)</span>
+
+<span class="p">(</span><span class="nb">defstruct</span> <span class="nv">circle</span>
+  <span class="nv">radius</span><span class="p">)</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">area</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">cond</span> <span class="p">((</span><span class="nv">rectangle-p</span> <span class="nv">x</span><span class="p">)</span>
+         <span class="p">(</span><span class="nb">*</span> <span class="p">(</span><span class="nv">rectangle-height</span> <span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nv">rectangle-width</span> <span class="nv">x</span><span class="p">)))</span>
+        <span class="p">((</span><span class="nv">circle-p</span> <span class="nv">x</span><span class="p">)</span>
+         <span class="p">(</span><span class="nb">*</span> <span class="nv">pi</span> <span class="p">(</span><span class="nb">expt</span> <span class="p">(</span><span class="nv">circle-radius</span> <span class="nv">x</span><span class="p">)</span> <span class="mi">2</span><span class="p">)))))</span>
+
+<span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">r</span> <span class="p">(</span><span class="nv">make-rectangle</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nv">rectangle-height</span> <span class="nv">r</span><span class="p">)</span> <span class="mi">2</span>
+          <span class="p">(</span><span class="nv">rectangle-width</span> <span class="nv">r</span><span class="p">)</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="p">(</span><span class="nv">area</span> <span class="nv">r</span><span class="p">))</span>
+<span class="mi">6</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 11.1: 使用结构及函数来计算面积</strong></p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defclass</span> <span class="nv">rectangle</span> <span class="p">()</span>
+  <span class="p">(</span><span class="nv">height</span> <span class="nv">width</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defclass</span> <span class="nv">circle</span> <span class="p">()</span>
+  <span class="p">(</span><span class="nv">radius</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defmethod</span> <span class="nv">area</span> <span class="p">((</span><span class="nv">x</span> <span class="nv">rectangle</span><span class="p">))</span>
+  <span class="p">(</span><span class="nb">*</span> <span class="p">(</span><span class="nb">slot-value</span> <span class="nv">x</span> <span class="ss">&#39;height</span><span class="p">)</span> <span class="p">(</span><span class="nb">slot-value</span> <span class="nv">x</span> <span class="ss">&#39;width</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defmethod</span> <span class="nv">area</span> <span class="p">((</span><span class="nv">x</span> <span class="nv">circle</span><span class="p">))</span>
+  <span class="p">(</span><span class="nb">*</span> <span class="nv">pi</span> <span class="p">(</span><span class="nb">expt</span> <span class="p">(</span><span class="nb">slot-value</span> <span class="nv">x</span> <span class="ss">&#39;radius</span><span class="p">)</span> <span class="mi">2</span><span class="p">)))</span>
+
+<span class="nb">&gt;</span> <span class="p">(</span><span class="k">let</span> <span class="p">((</span><span class="nv">r</span> <span class="p">(</span><span class="nb">make-instance</span> <span class="ss">&#39;rectangle</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">slot-value</span> <span class="nv">r</span> <span class="ss">&#39;height</span><span class="p">)</span> <span class="mi">2</span>
+          <span class="p">(</span><span class="nb">slot-value</span> <span class="nv">r</span> <span class="ss">&#39;width</span><span class="p">)</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="p">(</span><span class="nv">area</span> <span class="nv">r</span><span class="p">))</span>
+<span class="mi">6</span>
+</pre></div>
+</td></tr></table></div>
+<p><strong>图 11.2: 使用类型与方法来计算面积</strong></p>
+<p>使用 CLOS 我们可以写出一个等效的程序，如图 11.2 所示。在面向对象模型里，我们的程序被拆成数个独一无二的方法，每个方法为某些特定种类的参数而生。图 11.2 中的两个方法，隐性地定义了一个与图 11.1 相似作用的 <tt class="docutils literal"><span class="pre">area</span></tt> 函数，当我们调用 <tt class="docutils literal"><span class="pre">area</span></tt> 时，Lisp 检查参数的类型，并调用相对应的方法。</p>
+<p>通过这种方式，我们将函数拆成独一无二的方法，面向对象暗指<em>继承</em> (<em>inheritance</em>) –– 槽 (slot)与方法 (method)皆有继承。在图 11.2 中，作为第二个参数传给 <tt class="docutils literal"><span class="pre">defclass</span></tt> 的空列表列出了所有基类。假设我们要定义一个新类，上色的圆形 (colored-circle)，则上色的圆形有两个基类， <tt class="docutils literal"><span class="pre">colored</span></tt> 与 <tt class="docutils literal"><span class="pre">circle</span></tt> ：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defclass</span> <span class="nv">colored</span> <span class="p">()</span>
+  <span class="p">(</span><span class="nv">color</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defclass</span> <span class="nv">colored-circle</span> <span class="p">(</span><span class="nv">circle</span> <span class="nv">colored</span><span class="p">)</span>
+  <span class="p">())</span>
+</pre></div>
+</td></tr></table></div>
+<p>当我们创造 <tt class="docutils literal"><span class="pre">colored-circle</span></tt> 类的实例 (instance)时，我们会看到两个继承：</p>
+<ol class="arabic simple">
+<li><tt class="docutils literal"><span class="pre">colored-circle</span></tt> 的实例会有两个槽：从 <tt class="docutils literal"><span class="pre">circle</span></tt> 类继承而来的 <tt class="docutils literal"><span class="pre">radius</span></tt> 以及从 <tt class="docutils literal"><span class="pre">colored</span></tt> 类继承而来的 <tt class="docutils literal"><span class="pre">color</span></tt> 。</li>
+<li>由于没有特别为 <tt class="docutils literal"><span class="pre">colored-circle</span></tt> 定义的 <tt class="docutils literal"><span class="pre">area</span></tt> 方法存在，若我们对 <tt class="docutils literal"><span class="pre">colored-circle</span></tt> 实例调用 <tt class="docutils literal"><span class="pre">area</span></tt> ，我们会获得替 <tt class="docutils literal"><span class="pre">circle</span></tt> 类所定义的 <tt class="docutils literal"><span class="pre">area</span></tt> 方法。</li>
+</ol>
+<p>从实践层面来看，面向对象编程代表著以方法、类、实例以及继承来组织程序。为什么你会想这么组织程序？面向对象方法的主张之一说这样使得程序更容易改动。如果我们想要改变 <tt class="docutils literal"><span class="pre">ob</span></tt> 类对象所显示的方式，我们只需要改动 <tt class="docutils literal"><span class="pre">ob</span></tt> 类的 <tt class="docutils literal"><span class="pre">display</span></tt> 方法。如果我们希望创建一个新的类，大致上与 <tt class="docutils literal"><span class="pre">ob</span></tt> 相同，只有某些方面不同，我们可以创建一个 <tt class="docutils literal"><span class="pre">ob</span></tt> 类的子类。在这个子类里，我们仅改动我们想要的属性，其他所有的属性会从 <tt class="docutils literal"><span class="pre">ob</span></tt> 类默认继承得到。要是我们只是想让某个 <tt class="docutils literal"><span class="pre">ob</span></tt> 对象和其他的 <tt class="docutils literal"><span class="pre">ob</span></tt> 对象不一样，我们可以新建一个 <tt class="docutils literal"><span class="pre">ob</span></tt> 对象，直接修改这个对象的属性即可。若是当时的程序写的很讲究，我们甚至不需要看程序中其他的代码一眼，就可以完成种种的改动。 <a class="reference external" href="http://ansi-common-lisp.readthedocs.org/en/latest/zhCN/notes-cn.html#notes-178">λ</a></p>
+</div>
+<div class="section" id="class-and-instances">
+<h2>11.2 类与实例 (Class and Instances)<a class="headerlink" href="#class-and-instances" title="永久链接至标题">¶</a></h2>
+<p>在 4.6 节时，我们看过了创建结构的两个步骤：我们调用 <tt class="docutils literal"><span class="pre">defstruct</span></tt> 来设计一个结构的形式，接著通过一个像是 <tt class="docutils literal"><span class="pre">make-point</span></tt> 这样特定的函数来创建结构。创建实例 (instances)同样需要两个类似的步骤。首先我们使用 <tt class="docutils literal"><span class="pre">defclass</span></tt> 来定义一个类别 (Class):</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defclass</span> <span class="nv">circle</span> <span class="p">()</span>
+  <span class="p">(</span><span class="nv">radius</span> <span class="nv">center</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>这个定义说明了 <tt class="docutils literal"><span class="pre">circle</span></tt> 类别的实例会有两个槽 (<em>slot</em>)，分别名为 <tt class="docutils literal"><span class="pre">radius</span></tt> 与 <tt class="docutils literal"><span class="pre">center</span></tt> （槽类比于结构里的字段 「field」）。</p>
+<p>要创建这个类的实例，我们调用通用的 <tt class="docutils literal"><span class="pre">make-instance</span></tt> 函数，而不是调用一个特定的函数，传入的第一个参数为类别名称：</p>
+<div class="highlight-cl"><pre>&gt; (setf c (make-instance 'circle))
+#&lt;CIRCLE #XC27496&gt;</pre>
+</div>
+<p>要给这个实例的槽赋值，我们可以使用 <tt class="docutils literal"><span class="pre">setf</span></tt> 搭配 <tt class="docutils literal"><span class="pre">slot-value</span></tt> ：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">slot-value</span> <span class="nv">c</span> <span class="ss">&#39;radius</span><span class="p">)</span> <span class="mi">1</span><span class="p">)</span>
+<span class="mi">1</span>
+</pre></div>
+</td></tr></table></div>
+<p>与结构的字段类似，未初始化的槽的值是未定义的 (undefined)。</p>
+</div>
+<div class="section" id="slot-properties">
+<h2>11.3 槽的属性 (Slot Properties)<a class="headerlink" href="#slot-properties" title="永久链接至标题">¶</a></h2>
+<p>传给 <tt class="docutils literal"><span class="pre">defclass</span></tt> 的第三个参数必须是一个槽定义的列表。如上例所示，最简单的槽定义是一个表示其名称的符号。在一般情况下，一个槽定义可以是一个列表，第一个是槽的名称，伴随著一个或多个属性 (property)。属性像关键字参数那样指定。</p>
+<p>通过替一个槽定义一个存取器 (accessor)，我们隐式地定义了一个可以引用到槽的函数，使我们不需要再调用 <tt class="docutils literal"><span class="pre">slot-value</span></tt> 函数。如果我们如下更新我们的 <tt class="docutils literal"><span class="pre">circle</span></tt> 类定义，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defclass</span> <span class="nv">circle</span> <span class="p">()</span>
+  <span class="p">((</span><span class="nv">radius</span> <span class="ss">:accessor</span> <span class="nv">circle-radius</span><span class="p">)</span>
+   <span class="p">(</span><span class="nv">center</span> <span class="ss">:accessor</span> <span class="nv">circle-center</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>那我们能够分别通过 <tt class="docutils literal"><span class="pre">circle-radius</span></tt> 及 <tt class="docutils literal"><span class="pre">circle-center</span></tt> 来引用槽：</p>
+<div class="highlight-cl"><pre>&gt; (setf c (make-instance 'circle))
+#&lt;CIRCLE #XC5C726&gt;
+
+&gt; (setf (circle-radius c) 1)
+1
+
+&gt; (circle-radius c)
+1</pre>
+</div>
+<p>通过指定一个 <tt class="docutils literal"><span class="pre">:writer</span></tt> 或是一个 <tt class="docutils literal"><span class="pre">reader</span></tt> ，而不是 <tt class="docutils literal"><span class="pre">accessor</span></tt> ，我们可以获得存取器的写入或读取行为。</p>
+<p>要指定一个槽的缺省值，我们可以给入一个 <tt class="docutils literal"><span class="pre">:initform</span></tt> 参数。若我们想要在 <tt class="docutils literal"><span class="pre">make-instance</span></tt> 调用期间就将槽初始化，我们可以用 <tt class="docutils literal"><span class="pre">:initarg</span></tt> 定义一个参数名。 <a class="footnote-reference" href="#id6" id="id3">[1]</a> 加入刚刚所说的两件事，现在我们的类定义变成：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defclass</span> <span class="nv">circle</span> <span class="p">()</span>
+  <span class="p">((</span><span class="nv">radius</span> <span class="ss">:accessor</span> <span class="nv">circle-radius</span>
+           <span class="ss">:initarg</span> <span class="ss">:radius</span>
+           <span class="ss">:initform</span> <span class="mi">1</span><span class="p">)</span>
+   <span class="p">(</span><span class="nv">center</span> <span class="ss">:accessor</span> <span class="nv">circle-center</span>
+           <span class="ss">:initarg</span> <span class="ss">:center</span>
+           <span class="ss">:initform</span> <span class="p">(</span><span class="nb">cons</span> <span class="mi">0</span> <span class="mi">0</span><span class="p">))))</span>
+</pre></div>
+</td></tr></table></div>
+<p>现在当我们创建一个 <tt class="docutils literal"><span class="pre">circle</span></tt> 类的实例时，我们可以使用关键字参数 <tt class="docutils literal"><span class="pre">:initarg</span></tt> 给槽赋值，或是將槽的值设为 <tt class="docutils literal"><span class="pre">:initform</span></tt> 所指定的缺省值。</p>
+<div class="highlight-cl"><pre>&gt; (setf c (make-instance 'circle :radius 3))
+#&lt;CIRCLE #XC2DE0E&gt;
+&gt; (circle-radius c)
+3
+&gt; (circle-center c)
+(0 . 0)</pre>
+</div>
+<p>注意 <tt class="docutils literal"><span class="pre">initarg</span></tt> 的优先级比 <tt class="docutils literal"><span class="pre">initform</span></tt> 要高。</p>
+<p>我们可以指定某些槽是共享的 –– 也就是每个产生出来的实例，共享槽的值都会是一样的。我们通过声明槽拥有 <tt class="docutils literal"><span class="pre">:acclocation</span> <span class="pre">:class</span></tt> 来办到此事。（另一个办法是让一个槽有 <tt class="docutils literal"><span class="pre">:allocation</span> <span class="pre">:instance</span></tt> ，但由于这是缺省设置，不需要特别再声明一次。）当我们在一个实例中，改变了共享槽的值，则其它实例共享槽也会获得相同的值。所以我们会想要使用共享槽来保存所有实例都有的相同属性。</p>
+<p>举例来说，假设我们想要模拟一群成人小报 (a flock of tabloids)的行为。（<strong>译注</strong>：可以看看<a class="reference external" href="http://tinyurl.com/9n4dckk">什么是 tabloids</a>。）在我们的模拟中，我们想要能够表示一个事实，也就是当一家小报采用一个头条时，其它小报也会跟进的这个行为。我们可以通过让所有的实例共享一个槽来实现。若 <tt class="docutils literal"><span class="pre">tabloid</span></tt> 类别像下面这样定义，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defclass</span> <span class="nv">tabloid</span> <span class="p">()</span>
+  <span class="p">((</span><span class="nv">top-story</span> <span class="ss">:accessor</span> <span class="nv">tabloid-story</span>
+              <span class="ss">:allocation</span> <span class="ss">:class</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>那么如果我们创立两家小报，无论一家的头条是什么，另一家的头条也会是一样的：</p>
+<div class="highlight-cl"><pre>&gt; (setf daily-blab (make-instance 'tabloid)
+        unsolicited-mail (make-instance 'tabloid))
+#&lt;TABLOID #x302000EFE5BD&gt;
+&gt; (setf (tabloid-story daily-blab) 'adultery-of-senator)
+ADULTERY-OF-SENATOR
+&gt; (tabloid-story unsolicited-mail)
+ADULTERY-OF-SENATOR</pre>
+</div>
+<p><strong>译注</strong>： ADULTERY-OF-SENATOR 参议员的性丑闻。</p>
+<p>若有给入 <tt class="docutils literal"><span class="pre">:documentation</span></tt> 属性的话，用来作为 <tt class="docutils literal"><span class="pre">slot</span></tt> 的文档字串。通过指定一个 <tt class="docutils literal"><span class="pre">:type</span></tt> ，你保证一个槽里只会有这种类型的元素。类型声明会在 13.3 节讲解。</p>
+</div>
+<div class="section" id="superclasses">
+<h2>11.4 基类 (Superclasses)<a class="headerlink" href="#superclasses" title="永久链接至标题">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">defclass</span></tt> 接受的第二个参数是一个列出其基类的列表。一个类别继承了所有基类槽的联集。所以要是我们将 <tt class="docutils literal"><span class="pre">screen-circle</span></tt> 定义成 <tt class="docutils literal"><span class="pre">circle</span></tt> 与 <tt class="docutils literal"><span class="pre">graphic</span></tt> 的子类，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defclass</span> <span class="nv">graphic</span> <span class="p">()</span>
+  <span class="p">((</span><span class="nv">color</span> <span class="ss">:accessor</span> <span class="nv">graphic-color</span> <span class="ss">:initarg</span> <span class="ss">:color</span><span class="p">)</span>
+   <span class="p">(</span><span class="nv">visible</span> <span class="ss">:accessor</span> <span class="nv">graphic-visible</span> <span class="ss">:initarg</span> <span class="ss">:visible</span>
+            <span class="ss">:initform</span> <span class="no">t</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defclass</span> <span class="nv">screen-circle</span> <span class="p">(</span><span class="nv">circle</span> <span class="nv">graphic</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>则 <tt class="docutils literal"><span class="pre">screen-circle</span></tt> 的实例会有四个槽，分别从两个基类继承而来。一个类别不需要自己创建任何新槽； <tt class="docutils literal"><span class="pre">screen-circle</span></tt> 的存在，只是为了提供一个可创建同时从 <tt class="docutils literal"><span class="pre">circle</span></tt> 及 <tt class="docutils literal"><span class="pre">graphic</span></tt> 继承的实例。</p>
+<p>存取器及 <tt class="docutils literal"><span class="pre">:initargs</span></tt> 参数可以用在 <tt class="docutils literal"><span class="pre">screen-circle</span></tt> 的实例，就如同它们也可以用在 <tt class="docutils literal"><span class="pre">circle</span></tt> 或 <tt class="docutils literal"><span class="pre">graphic</span></tt> 类别那般：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">graphic-color</span> <span class="p">(</span><span class="nb">make-instance</span> <span class="ss">&#39;screen-circle</span>
+                                <span class="ss">:color</span> <span class="ss">&#39;red</span> <span class="ss">:radius</span> <span class="mi">3</span><span class="p">))</span>
+<span class="nv">RED</span>
+</pre></div>
+</td></tr></table></div>
+<p>我们可以使每一个 <tt class="docutils literal"><span class="pre">screen-circle</span></tt> 有某种缺省的颜色，通过在 <tt class="docutils literal"><span class="pre">defclass</span></tt> 理替这个槽指定一个 <tt class="docutils literal"><span class="pre">:initform</span></tt> ：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defclass</span> <span class="nv">screen-circle</span> <span class="p">(</span><span class="nv">circle</span> <span class="nv">graphic</span><span class="p">)</span>
+  <span class="p">((</span><span class="nv">color</span> <span class="ss">:initform</span> <span class="ss">&#39;purple</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>现在 <tt class="docutils literal"><span class="pre">screen-circle</span></tt> 的实例缺省会是紫色的：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">graphic-color</span> <span class="p">(</span><span class="nb">make-instance</span> <span class="ss">&#39;screen-circle</span><span class="p">))</span>
+<span class="nv">PURPLE</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<div class="section" id="precedence">
+<h2>11.5 优先级 (Precedence)<a class="headerlink" href="#precedence" title="永久链接至标题">¶</a></h2>
+<p>我们已经看过类别是怎样能有多个基类了。当一个实例的方法同时属于这个实例所属的几个类时，Lisp 需要某种方式来决定要使用哪个方法。优先级的重点在于确保这一切是以一种直观的方式发生的。</p>
+<p>每一个类别，都有一个优先级列表：一个将自身及自身的基类从最具体到最不具体所排序的列表。在目前看过的例子中，优先级还不是需要讨论的议题，但在更大的程序里，它会是一个需要考虑的议题。</p>
+<p>以下是一个更复杂的类别层级：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defclass</span> <span class="nv">sculpture</span> <span class="p">()</span> <span class="p">(</span><span class="nv">height</span> <span class="nv">width</span> <span class="nv">depth</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defclass</span> <span class="nv">statue</span> <span class="p">(</span><span class="nv">sclpture</span><span class="p">)</span> <span class="p">(</span><span class="nv">subject</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defclass</span> <span class="nv">metalwork</span> <span class="p">()</span> <span class="p">(</span><span class="nv">metal-type</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defclass</span> <span class="nv">casting</span> <span class="p">(</span><span class="nv">metalwork</span><span class="p">)</span> <span class="p">())</span>
+
+<span class="p">(</span><span class="nb">defclass</span> <span class="nv">cast-statue</span> <span class="p">(</span><span class="nv">statue</span> <span class="nv">casting</span><span class="p">)</span> <span class="p">())</span>
+</pre></div>
+</td></tr></table></div>
+<p>图 11.3 包含了一个表示 <tt class="docutils literal"><span class="pre">cast-statue</span></tt> 类别及其基类的网络。</p>
+<div class="figure">
+<img alt="../_images/Figure-11.3.png" src="../_images/Figure-11.3.png" />
+</div>
+<p><strong>图 11.3: 类别层级</strong></p>
+<p>要替一个类别建构一个这样的网络，从最底层用一个节点表示该类别开始。接著替类别最近的基类画上节点，其顺序根据 <tt class="docutils literal"><span class="pre">defclass</span></tt> 调用里的顺序由左至右画，再来给每个节点重复这个过程，直到你抵达一个类别，这个类别最近的基类是 <tt class="docutils literal"><span class="pre">standard-object</span></tt> –– 即传给 <tt class="docutils literal"><span class="pre">defclass</span></tt> 的第二个参数为 <tt class="docutils literal"><span class="pre">()</span></tt> 的类别。最后从这些类别往上建立链接，到表示 <tt class="docutils literal"><span class="pre">standard-object</span></tt> 节点为止，接著往上加一个表示类别 <tt class="docutils literal"><span class="pre">t</span></tt> 的节点与一个链接。结果会是一个网络，最顶与最下层各为一个点，如图 11.3 所示。</p>
+<p>一个类别的优先级列表可以通过如下步骤，遍历对应的网络计算出来：</p>
+<ol class="arabic simple">
+<li>从网络的底部开始。</li>
+<li>往上走，遇到未探索的分支永远选最左边。</li>
+<li>如果你将进入一个节点，你发现此节点右边也有一条路同样进入该节点时，则从该节点退后，重走刚刚的老路，直到回到一个节点，这个节点上有尚未探索的路径。接著返回步骤 2。</li>
+<li>当你抵达表示 <tt class="docutils literal"><span class="pre">t</span></tt> 的节点时，遍历就结束了。你第一次进入每个节点的顺序就决定了节点在优先级列表的顺序。</li>
+</ol>
+<p>这个定义的结果之一（实际上讲的是规则 3）在优先级列表里，类别不会在其子类别出现前出现。</p>
+<p>图 11.3 的箭头演示了一个网络是如何遍历的。由这个图所决定出的优先级列表为： <tt class="docutils literal"><span class="pre">cast-statue</span></tt> , <tt class="docutils literal"><span class="pre">statue</span></tt> , <tt class="docutils literal"><span class="pre">sculpture</span></tt> , <tt class="docutils literal"><span class="pre">casting</span></tt> , <tt class="docutils literal"><span class="pre">metalwork</span></tt> , <tt class="docutils literal"><span class="pre">standard-object</span></tt> , <tt class="docutils literal"><span class="pre">t</span></tt> 。有时候会用 <em>specific</em> 这个词，作为在一个给定的优先级列表中来引用类别的位置的速记法。优先级列表从最高优先级排序至最低优先级。</p>
+<p>优先级的主要目的是，当一个通用函数 (generic function)被调用时，决定要用哪个方法。这个过程在下一节讲述。另一个优先级重要的地方是，当一个槽从多个基类继承时。408 页的备注解释了当这情况发生时的应用规则。 <a class="reference external" href="http://ansi-common-lisp.readthedocs.org/en/latest/zhCN/notes-cn.html#notes-183">λ</a></p>
+</div>
+<div class="section" id="generic-functions">
+<h2>11.6 通用函数 (Generic Functions)<a class="headerlink" href="#generic-functions" title="永久链接至标题">¶</a></h2>
+<p>一个通用函数 (generic function) 是由一个或多个方法组成的一个函数。方法可用 <tt class="docutils literal"><span class="pre">defmethod</span></tt> 来定义，与 <tt class="docutils literal"><span class="pre">defun</span></tt> 的定义形式类似：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defmethod</span> <span class="nv">combine</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">y</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">list</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>现在 <tt class="docutils literal"><span class="pre">combine</span></tt> 有一个方法。若我们在此时调用 <tt class="docutils literal"><span class="pre">combine</span></tt> ，我们会获得由传入的两个参数所组成的一个列表：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">combine</span> <span class="ss">&#39;a</span> <span class="ss">&#39;b</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">A</span> <span class="nv">B</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>到现在我们还没有做任何一般函数做不到的事情。一个通用函数不寻常的地方是，我们可以继续替它加入新的方法。</p>
+<p>首先，我们定义一些可以让新的方法引用的类别，：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defclass</span> <span class="nv">stuff</span> <span class="p">()</span> <span class="p">((</span><span class="nv">name</span> <span class="ss">:accessor</span> <span class="nv">name</span> <span class="ss">:initarg</span> <span class="ss">:name</span><span class="p">)))</span>
+<span class="p">(</span><span class="nb">defclass</span> <span class="nv">ice-cream</span> <span class="p">(</span><span class="nv">stuff</span><span class="p">)</span> <span class="p">())</span>
+<span class="p">(</span><span class="nb">defclass</span> <span class="nv">topping</span> <span class="p">(</span><span class="nv">stuff</span><span class="p">)</span> <span class="p">())</span>
+</pre></div>
+</td></tr></table></div>
+<p>这里定义了三个类别： <tt class="docutils literal"><span class="pre">stuff</span></tt> ，只是一个有名字的东西，而 <tt class="docutils literal"><span class="pre">ice-cream</span></tt> 与 <tt class="docutils literal"><span class="pre">topping</span></tt> 是 <tt class="docutils literal"><span class="pre">stuff</span></tt> 的子类。</p>
+<p>现在下面是替 <tt class="docutils literal"><span class="pre">combine</span></tt> 定义的第二个方法：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defmethod</span> <span class="nv">combine</span> <span class="p">((</span><span class="nv">ic</span> <span class="nv">ice-cream</span><span class="p">)</span> <span class="p">(</span><span class="nv">top</span> <span class="nv">topping</span><span class="p">))</span>
+  <span class="p">(</span><span class="nb">format</span> <span class="no">nil</span> <span class="s">&quot;~A ice-cream with ~A topping.&quot;</span>
+          <span class="p">(</span><span class="nv">name</span> <span class="nv">ic</span><span class="p">)</span>
+          <span class="p">(</span><span class="nv">name</span> <span class="nv">top</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div>
+<p>在这次 <tt class="docutils literal"><span class="pre">defmethod</span></tt> 的调用中，参数被特化了 (<em>specialized</em>)：每个出现在列表里的参数都有一个类别的名字。一个方法的特化指出它是应用至何种类别的参数。我们刚定义的方法仅能在传给 <tt class="docutils literal"><span class="pre">combine</span></tt> 的参数分别是 <tt class="docutils literal"><span class="pre">ice-cream</span></tt> 与 <tt class="docutils literal"><span class="pre">topping</span></tt> 的实例时。</p>
+<p>而当一个通用函数被调用时， Lisp 是怎么决定要用哪个方法的？Lisp 会使用参数的类别与参数的特化匹配且优先级最高的方法。这表示若我们用 <tt class="docutils literal"><span class="pre">ice-cream</span></tt> 实例与 <tt class="docutils literal"><span class="pre">topping</span></tt> 实例去调用 <tt class="docutils literal"><span class="pre">combine</span></tt> 方法，我们会得到我们刚刚定义的方法：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">combine</span> <span class="p">(</span><span class="nb">make-instance</span> <span class="ss">&#39;ice-cream</span> <span class="ss">:name</span> <span class="ss">&#39;fig</span><span class="p">)</span>
+           <span class="p">(</span><span class="nb">make-instance</span> <span class="ss">&#39;topping</span> <span class="ss">:name</span> <span class="ss">&#39;treacle</span><span class="p">))</span>
+<span class="s">&quot;FIG ice-cream with TREACLE topping&quot;</span>
+</pre></div>
+</td></tr></table></div>
+<p>但使用其他参数时，我们会得到我们第一次定义的方法：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">combine</span> <span class="mi">23</span> <span class="ss">&#39;skiddoo</span><span class="p">)</span>
+<span class="p">(</span><span class="mi">23</span> <span class="nv">SKIDDOO</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>因为第一个方法的两个参数皆没有特化，它永远只有最低优先权，并永远是最后一个调用的方法。一个未特化的方法是一个安全手段，就像 <tt class="docutils literal"><span class="pre">case</span></tt> 表达式中的 <tt class="docutils literal"><span class="pre">otherwise</span></tt> 子句。</p>
+<p>一个方法中，任何参数的组合都可以特化。在这个方法里，只有第一个参数被特化了：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defmethod</span> <span class="nv">combine</span> <span class="p">((</span><span class="nv">ic</span> <span class="nv">ice-cream</span><span class="p">)</span> <span class="nv">x</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">format</span> <span class="no">nil</span> <span class="s">&quot;~A ice-cream with ~A.&quot;</span>
+          <span class="p">(</span><span class="nv">name</span> <span class="nv">ic</span><span class="p">)</span>
+          <span class="nv">x</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>若我们用一个 <tt class="docutils literal"><span class="pre">ice-cream</span></tt> 的实例以及一个 <tt class="docutils literal"><span class="pre">topping</span></tt> 的实例来调用 <tt class="docutils literal"><span class="pre">combine</span></tt> ，我们仍然得到特化两个参数的方法，因为它是最具体的那个：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">combine</span> <span class="p">(</span><span class="nb">make-instance</span> <span class="ss">&#39;ice-cream</span> <span class="ss">:name</span> <span class="ss">&#39;grape</span><span class="p">)</span>
+           <span class="p">(</span><span class="nb">make-instance</span> <span class="ss">&#39;topping</span> <span class="ss">:name</span> <span class="ss">&#39;marshmallow</span><span class="p">))</span>
+<span class="s">&quot;GRAPE ice-cream with MARSHMALLOW topping&quot;</span>
+</pre></div>
+</td></tr></table></div>
+<p>然而若第一个参数是 <tt class="docutils literal"><span class="pre">ice-cream</span></tt> 而第二个参数不是 <tt class="docutils literal"><span class="pre">topping</span></tt> 的实例的话，我们会得到刚刚上面所定义的那个方法：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">combine</span> <span class="p">(</span><span class="nb">make-instance</span> <span class="ss">&#39;ice-cream</span> <span class="ss">:name</span> <span class="ss">&#39;clam</span><span class="p">)</span>
+           <span class="ss">&#39;reluctance</span><span class="p">)</span>
+<span class="s">&quot;CLAM ice-cream with RELUCTANCE&quot;</span>
+</pre></div>
+</td></tr></table></div>
+<p>当一个通用函数被调用时，参数决定了一个或多个可用的方法 (<em>applicable</em> methods)。如果在调用中的参数在参数的特化约定内，我们说一个方法是可用的。</p>
+<p>如果没有可用的方法，我们会得到一个错误。如果只有一个，它会被调用。如果多于一个，最具体的会被调用。最具体可用的方法是由调用传入参数所属类别的优先级所决定的。由左往右审视参数。如果有一个可用方法的第一个参数，此参数特化给某个类，其类的优先级高于其它可用方法的第一个参数，则此方法就是最具体的可用方法。平手时比较第二个参数，以此类推。[2]_</p>
+<p>在前面的例子里，很容易看出哪个是最具体的可用方法，因为所有的对象都是单继承的。一个 <tt class="docutils literal"><span class="pre">ice-cream</span></tt> 的实例是，按顺序来， <tt class="docutils literal"><span class="pre">ice-cream</span></tt> ， <tt class="docutils literal"><span class="pre">stuff</span></tt> ， <tt class="docutils literal"><span class="pre">standard-object</span></tt> ， 以及 <tt class="docutils literal"><span class="pre">t</span></tt> 类别的成员。</p>
+<p>方法不需要在由 <tt class="docutils literal"><span class="pre">defclass</span></tt> 定义的类别层级来做特化。他们也可以替类型做特化（更精准的说，可以反映出类型的类别）。以下是一个给 <tt class="docutils literal"><span class="pre">combine</span></tt> 用的方法，对数字做了特化：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defmethod</span> <span class="nv">combine</span> <span class="p">((</span><span class="nv">x</span> <span class="nc">number</span><span class="p">)</span> <span class="p">(</span><span class="nv">y</span> <span class="nc">number</span><span class="p">))</span>
+  <span class="p">(</span><span class="nb">+</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>方法甚至可以对单一的对象做特化，用 <tt class="docutils literal"><span class="pre">eql</span></tt> 来决定：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defmethod</span> <span class="nv">combine</span> <span class="p">((</span><span class="nv">x</span> <span class="p">(</span><span class="nb">eql</span> <span class="ss">&#39;powder</span><span class="p">))</span> <span class="p">(</span><span class="nv">y</span> <span class="p">(</span><span class="nb">eql</span> <span class="ss">&#39;spark</span><span class="p">)))</span>
+  <span class="ss">&#39;boom</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>单一对象特化的优先级比类别特化来得高。</p>
+<p>方法可以像一般 Common Lisp 函数一样有复杂的参数列表，但所有组成通用函数方法的參數列表必须是一致的 (<em>congruent</em>)。他们必须需要同样数量的参数，同样数量的选择性参数（如果有的话）以及一起使用 <tt class="docutils literal"><span class="pre">&amp;rest</span></tt> 或是 <tt class="docutils literal"><span class="pre">&amp;key</span></tt> ，会都不要用。下面的参数列表对是全部一致的，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">x</span><span class="p">)</span>             <span class="p">(</span><span class="nv">a</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">x</span> <span class="k">&amp;optional</span> <span class="nv">y</span><span class="p">)</span> <span class="p">(</span><span class="nv">a</span> <span class="k">&amp;optional</span> <span class="nv">b</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">x</span> <span class="nv">y</span> <span class="k">&amp;rest</span> <span class="nv">z</span><span class="p">)</span>   <span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="k">&amp;key</span> <span class="nv">c</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">x</span> <span class="nv">y</span> <span class="k">&amp;key</span> <span class="nv">z</span><span class="p">)</span>    <span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="k">&amp;key</span> <span class="nv">c</span> <span class="nv">d</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>而下列的参数列表对不是一致的：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">x</span><span class="p">)</span>             <span class="p">(</span><span class="nv">a</span> <span class="nv">b</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">x</span> <span class="k">&amp;optional</span> <span class="nv">y</span><span class="p">)</span> <span class="p">(</span><span class="nv">a</span> <span class="k">&amp;optional</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">x</span> <span class="k">&amp;optional</span> <span class="nv">y</span><span class="p">)</span> <span class="p">(</span><span class="nv">a</span> <span class="k">&amp;rest</span> <span class="nv">b</span><span class="p">)</span>
+<span class="p">(</span><span class="nv">x</span> <span class="k">&amp;key</span> <span class="nv">x</span> <span class="nv">y</span><span class="p">)</span>    <span class="p">(</span><span class="nv">a</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>只有需要的参数可以被特化。所以每个方法都可以通过名字及必要参数的特化独一无二地识别出来。如果我们定义另一个方法，有著同样的修饰符及特化，它会覆写掉原先的。所以通过说明</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defmethod</span> <span class="nv">combine</span> <span class="p">((</span><span class="nv">x</span> <span class="p">(</span><span class="nb">eql</span> <span class="ss">&#39;powder</span><span class="p">))</span> <span class="p">(</span><span class="nv">y</span> <span class="p">(</span><span class="nb">eql</span> <span class="ss">&#39;spark</span><span class="p">)))</span>
+  <span class="ss">&#39;kaboom</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>我们重定义了当 <tt class="docutils literal"><span class="pre">combine</span></tt> 方法的参数是 <tt class="docutils literal"><span class="pre">powder</span></tt> 与 <tt class="docutils literal"><span class="pre">spark</span></tt> 时， <tt class="docutils literal"><span class="pre">combine</span></tt> 方法干了什么事儿。</p>
+</div>
+<div class="section" id="auxiliary-methods">
+<h2>11.7 辅助方法 (Auxiliary Methods)<a class="headerlink" href="#auxiliary-methods" title="永久链接至标题">¶</a></h2>
+<p>方法可以透过辅助方法来增强，包括 <tt class="docutils literal"><span class="pre">:before</span></tt> ， <tt class="docutils literal"><span class="pre">:after</span></tt> 以及 <tt class="docutils literal"><span class="pre">:around</span></tt> 方法。 <tt class="docutils literal"><span class="pre">:before</span></tt> 方法允许我们说：“嘿首先，先做这个。” 最具体的 <tt class="docutils literal"><span class="pre">:before</span></tt> 方法<strong>优先</strong>被调用，作为其它方法调用的序幕 (prelude)。 <tt class="docutils literal"><span class="pre">:after</span></tt> 方法允许我们说 “P.S. 也做这个。” 最具体的 <tt class="docutils literal"><span class="pre">:after</span></tt> 方法<strong>最后</strong>被调用，作为其它方法调用的闭幕 (epilogue)。在这之间，我们运行的是在这之前仅视为方法的方法，而准确地说应该叫做主方法 (<em>primary method</em>)。这个主方法调用所返回的值为方法的返回值，甚至 <tt class="docutils literal"><span class="pre">:after</span></tt> 方法在之后被调用也不例外。</p>
+<p><tt class="docutils literal"><span class="pre">:before</span></tt> 与 <tt class="docutils literal"><span class="pre">:after</span></tt> 方法允许我们将新的行为包在调用主方法的周围。 <tt class="docutils literal"><span class="pre">:around</span></tt> 方法提供了一个更戏剧的方式来办到这件事。如果 <tt class="docutils literal"><span class="pre">:around</span></tt> 方法存在的话，会调用的是 <tt class="docutils literal"><span class="pre">:around</span></tt> 方法而不是主方法。则根据它自己的判断， <tt class="docutils literal"><span class="pre">:around</span></tt> 方法自己可能会调用主方法（通过函数 <tt class="docutils literal"><span class="pre">call-next-method</span></tt> ，这也是这个函数存在的目的）。</p>
+<p>这称为标准方法组合机制 (<em>standard method combination</em>)。在标准方法组合机制里，调用一个通用函数会调用</p>
+<ol class="arabic">
+<li><p class="first">最具体的 <tt class="docutils literal"><span class="pre">:around</span></tt> 方法，如果有的话。</p>
+</li>
+<li><p class="first">否则，依序，</p>
+<blockquote>
+<div><ol class="loweralpha simple">
+<li>所有的 <tt class="docutils literal"><span class="pre">:before</span></tt> 方法，从最具体到最不具体。</li>
+<li>最具体的主方法</li>
+<li>所有的 <tt class="docutils literal"><span class="pre">:after</span></tt> 方法，从最不具体到最具体</li>
+</ol>
+</div></blockquote>
+</li>
+</ol>
+<p>返回值为 <tt class="docutils literal"><span class="pre">:around</span></tt> 方法的返回值（情况 1）或是最具体的主方法的返回值（情况 2）。</p>
+<p>辅助方法通过在 <tt class="docutils literal"><span class="pre">defmethod</span></tt> 调用中，在方法名后加上一个修饰关键字 (qualifying keyword)来定义。如果我们替 <tt class="docutils literal"><span class="pre">speaker</span></tt> 类别定义一个主要的 <tt class="docutils literal"><span class="pre">speak</span></tt> 方法如下：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defmethod</span> <span class="nv">speak</span> <span class="p">((</span><span class="nv">s</span> <span class="nv">speaker</span><span class="p">)</span> <span class="nb">string</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;~A&quot;</span> <span class="nb">string</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>则使用 <tt class="docutils literal"><span class="pre">speaker</span></tt> 实例来调用 <tt class="docutils literal"><span class="pre">speak</span></tt> 仅印出第二个参数：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">speak</span> <span class="p">(</span><span class="nb">make-instance</span> <span class="ss">&#39;speaker</span><span class="p">)</span>
+         <span class="s">&quot;I&#39;m hungry&quot;</span><span class="p">)</span>
+<span class="nv">I</span><span class="ss">&#39;m</span> <span class="nv">hungry</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>通过定义一个 <tt class="docutils literal"><span class="pre">intellectual</span></tt> 子类，将主要的 <tt class="docutils literal"><span class="pre">speak</span></tt> 方法用 <tt class="docutils literal"><span class="pre">:before</span></tt> 与 <tt class="docutils literal"><span class="pre">:after</span></tt> 方法包起来，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defmethod</span> <span class="nv">speak</span> <span class="ss">:before</span> <span class="p">((</span><span class="nv">i</span> <span class="nv">intellectual</span><span class="p">)</span> <span class="nb">string</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">princ</span> <span class="s">&quot;Perhaps &quot;</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">defmethod</span> <span class="nv">speak</span> <span class="ss">:after</span> <span class="p">((</span><span class="nv">i</span> <span class="nv">intellectual</span><span class="p">)</span> <span class="nb">string</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">princ</span> <span class="s">&quot; in some sense&quot;</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>我们可以创建一个说话前后带有惯用语的演讲者：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">speak</span> <span class="p">(</span><span class="nb">make-instance</span> <span class="ss">&#39;intellectual</span><span class="p">)</span>
+         <span class="s">&quot;I am hungry&quot;</span><span class="p">)</span>
+<span class="nv">Perhaps</span> <span class="nv">I</span> <span class="nv">am</span> <span class="nv">hungry</span> <span class="nv">in</span> <span class="nb">some</span> <span class="nv">sense</span>
+<span class="no">NIL</span>
+</pre></div>
+</td></tr></table></div>
+<p>如同先前标准方法组合机制所述，所有的 <tt class="docutils literal"><span class="pre">:before</span></tt> 及 <tt class="docutils literal"><span class="pre">:after</span></tt> 方法都被调用了。所以如果我们替 <tt class="docutils literal"><span class="pre">speaker</span></tt> 基类定义 <tt class="docutils literal"><span class="pre">:before</span></tt> 或 <tt class="docutils literal"><span class="pre">:after</span></tt> 方法，</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defmethod</span> <span class="nv">speak</span> <span class="ss">:before</span> <span class="p">((</span><span class="nv">s</span> <span class="nv">speaker</span><span class="p">)</span> <span class="nb">string</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">princ</span> <span class="s">&quot;I think &quot;</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>无论是哪个 <tt class="docutils literal"><span class="pre">:before</span></tt> 或 <tt class="docutils literal"><span class="pre">:after</span></tt> 方法被调用，整个通用函数所返回的值，是最具体主方法的返回值 –– 在这个情况下，为 <tt class="docutils literal"><span class="pre">format</span></tt> 函数所返回的 <tt class="docutils literal"><span class="pre">nil</span></tt> 。</p>
+<p>而在有 <tt class="docutils literal"><span class="pre">:around</span></tt> 方法时，情况就不一样了。如果有一个替传入通用函数特别定义的 <tt class="docutils literal"><span class="pre">:around</span></tt> 方法，则优先调用 <tt class="docutils literal"><span class="pre">:around</span></tt> 方法，而其它的方法要看 <tt class="docutils literal"><span class="pre">:around</span></tt> 方法让不让它们被运行。一个 <tt class="docutils literal"><span class="pre">:around</span></tt> 或主方法，可以通过调用 <tt class="docutils literal"><span class="pre">call-next-method</span></tt> 来调用下一个方法。在调用下一个方法前，它使用 <tt class="docutils literal"><span class="pre">next-method-p</span></tt> 来检查是否有下个方法可调用。</p>
+<p>有了 <tt class="docutils literal"><span class="pre">:around</span></tt> 方法，我们可以定义另一个，更谨慎的， <tt class="docutils literal"><span class="pre">speaker</span></tt> 的子类别：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defclass</span> <span class="nv">courtier</span> <span class="p">(</span><span class="nv">speaker</span><span class="p">)</span> <span class="p">())</span>
+
+<span class="p">(</span><span class="nb">defmethod</span> <span class="nv">speak</span> <span class="ss">:around</span> <span class="p">((</span><span class="nv">c</span> <span class="nv">courtier</span><span class="p">)</span> <span class="nv">stirng</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;Does the King believe that ~A?&quot;</span> <span class="nb">string</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">eql</span> <span class="p">(</span><span class="nb">read</span><span class="p">)</span> <span class="ss">&#39;yes</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">next-method-p</span><span class="p">)</span> <span class="p">(</span><span class="nb">call-next-method</span><span class="p">))</span>
+      <span class="p">(</span><span class="nb">format</span> <span class="no">t</span> <span class="s">&quot;Indeed, it is a preposterous idea. ~%&quot;</span><span class="p">))</span>
+  <span class="ss">&#39;bow</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>当传给 <tt class="docutils literal"><span class="pre">speak</span></tt> 的第一个参数是 <tt class="docutils literal"><span class="pre">courtier</span></tt> 类的实例时，朝臣 (courtier)的舌头有了 <tt class="docutils literal"><span class="pre">:around</span></tt> 方法保护，就不会被割掉了：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">speak</span> <span class="p">(</span><span class="nb">make-instance</span> <span class="ss">&#39;courtier</span><span class="p">)</span> <span class="s">&quot;kings will last&quot;</span><span class="p">)</span>
+<span class="nv">Does</span> <span class="k">the</span> <span class="nv">King</span> <span class="nv">believe</span> <span class="nv">that</span> <span class="nv">kings</span> <span class="nv">will</span> <span class="nv">last?</span> <span class="nv">yes</span>
+<span class="nv">I</span> <span class="nv">think</span> <span class="nv">kings</span> <span class="nv">will</span> <span class="nb">last</span>
+<span class="nv">BOW</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nv">speak</span> <span class="p">(</span><span class="nb">make-instance</span> <span class="ss">&#39;courtier</span><span class="p">)</span> <span class="s">&quot;kings will last&quot;</span><span class="p">)</span>
+<span class="nv">Does</span> <span class="k">the</span> <span class="nv">King</span> <span class="nv">believe</span> <span class="nv">that</span> <span class="nv">kings</span> <span class="nv">will</span> <span class="nv">last?</span> <span class="nv">no</span>
+<span class="nv">Indeed,</span> <span class="nv">it</span> <span class="nv">is</span> <span class="nv">a</span> <span class="nv">preposterous</span> <span class="nv">idea.</span>
+<span class="nv">BOW</span>
+</pre></div>
+</td></tr></table></div>
+<p>记得由 <tt class="docutils literal"><span class="pre">:around</span></tt> 方法所返回的值即通用函数的返回值，这与 <tt class="docutils literal"><span class="pre">:before</span></tt> 与 <tt class="docutils literal"><span class="pre">:after</span></tt> 方法的返回值不一样。</p>
+</div>
+<div class="section" id="method-combination">
+<h2>11.8 方法组合机制 (Method Combination)<a class="headerlink" href="#method-combination" title="永久链接至标题">¶</a></h2>
+<p>在标准方法组合中，只有最具体的主方法会被调用（虽然它可以通过 <tt class="docutils literal"><span class="pre">call-next-method</span></tt> 来调用其它方法）。但我们可能会想要把所有可用的主方法的结果汇总起来。</p>
+<p>用其它组合手段来定义方法也是有可能的 –– 举例来说，一个返回所有可用主方法的和的通用函数。<em>操作符</em> (<em>Operator</em>)方法组合可以这么理解，想像它是 Lisp 表达式的求值后的结果，其中 Lisp 表达式的第一个元素是某个操作符，而参数是按照具体性调用可用主方法的结果。如果我们定义 <tt class="docutils literal"><span class="pre">price</span></tt> 使用 <tt class="docutils literal"><span class="pre">+</span></tt> 来组合数值的通用函数，并且没有可用的 <tt class="docutils literal"><span class="pre">:around</span></tt> 方法，它会如它所定义的方式动作：</p>
+<div class="highlight-cl"><pre>(defun price (&amp;rest args)
+  (+ (apply 〈most specific primary method〉 args)
+     .
+     .
+     .
+     (apply 〈least specific primary method〉 args)))</pre>
+</div>
+<p>如果有可用的 <tt class="docutils literal"><span class="pre">:around</span></tt> 方法的话，它们根据优先级决定，就像是标准方法组合那样。在操作符方法组合里，一个 <tt class="docutils literal"><span class="pre">around</span></tt> 方法仍可以通过 <tt class="docutils literal"><span class="pre">call-next-method</span></tt> 调用下个方法。然而主方法就不可以使用 <tt class="docutils literal"><span class="pre">call-next-method</span></tt> 了。</p>
+<p>我们可以指定一个通用函数的方法组合所要使用的类型，藉由在 <tt class="docutils literal"><span class="pre">defgeneric</span></tt> 调用里加入一个 <tt class="docutils literal"><span class="pre">method-combination</span></tt> 子句：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defgeneric</span> <span class="nv">price</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+  <span class="p">(</span><span class="ss">:method-combination</span> <span class="nb">+</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>现在 <tt class="docutils literal"><span class="pre">price</span></tt> 方法会使用 <tt class="docutils literal"><span class="pre">+</span></tt> 方法组合；任何替 <tt class="docutils literal"><span class="pre">price</span></tt> 定义的 <tt class="docutils literal"><span class="pre">defmethod</span></tt> 必须有 <tt class="docutils literal"><span class="pre">+</span></tt> 来作为第二个参数。如果我们使用 <tt class="docutils literal"><span class="pre">price</span></tt> 来定义某些类型：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">price</span> <span class="p">(</span><span class="nb">make-instance</span> <span class="ss">&#39;suit</span><span class="p">))</span>
+<span class="mi">550</span>
+</pre></div>
+</td></tr></table></div>
+<p>下列符号可以用来作为 <tt class="docutils literal"><span class="pre">defmethod</span></tt> 的第二个参数或是作为 <tt class="docutils literal"><span class="pre">defgeneric</span></tt> 调用中，``method-combination`` 的选项：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="nb">+</span>    <span class="nb">and</span>    <span class="nb">append</span>    <span class="nb">list</span>    <span class="nb">max</span>    <span class="nb">min</span>    <span class="nb">nconc</span>    <span class="nb">or</span>    <span class="k">progn</span>
+</pre></div>
+</td></tr></table></div>
+<p>你也可以使用 <tt class="docutils literal"><span class="pre">standard</span></tt> ，yields 标准方法组合。</p>
+<p>一旦你指定了通用函数要用何种方法组合，所有替该函数定义的方法必须用同样的机制。现在它会抛出一个错误，如果我们试著要使用另一个操作符（或是 <tt class="docutils literal"><span class="pre">:before</span></tt> 或 <tt class="docutils literal"><span class="pre">after</span></tt> ）作为给 <tt class="docutils literal"><span class="pre">defmethod</span></tt> 给 <tt class="docutils literal"><span class="pre">price</span></tt>   的第二个参数。如果我们想要改变 <tt class="docutils literal"><span class="pre">price</span></tt> 的方法组合机制，我们需要通过调用 <tt class="docutils literal"><span class="pre">fmakunbound</span></tt> 来移除整个通用函数。</p>
+</div>
+<div class="section" id="encapsulation">
+<h2>11.9 封装 (Encapsulation)<a class="headerlink" href="#encapsulation" title="永久链接至标题">¶</a></h2>
+<p>面向对象的语言通常会提供某些手段，来区别对象的表示法以及它们给外在世界存取的介面。隐藏实现细节带来两个优点：你可以改变实现方式，而不影响对象对外的样子，而你可以保护对象在可能的危险方面被改动。隐藏细节有时候被称为封装 (<em>encapsulated</em>)。</p>
+<p>虽然封装通常与面向对象编程相关联，但这两个概念其实是没相干的。你可以只拥有其一，而不需要另一个。我们已经在 108 页 (<strong>译注：</strong> 6.5 小节。)看过一个小规模的封装例子。函数 <tt class="docutils literal"><span class="pre">stamp</span></tt> 及 <tt class="docutils literal"><span class="pre">reset</span></tt> 通过共享一个计数器工作，但调用时我们不需要知道这个计数器，也保护我们不可直接修改它。</p>
+<p>在 Common Lisp 里，包是标准的手段来区分公开及私有的信息。要限制某个东西的存取，我们将它放在另一个包里，并且针对外部介面，仅输出需要用的名字。</p>
+<p>我们可以通过输出可被改动的名字，来封装一个槽，但不是槽的名字。举例来说，我们可以定义一个 <tt class="docutils literal"><span class="pre">counter</span></tt> 类别，以及相关的 <tt class="docutils literal"><span class="pre">increment</span></tt> 及 <tt class="docutils literal"><span class="pre">clear</span></tt> 方法如下：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defpackage</span> <span class="s">&quot;CTR&quot;</span>
+  <span class="p">(</span><span class="ss">:use</span> <span class="s">&quot;COMMON-LISP&quot;</span><span class="p">)</span>
+  <span class="p">(</span><span class="ss">:export</span> <span class="s">&quot;COUNTER&quot;</span> <span class="s">&quot;INCREMENT&quot;</span> <span class="s">&quot;CLEAR&quot;</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">in-package</span> <span class="nv">ctr</span><span class="p">)</span>
+
+<span class="p">(</span><span class="nb">defclass</span> <span class="nv">counter</span> <span class="p">()</span> <span class="p">((</span><span class="nv">state</span> <span class="ss">:initform</span> <span class="mi">0</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defmethod</span> <span class="nv">increment</span> <span class="p">((</span><span class="nv">c</span> <span class="nv">counter</span><span class="p">))</span>
+  <span class="p">(</span><span class="nb">incf</span> <span class="p">(</span><span class="nb">slot-value</span> <span class="nv">c</span> <span class="ss">&#39;state</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defmethod</span> <span class="nv">clear</span> <span class="p">((</span><span class="nv">c</span> <span class="nv">counter</span><span class="p">))</span>
+  <span class="p">(</span><span class="nb">setf</span> <span class="p">(</span><span class="nb">slot-value</span> <span class="nv">c</span> <span class="ss">&#39;state</span><span class="p">)</span> <span class="mi">0</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+<p>在这个定义下，在包外部的代码只能够创造 <tt class="docutils literal"><span class="pre">counter</span></tt> 的实例，并调用 <tt class="docutils literal"><span class="pre">increment</span></tt> 及 <tt class="docutils literal"><span class="pre">clear</span></tt> 方法，但不能够存取 <tt class="docutils literal"><span class="pre">state</span></tt> 。</p>
+<p>如果你想要更进一步区别类的内部及外部介面，并使其不可能存取一个槽所存的值，你也可以这么做。只要在你将所有需要引用它的代码定义完，将槽的名字 unintern：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">unintern</span> <span class="ss">&#39;state</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>则没有任何合法的、其它的办法，从任何包来引用到这个槽。 <a class="reference external" href="http://ansi-common-lisp.readthedocs.org/en/latest/zhCN/notes-cn.html#notes-191">λ</a></p>
+</div>
+<div class="section" id="two-models">
+<h2>11.10 两种模型 (Two Models)<a class="headerlink" href="#two-models" title="永久链接至标题">¶</a></h2>
+<p>面向对象编程是一个令人疑惑的话题，部分的原因是因为有两种实现方式：消息传递模型 (message-passing model)与通用函数模型 (generic function model)。一开始先有的消息传递。通用函数是广义的消息传递。</p>
+<p>在消息传递模型里，方法属于对象，且方法的继承与槽的继承概念一样。要找到一个物体的面积，我们传给它一个 <tt class="docutils literal"><span class="pre">area</span></tt> 消息：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="nv">tell</span> <span class="nv">obj</span> <span class="nv">area</span>
+</pre></div>
+</td></tr></table></div>
+<p>而这调用了任何对象 <tt class="docutils literal"><span class="pre">obj</span></tt> 所拥有或继承来的 area 方法。</p>
+<p>有时候我们需要传入额外的参数。举例来说，一个 <tt class="docutils literal"><span class="pre">move</span></tt> 方法接受一个说明要移动多远的参数。如我我们想要告诉 <tt class="docutils literal"><span class="pre">obj</span></tt> 移动 10 个单位，我们可以传下面的消息：</p>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nv">move</span> <span class="nv">obj</span> <span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>消息传递模型的局限性变得清晰。在消息传递模型里，我们仅特化 (specialize) 第一个参数。
+牵扯到多对象时，没有规则告诉方法该如何处理 –– 而对象回应消息的这个模型使得这更加难处理了。</p>
+<p>在消息传递模型里，方法是对象所有的，而在通用函数模型里，方法是特别为对象打造的 (specialized)。 如果我们仅特化第一个参数，那么通用函数模型和消息传递模型就是一样的。但在通用函数模型里，我们可以更进一步，要特化几个参数就几个。这也表示了，功能上来说，消息传递模型是通用函数模型的子集。如果你有通用函数模型，你可以仅特化第一个参数来模拟出消息传递模型。</p>
+</div>
+<div class="section" id="chapter-11-summary">
+<h2>Chapter 11 总结 (Summary)<a class="headerlink" href="#chapter-11-summary" title="永久链接至标题">¶</a></h2>
+<ol class="arabic simple">
+<li>在面向对象编程中，函数 <tt class="docutils literal"><span class="pre">f</span></tt> 通过定义拥有 <tt class="docutils literal"><span class="pre">f</span></tt> 方法的对象来隐式地定义。对象从它们的父母继承方法。</li>
+<li>定义一个类别就像是定义一个结构，但更加啰嗦。一个共享的槽属于一整个类别。</li>
+<li>一个类别从基类中继承槽。</li>
+<li>一个类别的祖先被排序成一个优先级列表。理解优先级算法最好的方式就是通过视觉。</li>
+<li>一个通用函数由一个给定名称的所有方法所组成。一个方法通过名称及特化参数来识别。参数的优先级决定了当调用一个通用函数时会使用哪个方法。</li>
+<li>方法可以通过辅助方法来增强。标准方法组合机制意味著如果有 <tt class="docutils literal"><span class="pre">:around</span></tt> 方法的话就调用它；否则依序调用 <tt class="docutils literal"><span class="pre">:before</span></tt> ，最具体的主方法以及 <tt class="docutils literal"><span class="pre">:after</span></tt> 方法。</li>
+<li>在操作符方法组合机制中，所有的主方法都被视为某个操作符的参数。</li>
+<li>封装可以通过包来实现。</li>
+</ol>
+<ol class="arabic simple" start="10">
+<li>面向对象编程有两个模型。通用函数模型是广义的消息传递模型。</li>
+</ol>
+</div>
+<div class="section" id="chapter-11-exercises">
+<h2>Chapter 11 练习 (Exercises)<a class="headerlink" href="#chapter-11-exercises" title="永久链接至标题">¶</a></h2>
+<ol class="arabic simple">
+<li>替图 11.2 所定义的类定义存取器、 initforms 以及 initargs 。重写相关的代码使其再也不用调用 <tt class="docutils literal"><span class="pre">slot-value</span></tt> 。</li>
+<li>重写图 9.5 的代码，使得球体与点为类别，而 <tt class="docutils literal"><span class="pre">intersect</span></tt> 及 <tt class="docutils literal"><span class="pre">normal</span></tt> 为通用函数。</li>
+<li>假设有若干类别定义如下：</li>
+</ol>
+<div class="highlight-cl"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nb">defclass</span> <span class="nv">a</span> <span class="p">(</span><span class="nv">c</span> <span class="nv">d</span><span class="p">)</span>   <span class="o">...</span><span class="p">)</span>  <span class="p">(</span><span class="nb">defclass</span> <span class="nv">e</span> <span class="p">()</span>  <span class="o">...</span><span class="p">)</span>
+<span class="p">(</span><span class="nb">defclass</span> <span class="nv">b</span> <span class="p">(</span><span class="nv">d</span> <span class="nv">c</span><span class="p">)</span>   <span class="o">...</span><span class="p">)</span>  <span class="p">(</span><span class="nb">defclass</span> <span class="nv">f</span> <span class="p">(</span><span class="nv">h</span><span class="p">)</span> <span class="o">...</span><span class="p">)</span>
+<span class="p">(</span><span class="nb">defclass</span> <span class="nv">c</span> <span class="p">()</span>      <span class="o">...</span><span class="p">)</span>  <span class="p">(</span><span class="nb">defclass</span> <span class="nv">g</span> <span class="p">(</span><span class="nv">h</span><span class="p">)</span> <span class="o">...</span><span class="p">)</span>
+<span class="p">(</span><span class="nb">defclass</span> <span class="nv">d</span> <span class="p">(</span><span class="nv">e</span> <span class="nv">f</span> <span class="nv">g</span><span class="p">)</span> <span class="o">...</span><span class="p">)</span>  <span class="p">(</span><span class="nb">defclass</span> <span class="nv">h</span> <span class="p">()</span>  <span class="o">...</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<ol class="loweralpha simple">
+<li>画出表示类别 <tt class="docutils literal"><span class="pre">a</span></tt> 祖先的网络以及列出 <tt class="docutils literal"><span class="pre">a</span></tt> 的实例归属的类别，从最相关至最不相关排列。</li>
+<li>替类别 <tt class="docutils literal"><span class="pre">b</span></tt> 也做 (a) 小题的要求。</li>
+</ol>
+<ol class="arabic simple" start="4">
+<li>假定你已经有了下列函数：</li>
+</ol>
+<p><tt class="docutils literal"><span class="pre">precedence</span></tt> ：接受一个对象并返回其优先级列表，列表由最具体至最不具体的类组成。</p>
+<p><tt class="docutils literal"><span class="pre">methods</span></tt> ：接受一个通用函数并返回一个列出所有方法的列表。</p>
+<p><tt class="docutils literal"><span class="pre">specializations</span></tt> ：接受一个方法并返回一个列出所有特化参数的列表。返回列表中的每个元素是类别或是这种形式的列表 <tt class="docutils literal"><span class="pre">(eql</span> <span class="pre">x)</span></tt> ，或是 <tt class="docutils literal"><span class="pre">t</span></tt> （表示该参数没有被特化）。</p>
+<p>使用这些函数（不要使用 <tt class="docutils literal"><span class="pre">compute-applicable-methods</span></tt> 及 <tt class="docutils literal"><span class="pre">find-method</span></tt> ），定义一个函数 <tt class="docutils literal"><span class="pre">most-spec-app-meth</span></tt> ，该函数接受一个通用函数及一个列出此函数被调用过的参数，如果有最相关可用的方法的话，返回它。</p>
+<ol class="arabic simple" start="5">
+<li>不要改变通用函数 <tt class="docutils literal"><span class="pre">area</span></tt> 的行为（图 11.2），</li>
+<li>举一个只有通用函数的第一个参数被特化会很难解决的问题的例子。</li>
+</ol>
+<p class="rubric">脚注</p>
+<table class="docutils footnote" frame="void" id="id6" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[1]</a></td><td>Initarg 的名称通常是关键字，但不需要是。</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id7" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[2]</td><td>我们不可能比较完所有的参数而仍有平手情形存在，因为这样我们会有两个有著同样特化的方法。这是不可能的，因为第二个的定义会覆写掉第一个。</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'acl-chinese';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+                  </div></div>
+              </article><div class="clearer"></div>
+          </div><div class="span3">
+                <div class="sphinxsidebar">
+      <div id="sidenav" class="box sphinxsidebarwrapper">
+
+
+<h4><a href="../index.html">內容目录</a></h4>
+  <ul>
+<li><a class="reference internal" href="#">第十一章：Common Lisp 对象系统</a><ul>
+<li><a class="reference internal" href="#object-oriented-programming">11.1 面向对象编程 Object-Oriented Programming</a></li>
+<li><a class="reference internal" href="#class-and-instances">11.2 类与实例 (Class and Instances)</a></li>
+<li><a class="reference internal" href="#slot-properties">11.3 槽的属性 (Slot Properties)</a></li>
+<li><a class="reference internal" href="#superclasses">11.4 基类 (Superclasses)</a></li>
+<li><a class="reference internal" href="#precedence">11.5 优先级 (Precedence)</a></li>
+<li><a class="reference internal" href="#generic-functions">11.6 通用函数 (Generic Functions)</a></li>
+<li><a class="reference internal" href="#auxiliary-methods">11.7 辅助方法 (Auxiliary Methods)</a></li>
+<li><a class="reference internal" href="#method-combination">11.8 方法组合机制 (Method Combination)</a></li>
+<li><a class="reference internal" href="#encapsulation">11.9 封装 (Encapsulation)</a></li>
+<li><a class="reference internal" href="#two-models">11.10 两种模型 (Two Models)</a></li>
+<li><a class="reference internal" href="#chapter-11-summary">Chapter 11 总结 (Summary)</a></li>
+<li><a class="reference internal" href="#chapter-11-exercises">Chapter 11 练习 (Exercises)</a></li>
+</ul>
+</li>
+</ul>
+
+  
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      
+      
+        <li><a href="https://github.com/acl-translation/acl-chinese/blob/redirect-to-new-domain/zhCN/ch11-cn.rst">
+          Show on GitHub</a></li>
+        <li><a href="https://github.com/acl-translation/acl-chinese/edit/redirect-to-new-domain/zhCN/ch11-cn.rst">
+          Edit on GitHub</a></li>
+      
+    </ul>
+  
+</div>
+    </div>
+              </div></div>
+      </div>
+<footer class="container-fluid">
+        <hr />&copy; 版权所有 2012, Juanito Fatas Huang.最后更新日期是 Apr 22, 2013.使用 <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.</footer>
+ <!-- End original user content -->
+
+
+<br>
+<br>
+<br>
+
+
+<style type="text/css">
+  .rtd-badge {
+    position: fixed;
+    display: block;
+    bottom: 5px;
+    height: 40px;
+    text-indent: -9999em;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -moz-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  }
+  #version_menu {
+    position: fixed;
+    display: none;
+    bottom: 11px;
+    right: 166px;
+    list-style-type: none;
+    margin: 0;
+  }
+  .footer_popout:hover #version_menu {
+    display: block;
+  }
+  #version_menu li {
+    display: block;
+    float: right;
+  }
+  #version_menu li a {
+    display: block;
+    padding: 6px 10px 4px 10px;
+    margin: 7px 7px 0 0;
+    font-weight: bold;
+    font-size: 14px;
+    height: 20px;
+    line-height: 17px;
+    text-decoration: none;
+    color: #fff;
+    background: #8ca1af url(../images/gradient-light.png) bottom left repeat-x;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    box-shadow: 0 1px 1px #465158;
+    -moz-box-shadow: 0 1px 1px #465158;
+    -webkit-box-shadow: 0 1px 1px #465158;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+  }
+  #version_menu li a:hover {
+    text-decoration: none;
+    background-color: #697983;
+    box-shadow: 0 1px 0px #465158;
+    -moz-box-shadow: 0 1px 0px #465158;
+    -webkit-box-shadow: 0 1px 0px #465158;
+  }
+  .rtd-badge.rtd {
+    background: #3b4449 url(//media.readthedocs.org//images/badge-rtd.png) scroll 0px -46px no-repeat;
+    border: 1px solid #282E32;
+    width: 41px;
+    right: 5px;
+  }
+  .footer_popout:hover .rtd-badge.rtd {
+    background-position: top left;
+    width: 160px;
+  }
+  .rtd-badge.revsys { background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline-sponsored {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 290px;
+    right: 173px;
+  }
+  .rtd-badge.revsys-inline {
+    position: inherit;
+    margin-left: auto;
+    margin-right: 175px;
+    margin-bottom: 5px;
+    background: #465158 url(//media.readthedocs.org//images/badge-revsys-sm.png) top left no-repeat;
+    border: 1px solid #1C5871;
+    width: 205px;
+    right: 173px;
+  }
+
+</style>
+<div class="rtd_doc_footer">
+  <div class="footer_popout">
+    <a href="//readthedocs.org/projects/ansi-common-lisp/?fromdocs=ansi-common-lisp" class="rtd-badge rtd"> Brought to you by Read the Docs</a>
+    <ul id="version_menu">
+      
+        <li><a href="/en/latest/">latest</a></li>
+      
+    </ul>
+  </div>
+</div>
+<!-- RTD Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-17997319-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+<!-- User Analytics Code -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-26995626-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+</body>
+</html>
