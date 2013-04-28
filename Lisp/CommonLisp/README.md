@@ -25,6 +25,7 @@ wget http://beta.quicklisp.org/quicklisp.lisp
 
 
 * 启动sbcl：
+
 ```bash
 sbcl --load quicklisp.lisp
 ```
@@ -49,7 +50,7 @@ sbcl --load quicklisp.lisp
 
 ## 用quicklisp安装slime
 
-```common lisp
+```lisp
 (ql:quickload "quicklisp-slime-helper")
 ```
 
