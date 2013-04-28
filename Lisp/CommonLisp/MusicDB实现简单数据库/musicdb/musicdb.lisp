@@ -1,0 +1,200 @@
+#!/usr/bin/sbcl --script
+
+;; zhubuntu <pythonisland@gmail.com>
+;;
+;; program: musicdb.lisp
+;; author : zhubuntu
+;; email  : pythonisland@gmail.com
+;;
+;; version: 1.0
+;; date   : 2012-04-15
+;;
+;; info   : run a common lisp script with sbcl
+;;          a music cd database for test
+;;
+;; usage  :
+;;          (load "musicdb.lisp")
+;;          (in-package musicdb)
+;;          (help)
+;;          (help "add-cds")
+
+
+(format t "~a~%" "in file musicdb.lisp")
+
+;; 自定义包
+(defpackage :musicdb
+  (:use :common-lisp
+	:common-lisp-user)
+  (:export :add-cds
+	   :update
+	   :save-db
+	   :load-db
+	   :select
+	   :delete-rows
+	   :help
+	   :add-record))
+
+
+
+
+;; 加载库common-lisp-user,这个包用到common-lisp
+;; 查看包用*package*，或者common-lisp:*package*,或者cl:*package*
+;;(in-package cl-user)
+(in-package musicdb)
+
+;; 全局变量*db*存储数据库
+(defvar *db* nil)
+
+
+;; 创建一条音乐记录
+(defun make-cd (title artist rating ripped)
+  (list :title title :artist artist :rating rating :ripped ripped))
+
+
+;; 添加音乐记录到数据库
+(defun add-record (cd)
+  (push cd *db*))
+
+
+;; 从标准输入添加音乐记录
+(defun prompt-read (prompt)
+  (format *query-io* "~a: " prompt)    
+  (force-output *query-io*)        ;*query-io*绑定到标准输入
+  (read-line *query-io*))	   ;从标准输入读取一行
+
+
+;; 连续添加多条音乐记录
+(defun prompt-for-cd ()
+  (make-cd
+   (prompt-read "Title")
+   (prompt-read "Artist")
+   (or (parse-integer (prompt-read "Rating") :junk-allowed t) 0)
+   (y-or-n-p "Ripped [y/n]")))
+
+
+;;添加音乐记录
+(defun add-cds ()
+  (loop (add-record (prompt-for-cd))
+    (if (not (y-or-n-p "Another? [y/n]: "))
+        (return))))
+
+
+;; 以易读形式打印数据库
+;; t，绑定标准输出*standard-output*
+;; ~a，以易读形式打印
+;; ~{，列表的开始
+;; ~t, 制表符
+;; ~%, 换行
+;; ~}, 列表的结束
+(defun dump-db (&optional database)
+  (if database
+      ()
+      (setf database *db*))
+  (dolist (cd database)
+    (format t "~{~a: ~10t~a~%~}~%" cd))) 
+
+
+;; 保存数据库到文件
+;; print保存为lisp可读懂格式
+;; format打印为人类可读懂形式
+(defun save-db (filename)
+  (with-open-file (out filename
+               :direction :output
+               :if-exists :supersede)
+          (with-standard-io-syntax
+           (print *db* out))))  
+
+
+;; 加载数据库文件
+(defun load-db (filename)
+  (with-open-file (in filename)
+          (with-standard-io-syntax
+           (setf *db* (read in)))))
+
+
+;; 查询
+(defun select (selector-fn)
+  (remove-if-not selector-fn *db*))
+
+;; 以artist关键字查询
+;;(defun artist-selector (artist)
+;;  #'(lambda (cd) (equal (getf cd :artist) artist)))
+
+;; 以title关键字查询
+;;(defun title-selector (title)
+;;  #'(lambda (cd) (equal (getf cd :title) title)))
+
+;; 以rating关键字查询
+;;(defun rating-selector (rating)
+;;  #'(lambda (cd) (equal (getf cd :rating) rating)))
+
+;; 以ripped关键字查询
+;;(defun ripped-selector (ripped)
+;;   #'(lambda (cd) (equal (getf cd :ripped) ripped)))
+
+
+;; 自动匹配关键字查询，替换4个selector函数
+;;(defun where (&key title artist rating (ripped nil ripped-p))
+;;  #'(lambda (cd)
+;;      (and
+;;       (if title  (equal (getf cd :title) title) t)
+;;       (if artist (equal (getf cd :artist) artist) t)
+;;       (if rating (equal (getf cd :rating) rating) t)
+;;       (if ripped (equal (getf cd :ripped) ripped) t))))
+
+
+;; 更新数据库
+(defun update (selector-fn &key title artist rating (ripped nil ripped-p))
+  (setf *db*
+	(mapcar
+	 #'(lambda (row)
+	     (when (funcall selector-fn row)
+	       (if title  (setf (getf row :title) title))
+	       (if artist (setf (getf row :artist) artist))
+	       (if rating (setf (getf row :rating) rating))
+	       (if ripped-p (setf (getf row :ripped) ripped)))
+	       row)
+	     *db*)))
+
+
+;; 删除数据库记录
+(defun delete-rows (selector-fn)
+  (setf *db* (remove-if selector-fn *db*)))
+
+
+;; 生成表达式
+(defun make-comparison-expr (field value)
+  `(equal (getf cd ,field) ,value))
+
+;; 生成表达式列表
+(defun make-comparisons-list (fields)
+  (loop while fields
+       collecting (make-comparison-expr (pop fields) (pop fields))))
+
+;; 定义宏where代替函数where，更抽象、易维护
+(defmacro where (&rest clauses)
+  `#'(lambda (cd) (and ,@(make-comparisons-list clauses))))
+
+;; 函数调用举例
+(defun help (&optional cmd)
+  (if (equal cmd "update")
+      (format t "~a:~%~10t~a~%" "example" "(update (where :artist \"zhubuntu\") :artist \"leslie\")"))
+  (if (equal cmd "delete-rows")
+      (format t "~a:~%~10t~a~%" "example" "(delete-rows (where :artist \"zhubuntu\")"))
+  (if (equal cmd "select")
+      (format t "~a:~%~10t~a~%" "example" "(select (where :artist \"zhubuntu\")"))
+  (if (equal cmd "add-cds")
+      (format t "~a:~%~10t~a~%" "example" "(add-cds)"))
+  (if (equal cmd "dump-db")
+      (format t "~a:~%~10t~a~%" "example" "(dump-db)"))
+  (if (equal cmd "save-db")
+      (format t "~a:~%~10t~a~%" "example" "(save-db \"filename.db\")"))
+  (if (equal cmd "load-db")
+      (format t "~a:~%~10t~a~%" "example" "(load-db \"filename.db\")"))
+  (if (equal cmd "add-record")
+      (format t "~a:~%~10t~a~%" "example" "(add-record (make-cd \"Love Min\" \"zhubuntu\" 8 t)"))
+  (if (not cmd)
+      (format t "~a:~%~10t~a~%" "Usage" "commands: add-record,update,delete-rows,select,add-cds,dump-db,save-db,load-db")))
+  
+
+
