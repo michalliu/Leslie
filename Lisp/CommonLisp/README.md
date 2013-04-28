@@ -80,11 +80,41 @@ sbcl --load quicklisp.lisp
 
 
 
-## 启动emacs，M-x slime启动slime，进入交互式cl编程环境，大功告成！
+## 启动emacs，M-x slime启动slime，进入交互式cl编程环境，大功告成！如果还嫌麻烦，直接用Lispbox。
 
+Slime模式一些按键：
 
+* REPL下的快捷键
 
-如果还嫌麻烦，直接用Lispbox。
+```text
+　　M-n/M-p　　向下/向上查找输入历史
+```
+
+* 编辑文件时的快捷键
+
+```text
+    C-x C-e　　                 对光标之前的表达式进行求值
+　　C-x C-r　　                 对一个区域进行求值
+　　C-c C-c　　                 编译光标所在的整个form　　　　　
+　　M-x slime-compile-region　　编译一个区域
+　　C-c C-k　　                 编译并装载(load)当前buffer中的源文件
+　　C-c M-k　　                 编译但是不装载当前文件
+　　C-c C-l　　                 加载当前文件　　　　　　
+　　M-.　　                     查找当前光标下符号的定义
+　　C-x 4 .　　                 在另一个buffer中打开光标下符号的定义(注意最后一个是句号键)
+　　C-c C-d d　　               在一个新的buffer中描述当前光标下的符号
+　　C-c C-d h　　               在Common Lisp Hyperspec中查找当前光标下的符号
+　　C-c C-d ~　　               在Common Lisp Hyperspec中查找某个特定的format控制字符
+　　C-c C-w C-h　　             列出所有与交叉引用相关的快捷键绑定(都是以C-c C-w开头)
+```
+
+* 执行Profile
+
+```text
+　　M-x slime-toggle-profile-fdefinition
+　　M-x slime-profile-package
+　　M-x slime-profile-report
+```
 
 
 
