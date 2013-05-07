@@ -283,33 +283,33 @@ awk 'rand() < 0.05' file(s)
  awk '{100 <= FNR} && {FNR <= 150} &&  /pattern|pattern/ { print FILENAME ":" FNR ":" $0}' file(s)
  ```
  
- * 调换第三字段和第四字段位置：
+* 调换第三字段和第四字段位置：
  ```bash
  awk -F'\t' -v OFS='\t' '{ print $1, $2, $4,$3}' old > new
  awk 'BEGIN { FS=OFS="\t"} {print $1, $2, $4,$3}' old > new
  awk -F'\t' '{ print $1 "\t" $2 "\t" $4 "\t" $3}' old > new
  ```
  
- * 替换分隔符：
+* 替换分隔符：
  ```bash
  sed -e 's/\t/\&/g' file(s)
  awk 'BEGIN { FS="\t";OFS="&"} { $1 = $1; print}' file(s)
  ```
  
- * 删除重复行：
+* 删除重复行：
  ```bash
  sort file(s) | uniq
  sort file(s) | awk 'Last != $0 { print } { Last = $0}'
  ```
  
- * DOS文本转换为UNIX文本：
+* DOS文本转换为UNIX文本：
  ```bash
  sed -e 's/\r$//' file(s)
  sed -e 's/^M$//' file(s)
  mawk 'BEGIN { RS = "\r\n"} { print }' file(s)
  ```
  
- * 将单换行符的行转换为双换行符的行：
+* 将单换行符的行转换为双换行符的行：
  ```bash
  sed -e 's/$/\n/' file(s)
  awk 'BEGIN { ORS = "\n\n" } { print } file(s)
@@ -318,19 +318,19 @@ awk 'rand() < 0.05' file(s)
  awk '{ print; print ""}' file(s)
  ```
  
- * 删除空行或只有空格组成的行：
+* 删除空行或只有空格组成的行：
  ```bash
  gawk 'BEGIN { RS="\n *\n"} 1' file(s)
  ```
 
  
- * 截去HTML文本里以角括号框起的标记标签(markup tag)：
+* 截去HTML文本里以角括号框起的标记标签(markup tag)：
  ```bash
  mawk 'BEGIN { ORS = " "; RS="<[^<>]*>" } {print }' *.html
  ```
 
  
- * 寻找长度超过72个字符的行：
+* 寻找长度超过72个字符的行：
  ```bash
  awk 'length($0) > 72 { print FILENAME ":" FNR ":" $0}' *.f
  ```
