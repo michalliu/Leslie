@@ -253,13 +253,13 @@ awk 'rand() < 0.05' file(s)
 ```
 
  
- * 以空白分割字符的表格中，报告第n栏的和：
+* 以空白分割字符的表格中，报告第n栏的和：
  ```bash
  awk -v COLUMN=n '{ sum += $COLUMN} END{ print sum}' file(s)
  ```
 
  
- * 报表第n栏的平均值：
+* 报表第n栏的平均值：
  ```bash
  awk -v COLUMN=n '{ sum += $COLUMN} END{ print sum/NR}' file(s)
  ```
@@ -271,7 +271,7 @@ awk 'rand() < 0.05' file(s)
  ```
 
  
- * 三种查找文件内文本的方式：
+* 三种查找文件内文本的方式：
  ```bash
  egrep 'pattern|pattern' files(s)
  awk '/pattern|pattern/' files(s)
@@ -405,8 +405,10 @@ if (arrar["sally"] != "")
 ```
 要区分寻找索引（index）和寻找特定值（value)的差异。
 寻找索引需要固定的时间，而值的寻找需要的时间和元素个数成正比，如果要进行大量值的寻找，可以：
+```bash
 for (name in array)
 new_array[array[name]] = name
+```
 以后寻找array的元素值时改为查找new_array的索引。
 
 其它流程控制：
@@ -557,33 +559,20 @@ gawk的--lint选项可以检查len长度有没有超出范围。
 当浮点数转换为连续字符串时，awk会根据内建变量CONVFMT的值来格式化，默认值是”%.6g“。
 
 ```bash
-print(string)                                                            打印字符串
-
-split（string，array，regexp）                               根据regexp拆分数据存入数组
-
-sprintf(format,expression1,expression2,...)              返回格式化字符串
-
-sub（regexp，replacement，target）                    替换target中匹配regexp部分
-
-gsub（regexp，replacement，target）                  同上
-
-match（string，regexp）                                       返回匹配索引或0
-
-substr(string, start, len)                                          返回从start开始长len的串
-
-index（string，find）                                             返回find第一次出现位置或0
-
-tolower（string）                                                   返回小写形式
-
-toupper（string）                                                  返回大写形式
-
-length(string)                                                         返回字符长度
-
-blength(string)                                                                   返回位长度
-
-close（cmd）                                                                    关闭文件或管道
-
-system（cmd）                                                                执行外部程序
+print(string)                                打印字符串
+split（string，array，regexp）               根据regexp拆分数据存入数组
+sprintf(format,expression1,expression2,...)  返回格式化字符串
+sub（regexp，replacement，target）           替换target中匹配regexp部分
+gsub（regexp，replacement，target）          同上
+match（string，regexp）                      返回匹配索引或0
+substr(string, start, len)                   返回从start开始长len的串
+index（string，find）                        返回find第一次出现位置或0
+tolower（string）                            返回小写形式
+toupper（string）                            返回大写形式
+length(string)                               返回字符长度
+blength(string)                              返回位长度
+close（cmd）                                 关闭文件或管道
+system（cmd）                                执行外部程序
 ```
 
  
