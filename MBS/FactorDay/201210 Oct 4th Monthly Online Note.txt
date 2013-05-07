@@ -1,0 +1,11 @@
+03:58    check pod&pox env,re-start pod SysG
+         re-create the temp GN new layout QA table
+         check d101,d102 network,can download files?
+         check obi15 network,can download files?
+
+04:48    must add my email address to the flash rpt send out list
+         must learn how to do monthly rpt
+
+05:59    I just fix scan error script bug,monthly get two problem
+         flash rpt QA program error,then not gen pdf rpt
+         may be x22 awk version problem,why not check it?

@@ -1,0 +1,47 @@
+15:00  rsync data from pod to pox,I fix the cusip talk y_value problem,and fix the update table on dod.I have compressed the data to        2002 on pod,but I have compressed the data to 2005 on pox,so the rsync cost more time which may be a big bug.It's the first shit happened.
+
+22:00  I update the table mic abs 201207 which is a product env table,and run cohort error.....After I fix it with redo createtvl,WM ask me why&how,It's the second shit happened.
+
+2:00   rsync data from pod to pox ,only node 33 and 34 are bad eggs,I hope the rsync can be over before 3:00,It's the third shit happened.
+
+2:00   we will run program on pod & pox at the same time.So 
+       a. comment the mail process on pod
+       b. re-view the scripts on pox
+
+3:05  rsync done,but test pox seems error,there is no time to do more test now,so use pod for flash report.
+
+4:30  data incoming
+
+4:40  send flash report,even the first two line with -9.99 data
+
+5:25  get Prepayment report,but there are so many error about rsync,report...etc
+
+5:46  I find a error,but they there is no error and send the prepayment report&specpool report.It's may be a nother shit happened.
+
+6:03  there is may be a error in specpool report,as the CR first gen after 2012,but it shows in the 2010...but after checked,the CR is new issure,so it's correct.
+
+6:59  the specpool get a error with CR, so redo the specpool report,but they go home...
+
+7:05  the servier report gen,but the title should change....so the program should auto-gen title......there is a long time to wait the fn program run
+
+8:41  fh data useable.....
+
+9:25  send fh prepayment report....
+
+9:44  gn data useable....
+
+10:00 get four posts from minmin
+
+10:52 a gn data file download error....re-run the y_value&by_variable 
+
+11:28  loan level data updated,gen report now
+
+14:53  the gn data still on the way...I fix the CusipTalk y_value and MarketTrended y_value&by_variable which cost my one full week time...I cost so long time to do it,but I think it's a good beginning to control UB System....
+
+15:57  waiting the gn data which will may be ready 8:00,then there is need 4 hours to do the gn monthly job.We can do a rsync in the WAITTING time.
+
+22:00 after a long time work,I have a loog time sleep.Eat something,going on now.....we have been up about 36 hours
+
+23:09  redo rsync scale is 84/248,we must rsync data before 22:00 tomorrow....the gn data still on the way which use ART copying....
+
+Over
