@@ -1,0 +1,28 @@
+#+STARTUP: overview
+#+STARTUP: content
+#+STARTUP: showall
+#+STARTUP: showeverything
+#+OPTIONS: author
+#+STARTUP: indent
+
+#+STARTUP: hideblocks
+#+STARTUP: nohideblocks
+#+OPTIONS: ^:{}
+#+OPTIONS: LaTeX:t         
+#+OPTIONS: LaTeX:dvipng    
+#+OPTIONS: LaTeX:nil       
+#+OPTIONS: LaTeX:verbatim  
+
+#+STYLE: <link rel="stylesheet" type="text/css" href="./orgstyle.css" />
+
+#+OPTIONS: H:8
+#+OPTIONS: toc:2    (only to two level in TOC)
+#+OPTIONS: author:nil
+#+OPTIONS: email:nil
+
+
+#+TITLE: sed
+#+DATE: 04/11/2013
+
+* hello
+  hello
